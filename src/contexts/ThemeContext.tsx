@@ -1,6 +1,11 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useLayoutEffect,
+} from "react";
 
-type Theme = 'light' | 'dark';
+type Theme = "light" | "dark";
 
 interface ThemeContextType {
   theme: Theme;
@@ -9,24 +14,35 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Default to dark to match original design, or check localStorage
+export const ThemeProvider: React.FC<{
+  children: React.ReactNode;
+}> = ({ children }) => {
   const [theme, setTheme] = useState<Theme>(() => {
-    const saved = localStorage.getItem('theme');
-    return (saved as Theme) || 'dark';
+    const savedTheme = localStorage.getItem("theme");
+
+    if (savedTheme === "dark" || savedTheme === "light") {
+      return savedTheme;
+    }
+
+    return "light";
   });
 
-  useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem('theme', theme);
+  useLayoutEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+    localStorage.setItem("theme", theme);
   }, [theme]);
 
   const toggleTheme = () => {
-    setTheme(prev => prev === 'dark' ? 'light' : 'dark');
+    setTheme((prev) => (prev === "dark" ? "light" : "dark"));
   };
 
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme }}>
+    <ThemeContext.Provider
+      value={{
+        theme,
+        toggleTheme,
+      }}
+    >
       {children}
     </ThemeContext.Provider>
   );
@@ -34,8 +50,10 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
 export const useTheme = () => {
   const context = useContext(ThemeContext);
+
   if (!context) {
-    throw new Error('useTheme must be used within a ThemeProvider');
+    throw new Error("useTheme must be used within ThemeProvider");
   }
+
   return context;
 };

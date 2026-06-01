@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { FileText, Upload, Trash2, Eye, Download, Search } from 'lucide-react';
-import { useLanguage } from '../contexts/LanguageContext';
-import type { DocumentFile } from '../utils/masterTypes';
+import { useLanguage } from '../../contexts/LanguageContext';
+import type { DocumentFile } from '../../utils/masterTypes';
 
 const initialDocs: DocumentFile[] = [
   { id: '1', name: 'Employee_Handbook_2024.pdf', type: 'application/pdf', size: '2.4 MB', date: '2023-01-15', category: 'Policy' },

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, MapPin, Clock } from 'lucide-react';
-import { useLanguage } from '../contexts/LanguageContext';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 interface Event {
   id: string;

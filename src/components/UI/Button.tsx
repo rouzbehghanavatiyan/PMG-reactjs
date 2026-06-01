@@ -1,0 +1,124 @@
+import React from "react";
+import clsx from "clsx";
+
+type ButtonVariant =
+  | "primary"
+  | "secondary"
+  | "danger"
+  | "ghost"
+  | "outline-primary"
+  | "outline-secondary"
+  | "outline-danger"
+  | "outline-ghost";
+
+type ButtonSize = "sm" | "md" | "lg";
+
+type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
+  loading?: boolean;
+  leftIcon?: React.ReactNode;
+  rightIcon?: React.ReactNode;
+  variant?: ButtonVariant;
+  size?: ButtonSize;
+  fullWidth?: boolean;
+  spinnerClassName?: string;
+  label?: React.ReactNode;
+};
+
+const Spinner: React.FC<{ className?: string }> = ({ className }) => (
+  <span
+    className={clsx(
+      "inline-block size-4 rounded-full border-2 border-white/40 border-t-white animate-spin",
+      className,
+    )}
+    aria-hidden="true"
+  />
+);
+
+const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+  (
+    {
+      className,
+      label,
+      children,
+      loading = false,
+      disabled,
+      leftIcon,
+      rightIcon,
+      variant = "primary",
+      size = "md",
+      fullWidth = false,
+      spinnerClassName,
+      type,
+      ...rest
+    },
+    ref,
+  ) => {
+    const isDisabled = disabled || loading;
+
+    const base =
+      "inline-flex items-center justify-center gap-2 rounded-lg font-bold transition-all select-none " +
+      "cursor-pointer " +
+      "focus:outline-none focus-visible:ring-2 focus-visible:ring-bmw-blue focus-visible:ring-offset-2 " +
+      "focus-visible:ring-offset-bmw-surface disabled:opacity-60 disabled:cursor-not-allowed";
+
+    const sizes: Record<ButtonSize, string> = {
+      sm: "px-3 py-2 text-sm",
+      md: "px-4 py-3 text-sm",
+      lg: "px-5 py-3.5 text-base",
+    };
+
+    const variants: Record<ButtonVariant, string> = {
+      primary: "bg-bmw-blue text-white hover:bg-blue-600",
+      secondary: "bg-bmw-surface text-bmw-text hover:bg-bmw-base",
+      danger: "bg-red-600 text-white hover:bg-red-700",
+      ghost: "bg-transparent text-bmw-text hover:bg-bmw-base",
+
+      "outline-primary":
+        "border border-bmw-blue bg-transparent text-bmw-blue hover:bg-bmw-blue/10",
+      "outline-secondary":
+        "border border-bmw-border bg-transparent text-bmw-text hover:bg-bmw-base",
+      "outline-danger":
+        "border border-red-600 bg-transparent text-red-600 hover:bg-red-50",
+      "outline-ghost":
+        "border border-transparent bg-transparent text-bmw-text hover:bg-bmw-base",
+    };
+
+    return (
+      <button
+        ref={ref}
+        type={type}
+        disabled={isDisabled}
+        className={clsx(
+          base,
+          sizes[size],
+          variants[variant],
+          fullWidth ? "w-full" : "w-auto",
+          className,
+        )}
+        aria-busy={loading ? true : undefined}
+        {...rest}
+      >
+        {loading ? (
+          <Spinner
+            className={clsx(
+              variant === "primary" || variant === "danger"
+                ? "border-white/40 border-t-white"
+                : "border-current/30 border-t-current",
+              spinnerClassName,
+            )}
+          />
+        ) : (
+          <>
+            {leftIcon}
+            {label ?? children}
+            {rightIcon}
+          </>
+        )}
+      </button>
+    );
+  },
+);
+
+Button.displayName = "Button";
+
+export default Button;

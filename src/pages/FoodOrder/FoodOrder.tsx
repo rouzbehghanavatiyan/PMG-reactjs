@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Utensils, Calendar, Check, Leaf, Flame, Info } from 'lucide-react';
-import { useLanguage } from '../contexts/LanguageContext';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 type MealType = 'A' | 'B' | 'None';
 

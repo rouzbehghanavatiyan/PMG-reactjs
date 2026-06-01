@@ -12,7 +12,7 @@ import {
   Network,
   LayoutGrid
 } from 'lucide-react';
-import { useLanguage } from '../contexts/LanguageContext';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 const OrganizationERP: React.FC = () => {
   const { t } = useLanguage();

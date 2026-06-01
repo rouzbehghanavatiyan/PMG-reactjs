@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { HelpCircle, ChevronDown, ChevronUp, Search, BookOpen, MessageCircle } from 'lucide-react';
-import { useLanguage } from '../contexts/LanguageContext';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 interface FAQItem {
   id: string;
