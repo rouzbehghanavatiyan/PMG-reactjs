@@ -8,6 +8,8 @@ import { usersLogin } from "../../services/dotNet";
 import Button from "../../components/UI/Button";
 import { useToast } from "../../hooks/useToast";
 import ShowCapchaModal from "./ShowCapchaModal";
+import { asyncWrapper } from "../../utils/asyncWrapper";
+import { useApi } from "../../hooks/useApi";
 
 const Login: React.FC<any> = () => {
   const { t } = useLanguage();
@@ -16,36 +18,24 @@ const Login: React.FC<any> = () => {
   const toast = useToast();
   const [showCapchaModal, setShowCapchaModal] = useState(false);
   const [persoanlCode, setPersoanlCode] = useState("");
+  const { call, loading } = useApi();
 
-  const onSubmit = async (data: any) => {
-    setPersoanlCode(data.personalCode);
-
+  const onSubmit = asyncWrapper(async (fields: any) => {
+    setPersoanlCode(fields.personalCode);
     setLoadingBtn(true);
-    const postData = {
-      personalCode: data.personalCode,
-    };
-    try {
-      setShowCapchaModal(true);
-      const res = await usersLogin(postData);
-      const { code, message, data }: any = res?.data;
-      if (code === 0) {
-        if (data?.IsSuccess === true) {
-          toast.success(data?.message);
-        } else {
-          toast.warning(data?.message);
-        }
-        setLoadingBtn(false);
+    const res = await usersLogin({ personalCode: fields.personalCode });
+    const { code, message, data }: any = res?.data;
+    if (code === 0) {
+      if (data?.isSuccess) {
+        setShowCapchaModal(true);
+        toast.success(data?.message);
       } else {
-        toast.error(message);
+        toast.warning(data?.message);
       }
-      console.log(res);
-    } catch (error) {
-      console.log(error);
-      setLoadingBtn(false);
-    } finally {
-      setLoadingBtn(false);
+    } else {
+      toast.error(message);
     }
-  };
+  }, toast);
 
   return (
     <>

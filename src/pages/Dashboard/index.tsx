@@ -6,6 +6,8 @@ import BirthdaysWidget from "../BirthdaysWidget";
 import { allNewsData } from "../../data/news";
 import { useAppSelector } from "../../features/store";
 import { getallcompanynews } from "../../services/dotNet";
+import { useApi } from "../../hooks/useApi";
+import StringHelpers from "../../utils/stringHelpers";
 
 const Dashboard: React.FC = () => {
   const { t, language } = useLanguage();
@@ -13,6 +15,8 @@ const Dashboard: React.FC = () => {
   const [getAllNews, setGetAllNews] = useState([]);
   const user = useAppSelector((state) => state);
   const firstName = user?.main?.userLogin?.FirstName;
+  const { call } = useApi();
+
   const notificationsData = {
     en: [
       {
@@ -48,13 +52,13 @@ const Dashboard: React.FC = () => {
     notificationsData[language === "fa" ? "fa" : "en"];
   const currentLinks = linksData[language === "fa" ? "fa" : "en"];
 
-  const handleGetAllNews = async () => {
-    const res = await getallcompanynews();
-    const { result, message, code } = res?.data;
-    if (code === 0) {
-      setGetAllNews(result);
-    } else {
-    }
+  const handleGetAllNews = () => {
+    return call(getallcompanynews, {
+      showSuccessMessage: false,
+      onSuccess: (data) => {
+        setGetAllNews(data?.result);
+      },
+    });
   };
 
   useEffect(() => {
@@ -121,7 +125,6 @@ const Dashboard: React.FC = () => {
           </div>
         ))}
       </div>
-
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-6">
           <div className="flex items-center justify-between">
@@ -135,41 +138,44 @@ const Dashboard: React.FC = () => {
               {t("view_all")}
             </button>
           </div>
-
           <div className="grid gap-6">
             {getAllNews.map((news: any) => (
               <div
                 key={news.id}
-                className="bg-bmw-surface border border-bmw-border rounded-lg overflow-hidden flex flex-col md:flex-row hover:shadow-xl hover:shadow-black/10 transition-shadow"
+                className="bg-bmw-surface cursor-pointer border border-bmw-border rounded-lg overflow-hidden flex flex-col md:flex-row hover:shadow-xl hover:shadow-black/10 transition-shadow"
               >
                 <div className="md:w-48 h-48 md:h-auto shrink-0 relative">
-                  <img
-                    src={news.imageUrl}
-                    alt={news.title}
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute top-2 start-2 bg-bmw-blue text-white text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wider">
-                    {news.categoryTitle}
-                  </div>
+                  {news.attachments?.length !== 0 ? (
+                    <img
+                      src={StringHelpers.getImage(news.attachments?.[0])}
+                      alt={news.title}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : null}
+                  {news.categoryTitle && (
+                    <div className="absolute top-2 start-2 bg-bmw-blue text-white text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wider">
+                      {news.categoryTitle}
+                    </div>
+                  )}
                 </div>
                 <div className="p-5 flex flex-col justify-between flex-1">
                   <div>
                     <h3 className="text-lg font-bold text-bmw-text mb-2">
-                      {news.content}
+                      {news.title}
                     </h3>
                     <p className="text-bmw-textSec text-sm line-clamp-2">
-                      {news.summary}
+                      {news.content.split(" ").slice(0, 10).join(" ")}...
                     </p>
                   </div>
                   <div className="flex items-center justify-between mt-4">
-                    <span className="text-xs text-bmw-textSec">
-                      {news.date}
+                    <span className="text-xs text-gray-400 text-bmw-textSec">
+                      {StringHelpers.toPersianDateTime(news.createdAt)}
                     </span>
                     <button
                       onClick={() => navigate(`/news/${news.id}`)}
                       className="text-sm text-bmw-text flex items-center gap-1 hover:text-bmw-blue transition-colors"
                     >
-                      {t("read_more")}{" "}
+                      {t("read_more")}
                       <ArrowUpRight size={14} className="rtl:rotate-180" />
                     </button>
                   </div>

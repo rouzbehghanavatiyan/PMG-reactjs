@@ -9,5 +9,5 @@ export const verifyLoginCode = async (postData: any) => {
 };
 
 export const getallcompanynews = async () => {
-  return await api.get("/api/companynews/getallcompanynews");
+  return await api.get("/api/companynews/getAllCompanyNews");
 };
