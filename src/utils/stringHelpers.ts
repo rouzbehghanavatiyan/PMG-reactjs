@@ -6,9 +6,8 @@ export default class StringHelpers {
   static baseURL: string | undefined = import.meta.env.VITE_API_URL;
 
   static getImage = (data: any, code?: string | number) => {
-    return `${StringHelpers.baseURL}/${data?.attachmentType}/${
-      data?.fileName || code
-    }${data?.ext}`;
+    return `${StringHelpers.baseURL}/uploads/${data?.fileName}`;
+    // return `${StringHelpers.baseURL}/${data?.attachmentType}/${data?.fileName}`;
   };
   static toPersianDateTime = (date: string) => {
     return new DateObject({
@@ -16,5 +15,8 @@ export default class StringHelpers {
       calendar: persian,
       locale: persian_fa,
     }).format("YYYY/MM/DD");
+  };
+  static filterIsActive = (data: any) => {
+    return data?.filter((item: any) => item?.isActive);
   };
 }

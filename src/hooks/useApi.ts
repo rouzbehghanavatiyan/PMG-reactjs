@@ -1,19 +1,15 @@
-import { useState } from "react";
 import { useToast } from "./useToast";
 
-type ApiFn<T> = (...args: any[]) => Promise<T>;
-
-export const useApi = <T>() => {
-  const [loading, setLoading] = useState(false);
+export const useApi = ({ loading, setLoading }: any) => {
   const toast = useToast();
 
   const call = async (
-    apiFn: ApiFn<T>,
+    apiFn: any,
     options?: {
       onSuccess?: (data: any) => void;
       onError?: (message: string) => void;
       successMessageKey?: string;
-      showSuccessMessage?: boolean; 
+      showSuccessMessage?: boolean;
     },
   ) => {
     setLoading(true);

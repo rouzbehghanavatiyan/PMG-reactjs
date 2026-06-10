@@ -12,6 +12,8 @@ import {
 } from "lucide-react";
 import { useLanguage } from "../contexts/LanguageContext";
 import { useAppSelector } from "../features/store";
+import CustomImage from "../components/UI/CustomImage";
+import BackPMG from "../assets/profilecover.png";
 
 const Profile: React.FC = () => {
   const { t, dir, language } = useLanguage();
@@ -63,26 +65,18 @@ const Profile: React.FC = () => {
   return (
     <div className="max-w-5xl mx-auto space-y-8">
       <div className="relative mb-16">
-        <div className="h-48 w-full from-gray-900 to-bmw-border rounded-xl overflow-hidden relative">
+        <div className="h-48 w-full bg-gradient-to-r from-gray-900 to-bmw-border rounded-xl overflow-hidden relative">
           <img
-            src="/assets/profilecover.png"
+            src={BackPMG}
             alt="Cover"
             className="w-full h-full object-cover opacity-30"
           />
-          <div className="absolute inset-0 from-bmw-base to-transparent"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-bmw-base to-transparent"></div>
         </div>
         <div
-          className={`absolute -bottom-12 ${dir === "rtl" ? "right-8" : "left-8"} flex items-end gap-6`}
+          className={`absolute -bottom-12 right-8 flex items-end gap-6`}
         >
-          {false ? (
-            <img
-              src="/assets/1002.jpg"
-              alt="Profile"
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <UserRound className="text-gray-500 text-9xl w-26 h-26 bg-white rounded-full p-1 border border-gray-300 flex justify-center" />
-          )}
+          <CustomImage size={120} />
           <div className="mb-2">
             <h1 className="text-3xl font-bold text-bmw-text">
               {firstName} {lastName}
@@ -154,7 +148,6 @@ const Profile: React.FC = () => {
           </div>
         </div>
 
-        {/* Right Col: Job Description & Integration */}
         <div className="md:col-span-2 space-y-6">
           <div className="bg-bmw-surface border border-bmw-border rounded-lg p-6 shadow-sm">
             <div className="flex justify-between items-start mb-4">

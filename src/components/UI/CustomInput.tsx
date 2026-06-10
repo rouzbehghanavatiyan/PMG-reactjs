@@ -6,7 +6,6 @@ interface CustomInputProps {
   control: any;
   rules?: any;
   label?: string;
-  defaultValue?: string;
   onValueChange?: (value: string) => void;
   numeric?: boolean;
   type?: string;
@@ -14,6 +13,9 @@ interface CustomInputProps {
   className?: string;
   disabled?: boolean;
   maxLength?: number;
+  containerClassName?: string;
+  isTextArea?: boolean;
+  rows?: number;
 }
 
 const CustomInput: React.FC<CustomInputProps> = ({
@@ -22,17 +24,21 @@ const CustomInput: React.FC<CustomInputProps> = ({
   rules,
   label,
   maxLength,
-  defaultValue = "",
   onValueChange,
   numeric = false,
   type,
   className = "",
+  containerClassName,
+  isTextArea = false,
+  rows = 3,
   ...rest
 }) => {
+  const Component = isTextArea ? "textarea" : "input";
+
   return (
-    <div className="w-full">
+    <div className={`w-full ${containerClassName || ""}`}>
       {label && (
-        <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-bmw-textSec">
+        <label className="mb-1 block font-light text-sm text-bmw-textSec">
           {label}
         </label>
       )}
@@ -41,16 +47,18 @@ const CustomInput: React.FC<CustomInputProps> = ({
         name={name}
         control={control}
         rules={rules}
-        defaultValue={defaultValue}
         render={({ field, fieldState }) => (
           <>
-            <input
+            <Component
               {...rest}
               name={field.name}
               maxLength={maxLength}
-              type={type}
+              type={isTextArea ? undefined : type}
+              rows={isTextArea ? rows : undefined}
               value={field.value ?? ""}
-              onChange={(e) => {
+              onChange={(
+                e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+              ) => {
                 let value = e.target.value;
 
                 if (numeric) {
@@ -62,13 +70,12 @@ const CustomInput: React.FC<CustomInputProps> = ({
               }}
               onBlur={field.onBlur}
               ref={field.ref}
-              className={`w-full rounded-lg border px-3 py-2 outline-none transition
-                ${
-                  fieldState.error
-                    ? "border-red-500 focus:border-red-500"
-                    : "border-gray-300 focus:border-blue-500"
-                }
-                ${className}`}
+              style={{ fontSize: "14px" }}
+              className={`w-full rounded-lg thick-text border px-3 py-2 outline-none transition ${
+                fieldState.error
+                  ? "border-red-500 focus:border-red-500"
+                  : "border-gray-300 focus:border-blue-500"
+              } ${className}`}
             />
 
             {fieldState.error?.message && (

@@ -11,3 +11,30 @@ export const verifyLoginCode = async (postData: any) => {
 export const getallcompanynews = async () => {
   return await api.get("/api/companynews/getAllCompanyNews");
 };
+
+export const getAllCategoryNews = async () => {
+  return await api.get("/api/companyNews/getAllCategoryNews");
+};
+
+export const addAttachment = (formData: FormData) => {
+  return api.post("/api/attachment/createAttachment", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+};
+
+export const createCompanyNews = (postData: any) => {
+  return api.post("/api/companyNews/createCompanyNews", postData);
+};
+
+export const deleteCompanyNews = (id: any) => {
+  return api.delete(`/api/companyNews/deleteCompanyNews/${id}`);
+};
+
+export const updateCompanyNews = (postData: any) => {
+  return api.put(
+    `/api/companyNews/updateCompanyNews/${postData?.id}`,
+    postData,
+  );
+};

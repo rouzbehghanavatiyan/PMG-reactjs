@@ -5,11 +5,23 @@ type ButtonVariant =
   | "primary"
   | "secondary"
   | "danger"
+  | "dark"
   | "ghost"
   | "outline-primary"
   | "outline-secondary"
   | "outline-danger"
-  | "outline-ghost";
+  | "outline-ghost"
+  | "warning" // زرد
+  | "success" // سبز
+  | "orange" // نارنجی
+  | "purple" // بنفش
+  | "brown" // قهوه ای
+  | "outline-warning"
+  | "outline-success"
+  | "outline-orange"
+  | "outline-purple"
+  | "outline-dark"
+  | "outline-brown";
 
 type ButtonSize = "sm" | "md" | "lg";
 
@@ -72,6 +84,13 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       secondary: "bg-bmw-surface text-bmw-text hover:bg-bmw-base",
       danger: "bg-red-600 text-white hover:bg-red-700",
       ghost: "bg-transparent text-bmw-text hover:bg-bmw-base",
+      dark: "bg-gray-900 text-white hover:bg-blue-800",
+      // New variants
+      warning: "bg-yellow-500 text-black hover:bg-yellow-600",
+      success: "bg-green-500 text-white hover:bg-green-600",
+      orange: "bg-orange-500 text-white hover:bg-orange-600",
+      purple: "bg-purple-500 text-white hover:bg-purple-600",
+      brown: "bg-yellow-800 text-white hover:bg-yellow-900",
 
       "outline-primary":
         "border border-bmw-blue bg-transparent text-bmw-blue hover:bg-bmw-blue/10",
@@ -81,6 +100,19 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         "border border-red-600 bg-transparent text-red-600 hover:bg-red-50",
       "outline-ghost":
         "border border-transparent bg-transparent text-bmw-text hover:bg-bmw-base",
+      // New outline variants
+      "outline-warning":
+        "border border-yellow-500 bg-transparent text-yellow-500 hover:bg-yellow-50",
+      "outline-success":
+        "border border-green-500 bg-transparent text-green-500 hover:bg-green-50",
+      "outline-orange":
+        "border border-orange-500 bg-transparent text-orange-500 hover:bg-orange-50",
+      "outline-purple":
+        "border border-purple-500 bg-transparent text-purple-500 hover:bg-purple-50",
+      "outline-dark":
+        "border border-gray-900 bg-transparent text-gray-900 hover:bg-blue-800",
+      "outline-brown":
+        "border border-yellow-800 bg-transparent text-yellow-800 hover:bg-yellow-700",
     };
 
     return (
@@ -94,6 +126,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
           variants[variant],
           fullWidth ? "w-full" : "w-auto",
           className,
+          "h-10",
         )}
         aria-busy={loading ? true : undefined}
         {...rest}
@@ -101,7 +134,11 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         {loading ? (
           <Spinner
             className={clsx(
-              variant === "primary" || variant === "danger"
+              variant === "primary" ||
+                variant === "danger" ||
+                variant === "success" ||
+                variant === "orange" ||
+                variant === "purple"
                 ? "border-white/40 border-t-white"
                 : "border-current/30 border-t-current",
               spinnerClassName,

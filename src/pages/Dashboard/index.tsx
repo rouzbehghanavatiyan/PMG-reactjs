@@ -1,21 +1,34 @@
 ﻿import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Bell, ArrowUpRight } from "lucide-react";
+import { Bell, ArrowUpRight, Plus } from "lucide-react";
 import { useLanguage } from "../../contexts/LanguageContext";
 import BirthdaysWidget from "../BirthdaysWidget";
-import { allNewsData } from "../../data/news";
 import { useAppSelector } from "../../features/store";
 import { getallcompanynews } from "../../services/dotNet";
 import { useApi } from "../../hooks/useApi";
+import Button from "../../components/UI/Button";
+import AddNews from "./AddNews";
+import InlineLoading from "../../components/UI/InlineLoading";
+import ShowNewsModal from "./ShowNewsModal";
+import AllNews from "./AllNews";
+import PaginationForms from "../../common/PaginationForms";
+import { useHasPermission } from "../../hooks/usePermissions";
 import StringHelpers from "../../utils/stringHelpers";
 
 const Dashboard: React.FC = () => {
   const { t, language } = useLanguage();
   const navigate = useNavigate();
   const [getAllNews, setGetAllNews] = useState([]);
+  const [showAddNews, setShowAddNews] = useState(false);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [showNews, setShowNews] = useState<boolean>(false);
+  const [itemNews, setItemNews] = useState<any>({});
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 3;
   const user = useAppSelector((state) => state);
   const firstName = user?.main?.userLogin?.FirstName;
-  const { call } = useApi();
+  const { hasPermission } = useHasPermission();
+  const { call } = useApi({ loading, setLoading });
 
   const notificationsData = {
     en: [
@@ -42,15 +55,8 @@ const Dashboard: React.FC = () => {
     ],
   };
 
-  const linksData = {
-    en: ["Rahkaran Portal", "BMW Global", "Insurance Portal"],
-    fa: ["پرتال راهکاران", "بی‌ام‌و گلوبال", "پرتال بیمه تکمیلی"],
-  };
-
-  const currentNews = (allNewsData[language] || allNewsData["en"]).slice(0, 3);
   const currentNotifications =
     notificationsData[language === "fa" ? "fa" : "en"];
-  const currentLinks = linksData[language === "fa" ? "fa" : "en"];
 
   const handleGetAllNews = () => {
     return call(getallcompanynews, {
@@ -61,9 +67,24 @@ const Dashboard: React.FC = () => {
     });
   };
 
+  const handleShowAddNews = () => {
+    setShowAddNews(true);
+  };
+
   useEffect(() => {
     handleGetAllNews();
   }, []);
+
+  const handleShowNews = (item: any) => {
+    console.log(item);
+    setItemNews(item);
+    setShowNews(true);
+  };
+
+  const activeNews = StringHelpers.filterIsActive(getAllNews) || [];
+  const totalPages = Math.ceil(activeNews.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const currentNews = activeNews.slice(startIndex, startIndex + itemsPerPage);
 
   return (
     <div className="space-y-8">
@@ -73,7 +94,7 @@ const Dashboard: React.FC = () => {
             {t("welcome")}
             <span className="mx-2">{firstName}</span>
           </h1>
-          <p className="text-bmw-textSec mt-1">{t("welcome_sub")}</p>
+          {/* <p className="text-bmw-textSec mt-1">{t("welcome_sub")}</p> */}
         </div>
         <div className="flex gap-3">
           <button className="p-2 rounded-full bg-bmw-surface border border-bmw-border text-bmw-textSec hover:text-bmw-text hover:bg-bmw-hover transition-colors relative shadow-sm">
@@ -125,68 +146,62 @@ const Dashboard: React.FC = () => {
           </div>
         ))}
       </div>
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 space-y-6">
+      <div className="grid grid-cols-1  lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 space-y-6 ">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold text-bmw-text">
+            <h2 className="text-xl  font-bold text-bmw-text">
               {t("latest_news")}
             </h2>
-            <button
+            {hasPermission("CompanyNews.Create") && (
+              <Button
+                onClick={handleShowAddNews}
+                leftIcon={<Plus />}
+                label="افزودن خبر"
+                variant="success"
+              />
+            )}
+            {/* <button
               onClick={() => navigate("/news")}
               className="text-sm text-bmw-blue hover:text-blue-400"
             >
               {t("view_all")}
-            </button>
+            </button> */}
           </div>
           <div className="grid gap-6">
-            {getAllNews.map((news: any) => (
-              <div
-                key={news.id}
-                className="bg-bmw-surface cursor-pointer border border-bmw-border rounded-lg overflow-hidden flex flex-col md:flex-row hover:shadow-xl hover:shadow-black/10 transition-shadow"
-              >
-                <div className="md:w-48 h-48 md:h-auto shrink-0 relative">
-                  {news.attachments?.length !== 0 ? (
-                    <img
-                      src={StringHelpers.getImage(news.attachments?.[0])}
-                      alt={news.title}
-                      className="w-full h-full object-cover"
+            {loading ? (
+              <span className="flex justify-center mt-10">
+                <InlineLoading isActive={loading} size="xl" />
+              </span>
+            ) : (
+              currentNews.map((news: any) => {
+                return (
+                  currentNews && (
+                    <AllNews
+                      key={news.id}
+                      showAddNews={showAddNews}
+                      setShowAddNews={setShowAddNews}
+                      handleGetAllNews={handleGetAllNews}
+                      handleShowNews={handleShowNews}
+                      news={news}
+                      t={t}
+                      navigate={navigate}
                     />
-                  ) : null}
-                  {news.categoryTitle && (
-                    <div className="absolute top-2 start-2 bg-bmw-blue text-white text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wider">
-                      {news.categoryTitle}
-                    </div>
-                  )}
-                </div>
-                <div className="p-5 flex flex-col justify-between flex-1">
-                  <div>
-                    <h3 className="text-lg font-bold text-bmw-text mb-2">
-                      {news.title}
-                    </h3>
-                    <p className="text-bmw-textSec text-sm line-clamp-2">
-                      {news.content.split(" ").slice(0, 10).join(" ")}...
-                    </p>
-                  </div>
-                  <div className="flex items-center justify-between mt-4">
-                    <span className="text-xs text-gray-400 text-bmw-textSec">
-                      {StringHelpers.toPersianDateTime(news.createdAt)}
-                    </span>
-                    <button
-                      onClick={() => navigate(`/news/${news.id}`)}
-                      className="text-sm text-bmw-text flex items-center gap-1 hover:text-bmw-blue transition-colors"
-                    >
-                      {t("read_more")}
-                      <ArrowUpRight size={14} className="rtl:rotate-180" />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
+                  )
+                );
+              })
+            )}
           </div>
+          {!loading && totalPages > 1 && (
+            <PaginationForms
+              currentPage={currentPage}
+              setCurrentPage={setCurrentPage}
+              totalPages={totalPages}
+            />
+          )}
         </div>
         <div className="space-y-6">
           <div className="bg-bmw-surface border border-bmw-border rounded-lg p-5 shadow-sm">
-            <h3 className="text-lg font-bold text-bmw-text mb-4 flex items-center gap-2">
+            <h3 className="text-lg font-bold text-bmw-text mb-4 flex items-center gap-2 ">
               <Bell size={18} className="text-bmw-blue" /> {t("notifications")}
             </h3>
             <div className="space-y-4">
@@ -209,6 +224,20 @@ const Dashboard: React.FC = () => {
           <BirthdaysWidget />
         </div>
       </div>
+      {showNews && (
+        <ShowNewsModal
+          itemNews={itemNews}
+          showNews={showNews}
+          setShowNews={setShowNews}
+        />
+      )}
+      {showAddNews && (
+        <AddNews
+          showAddNews={showAddNews}
+          setShowAddNews={setShowAddNews}
+          handleGetAllNews={handleGetAllNews}
+        />
+      )}
     </div>
   );
 };

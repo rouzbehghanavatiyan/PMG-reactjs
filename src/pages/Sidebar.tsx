@@ -9,18 +9,14 @@ import {
   Ticket,
   LogOut,
   Settings,
-  Menu,
   X,
-  Globe,
-  Sun,
-  Moon,
   CalendarDays,
   ClipboardList,
   LayoutGrid,
 } from "lucide-react";
 import { useLanguage } from "../contexts/LanguageContext";
-import { useTheme } from "../contexts/ThemeContext";
 import ThemeAndLang from "../common/ThemeAndLang";
+import { useAppSelector } from "../features/store";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -30,8 +26,9 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
   const navigate = useNavigate();
   const { t, language, setLanguage, dir } = useLanguage();
-  const { theme, toggleTheme } = useTheme();
-
+  const user = useAppSelector((state) => state);
+  const firstName = user?.main?.userLogin?.FirstName;
+  const lastName = user?.main?.userLogin?.LastName;
   const handleLogout = () => {
     navigate("/");
   };
@@ -52,7 +49,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
     { icon: Ticket, label: "support", path: "/support" },
   ];
 
-  // Determine transform based on direction
   const hiddenTransform =
     dir === "rtl" ? "translate-x-full" : "-translate-x-full";
 
@@ -63,28 +59,32 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
         onClick={() => setIsOpen(false)}
       />
       <aside
-        className={`fixed top-0 ${dir === "rtl" ? "right-0 border-s" : "left-0 border-r"} h-full w-64 bg-bmw-surface border-bmw-border z-50 transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${isOpen ? "translate-x-0" : hiddenTransform}`}
+        className={`
+    fixed inset-y-0 
+    ${dir === "rtl" ? "right-0 border-l" : "left-0 border-r"}
+    w-64
+    bg-bmw-surface
+    border-bmw-border
+    z-50
+    flex flex-col
+    transform transition-transform duration-300 ease-in-out
+    lg:translate-x-0
+    ${isOpen ? "translate-x-0" : dir === "rtl" ? "translate-x-full" : "-translate-x-full"}
+  `}
       >
         <ThemeAndLang />
         <div className="flex flex-col h-full">
-          <div className="h-20 flex items-center justify-between px-6 border-b border-bmw-border">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full from-blue-900 to-bmw-blue flex items-center justify-center border border-white/20">
-                <span className="text-white font-bold text-xs">PK</span>
-              </div>
-              <span className="text-bmw-text font-semibold tracking-wide text-lg">
-                PERSIA<span className="font-light">KHODRO</span>
-              </span>
-            </div>
-            <button
-              onClick={() => setIsOpen(false)}
-              className="lg:hidden text-bmw-textSec hover:text-bmw-text"
-            >
-              <X size={24} />
-            </button>
+          <div className="bg-gray-100 mt-4 py-2 flex items-center justify-center gap-2 ">
+            <span className="font-light text-lg">{firstName}</span>
+            <span className="font-light">{lastName}</span>
           </div>
-
-          <nav className="flex-1 py-6 px-3 space-y-1">
+          <button
+            onClick={() => setIsOpen(false)}
+            className="lg:hidden text-bmw-textSec hover:text-bmw-text"
+          >
+            <X size={24} />
+          </button>
+          <nav className="flex-1 py-2 px-2 space-y-1">
             {navItems.map((item) => (
               <NavLink
                 key={item.path}
@@ -94,7 +94,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
                   flex items-center gap-3 px-4 py-3 rounded-md transition-all duration-200 group
                   ${
                     isActive
-                      ? "bg-bmw-blue text-white shadow-lg shadow-blue-900/50"
+                      ? "bg-bmw-blue text-white shadow-sm shadow-blue-900/50"
                       : "text-bmw-textSec hover:bg-bmw-hover hover:text-bmw-text"
                   }
                 `}
@@ -106,17 +106,22 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
               </NavLink>
             ))}
           </nav>
-          <div className="p-4 border-t border-bmw-border space-y-2">
-            <button className="flex items-center gap-3 px-4 py-3 w-full text-bmw-textSec hover:text-bmw-text hover:bg-bmw-hover rounded-md transition-colors">
-              <Settings size={20} />
-              <span className="text-sm font-medium">{t("settings")}</span>
+          <div className="p-4 border-t mb-5 border-bmw-border space-y-2 w-full">
+            <button className="flex items-center gap-3 px-4 py-3 w-full max-w-full text-bmw-textSec hover:text-bmw-text hover:bg-bmw-hover rounded-md transition-colors">
+              <Settings size={20} className="shrink-0" />
+              <span className="text-sm font-medium truncate">
+                {t("settings")}
+              </span>
             </button>
+
             <button
               onClick={handleLogout}
-              className="flex items-center gap-3 px-4 py-3 w-full text-red-400 hover:text-red-300 hover:bg-red-900/20 rounded-md transition-colors"
+              className="flex items-center gap-3 px-4 py-3 w-full max-w-full text-red-400 hover:text-red-300 hover:bg-red-900/20 rounded-md transition-colors"
             >
-              <LogOut size={20} className="rtl:rotate-180" />
-              <span className="text-sm font-medium">{t("sign_out")}</span>
+              <LogOut size={20} className="shrink-0" />
+              <span className="text-sm font-medium truncate">
+                {t("sign_out")}
+              </span>
             </button>
           </div>
         </div>

@@ -8,48 +8,50 @@
 
 @theme {
   --font-sans: "Inter", "Vazirmatn", ui-sans-serif, system-ui, sans-serif;
-  
+
   --color-bmw-base: var(--bg-base);
   --color-bmw-surface: var(--bg-surface);
   --color-bmw-border: var(--border);
   --color-bmw-text: var(--text-primary);
   --color-bmw-text-sec: var(--text-secondary);
   --color-bmw-hover: var(--hover-overlay);
-  --color-bmw-blue: #0066B1;
-  
+  --color-bmw-blue: #0066b1;
+
   /* Legacy fallbacks */
   --color-bmw-black: #000000;
-  --color-bmw-dark: #1C1C1C;
+  --color-bmw-dark: #1c1c1c;
   --color-bmw-gray: #262626;
-  --color-bmw-light-gray: #4A4A4A;
-  --color-bmw-white: #FFFFFF;
-  --color-bmw-silver: #E6E6E6;
+  --color-bmw-light-gray: #4a4a4a;
+  --color-bmw-white: #ffffff;
+  --color-bmw-silver: #e6e6e6;
 }
 
 :root {
   /* Default Dark Theme Variables */
   --bg-base: #121212;
-  --bg-surface: #1C1C1C;
+  --bg-surface: #1c1c1c;
   --border: #262626;
-  --text-primary: #FFFFFF;
-  --text-secondary: #9CA3AF; /* gray-400 */
+  --text-primary: #ffffff;
+  --text-secondary: #9ca3af; /* gray-400 */
   --hover-overlay: rgba(255, 255, 255, 0.05);
 }
 
-[data-theme='light'] {
+[data-theme="light"] {
   /* Light Theme Variables */
-  --bg-base: #F3F4F6; /* gray-100 */
-  --bg-surface: #FFFFFF;
-  --border: #E5E7EB; /* gray-200 */
+  --bg-base: #f3f4f6; /* gray-100 */
+  --bg-surface: #ffffff;
+  --border: #e5e7eb; /* gray-200 */
   --text-primary: #111827; /* gray-900 */
-  --text-secondary: #6B7280; /* gray-500 */
+  --text-secondary: #6b7280; /* gray-500 */
   --hover-overlay: rgba(0, 0, 0, 0.05);
 }
 
 body {
   background-color: var(--bg-base);
   color: var(--text-primary);
-  transition: background-color 0.3s, color 0.3s;
+  transition:
+    background-color 0.3s,
+    color 0.3s;
 }
 
 /* Custom Scrollbar */
@@ -57,17 +59,16 @@ body {
   width: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--bg-surface); 
+  background: var(--bg-surface);
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--text-secondary); 
+  background: var(--text-secondary);
   border-radius: 4px;
   opacity: 0.5;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #0066B1; 
+  background: #0066b1;
 }
-
 
 /*! tailwindcss v4.3.0 | MIT License | https://tailwindcss.com */
 @layer properties {
@@ -3463,4 +3464,16 @@ body {
   50% {
     opacity: 0.5;
   }
+}
+
+css-13cymwt-control,
+.css-13cymwt-control input,
+.css-13cymwt-placeholder,
+.css-1dimb5e-singleValue {
+  font-weight: 300 !important;
+  font-size: 15px !important;
+}
+
+.css-13cymwt-control {
+  border-radius: 15px !important;
 }

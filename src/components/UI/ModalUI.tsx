@@ -8,15 +8,19 @@ type ModalUIProps = {
   title?: string;
   children: React.ReactNode;
   footer?: React.ReactNode;
-  size?: "sm" | "md" | "lg" | "xl";
+  size?: "sm" | "md" | "lg" | "xl" | "xxl";
   closeOnBackdrop?: boolean;
+  headColor?: string;
+  padding?: string;
+  maxContentHeight?: string;
 };
 
 const sizeClasses = {
   sm: "max-w-md",
   md: "max-w-lg",
   lg: "max-w-2xl",
-  xl: "max-w-4xl",
+  xl: "max-w-6xl",
+  xxl: "max-w-8xl",
 } as const;
 
 const ANIMATION_MS = 220;
@@ -24,11 +28,14 @@ const ANIMATION_MS = 220;
 const ModalUI: React.FC<ModalUIProps> = ({
   isOpen,
   onClose,
+  headColor = "bg-bmw-blue",
   title,
   children,
+  padding = "p-6",
   footer,
   size = "md",
   closeOnBackdrop = false,
+  maxContentHeight = "max-h-[85vh]",
 }) => {
   const [mounted, setMounted] = useState(false);
   const [visible, setVisible] = useState(false);
@@ -36,7 +43,6 @@ const ModalUI: React.FC<ModalUIProps> = ({
   useEffect(() => {
     if (isOpen) {
       setMounted(true);
-
       requestAnimationFrame(() => setVisible(true));
     } else {
       setVisible(false);
@@ -76,7 +82,7 @@ const ModalUI: React.FC<ModalUIProps> = ({
 
       <div
         className={clsx(
-          "relative z-10 w-full rounded-2xl bg-white shadow-2xl",
+          "relative z-10 w-full rounded-2xl bg-white shadow-2xl flex flex-col",
           "transition-all duration-200 ease-out will-change-transform will-change-opacity",
           visible
             ? "opacity-100 scale-100 translate-y-0"
@@ -88,21 +94,27 @@ const ModalUI: React.FC<ModalUIProps> = ({
         aria-modal="true"
         aria-hidden={!visible}
       >
-        <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
-          <h2 className="text-lg font-bold text-gray-800">{title}</h2>
+        <div
+          className={`flex items-center justify-between ${headColor} rounded-t-xl border-b border-gray-100 px-6 py-4`}
+        >
+          <h2 className="text-lg font-bold text-white">{title}</h2>
           <button
             type="button"
             onClick={onClose}
-            className="inline-flex cursor-pointer items-center justify-center rounded-md p-1 text-gray-600 hover:bg-gray-100"
+            className="inline-flex cursor-pointer items-center justify-center rounded-md p-1 text-white hover:bg-gray-600"
             aria-label="Close modal"
           >
             <X />
           </button>
         </div>
 
-        <div className="px-6 py-5 text-gray-600">{children}</div>
+        <div
+          className={`${padding} ${maxContentHeight} overflow-y-auto text-gray-600 `}
+        >
+          {children}
+        </div>
         {footer && (
-          <div className="flex justify-end gap-3  px-6 py-3">{footer}</div>
+          <div className="flex justify-end gap-3 px-6 py-3">{footer}</div>
         )}
       </div>
     </div>

@@ -13,8 +13,7 @@ const PublicLayout: React.FC = () => {
   const token = localStorage.getItem("token");
   const user = useSelector((state) => state);
   const dispatch = useDispatch();
-  console.log(user);
-
+  const per = localStorage.getItem("permissions");
   const handleRefreshUser = () => {
     const decoded: any = jwtDecode<JwtPayload | null>(token);
     dispatch(RsetUserLogin(decoded));
@@ -40,11 +39,10 @@ const PublicLayout: React.FC = () => {
           >
             <Menu size={24} />
           </button>
-
           <span className="mx-4 font-bold text-bmw-text">Persia Khodro</span>
         </div>
 
-        <div className="p-6 md:p-10 max-w-7xl mx-auto">
+        <div className="p-5 max-w-7xl mx-auto">
           <Outlet />
         </div>
       </main>

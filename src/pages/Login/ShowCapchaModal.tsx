@@ -6,8 +6,10 @@ import { useForm } from "react-hook-form";
 import InlineLoading from "../../components/UI/InlineLoading";
 import { usersLogin, verifyLoginCode } from "../../services/dotNet";
 import { useNavigate } from "react-router-dom";
-import { RsetUserLogin } from "../../features/slices/mainSlice";
+import { RsetPermission, RsetUserLogin } from "../../features/slices/mainSlice";
 import { useDispatch } from "react-redux";
+import { asyncWrapper } from "../../utils/asyncWrapper";
+import { useToast } from "../../hooks/useToast";
 
 const TWO_MINUTES = 120;
 
@@ -17,10 +19,11 @@ const ShowCapchaModal: React.FC<any> = ({
   persoanlCode,
 }) => {
   const [secondsLeft, setSecondsLeft] = useState(TWO_MINUTES);
-  const [code, setCode] = useState("");
+  const [timerKey, setTimerKey] = useState(0);
+  const toast = useToast();
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { control, watch } = useForm<any>();
+  const { control, watch, setValue } = useForm<any>();
   const capchaCode = watch("capchaCode") ?? "";
   const [isLoading, setIsLoading] = useState(false);
   const expired = secondsLeft === 0;
@@ -31,58 +34,67 @@ const ShowCapchaModal: React.FC<any> = ({
     return `${m}:${String(s).padStart(2, "0")}`;
   }, [secondsLeft]);
 
-  const handleResend = async () => {
-    setSecondsLeft(TWO_MINUTES);
-    const res = await usersLogin(persoanlCode);
-    const { code, message, data }: any = res?.data;
-    console.log(res);
-    setCode("");
-  };
+  const handleResend = asyncWrapper(async () => {
+    const postData = {
+      personalCode: persoanlCode,
+    };
 
-  const handleCheckVerifyCapcha = async () => {
-    try {
-      setIsLoading(true);
-      const postData = {
-        personalCode: persoanlCode,
-        code: capchaCode,
-      };
-      const res = await verifyLoginCode(postData);
-      const { code, message, data }: any = res?.data;
-      if (code === 0) {
-        setIsLoading(false);
-        navigate("/dashboard");
-        dispatch(RsetUserLogin(data));
-        localStorage.setItem("token", data.token);
-      } else {
-        setIsLoading(false);
-      }
-    } catch (error) {
-      console.log(error);
+    const res = await usersLogin(postData);
+    const { code }: any = res?.data;
+
+    if (code === 0) {
+      setValue("capchaCode", "");
+      setSecondsLeft(TWO_MINUTES);
+      setTimerKey((prev) => prev + 1); // ریست واقعی تایمر
     }
-  };
+  }, toast);
+
+  const handleCheckVerifyCapcha = asyncWrapper(async () => {
+    if (expired) return;
+
+    setIsLoading(true);
+    const postData = {
+      personalCode: persoanlCode,
+      code: capchaCode,
+    };
+    const res = await verifyLoginCode(postData);
+
+    const { code, data }: any = res?.data;
+
+    console.log(data);
+    if (code === 0) {
+      navigate("/dashboard");
+      localStorage.setItem("permissions", data.permissions);
+      dispatch(RsetUserLogin(data));
+      localStorage.setItem("token", data.token);
+    }
+
+    setIsLoading(false);
+  }, toast);
 
   useEffect(() => {
-    if (capchaCode.length === 6) {
+    if (capchaCode.length === 6 && !expired) {
       handleCheckVerifyCapcha();
     }
-  }, [capchaCode.length]);
+  }, [capchaCode]);
 
   useEffect(() => {
     if (!showCapchaModal) return;
+
     setSecondsLeft(TWO_MINUTES);
-    setCode("");
+
     const id = window.setInterval(() => {
-      setSecondsLeft((s) => {
-        if (s <= 1) {
+      setSecondsLeft((prev) => {
+        if (prev <= 1) {
           window.clearInterval(id);
           return 0;
         }
-        return s - 1;
+        return prev - 1;
       });
     }, 1000);
 
     return () => window.clearInterval(id);
-  }, [showCapchaModal]);
+  }, [showCapchaModal, timerKey]);
 
   return (
     <ModalUI
@@ -110,6 +122,7 @@ const ShowCapchaModal: React.FC<any> = ({
           </p>
           <span className="font-bold text-xl">{timeText}</span>
         </span>
+
         <div className="space-y-2">
           <CustomInput
             maxLength={6}
@@ -119,11 +132,13 @@ const ShowCapchaModal: React.FC<any> = ({
             className="w-full rounded-xl border border-gray-200 px-4 py-3 outline-none focus:border-bmw-blue"
             placeholder="123456"
           />
+
           {isLoading && (
             <span className="flex justify-center mt-8">
               <InlineLoading isActive={isLoading} size="lg" />
             </span>
           )}
+
           {expired && (
             <p className="text-sm text-red-600">
               زمان وارد کردن کد به پایان رسید. لطفاً «ارسال مجدد کد» را بزنید.

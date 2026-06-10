@@ -9,7 +9,6 @@ import Button from "../../components/UI/Button";
 import { useToast } from "../../hooks/useToast";
 import ShowCapchaModal from "./ShowCapchaModal";
 import { asyncWrapper } from "../../utils/asyncWrapper";
-import { useApi } from "../../hooks/useApi";
 
 const Login: React.FC<any> = () => {
   const { t } = useLanguage();
@@ -18,7 +17,6 @@ const Login: React.FC<any> = () => {
   const toast = useToast();
   const [showCapchaModal, setShowCapchaModal] = useState(false);
   const [persoanlCode, setPersoanlCode] = useState("");
-  const { call, loading } = useApi();
 
   const onSubmit = asyncWrapper(async (fields: any) => {
     setPersoanlCode(fields.personalCode);
@@ -32,8 +30,6 @@ const Login: React.FC<any> = () => {
       } else {
         toast.warning(data?.message);
       }
-    } else {
-      toast.error(message);
     }
   }, toast);
 
