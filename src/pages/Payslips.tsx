@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   BarChart,
   Bar,
@@ -13,6 +13,11 @@ import { Download, FileText, Lock } from "lucide-react";
 import { useLanguage } from "../contexts/LanguageContext";
 import { useTheme } from "../contexts/ThemeContext";
 import type { SalaryData } from "../utils/masterTypes";
+import { getSalaryPerMonth } from "../services/dotNet";
+import { asyncWrapper } from "../utils/asyncWrapper";
+import { useToast } from "../hooks/useToast";
+import { useAppSelector } from "../features/store";
+import StringHelpers from "../utils/stringHelpers";
 
 const rawData: SalaryData[] = [
   { month: "Jan", base: 4500, bonus: 200, deductions: 100, total: 4600 },
@@ -25,45 +30,64 @@ const rawData: SalaryData[] = [
 
 const Payslips: React.FC = () => {
   const { t, language } = useLanguage();
-  const { theme } = useTheme();
-  const isFa = language === "fa";
+  const userLogin = useAppSelector((state) => state?.main?.userLogin);
+  const [allAmount, setAllAmount] = useState([]);
+  const lastPay = allAmount
+    ?.filter((item: any) => Number(item?.netPayment) > 0)
+    ?.reduce((latest: any, current: any) => {
+      if (!latest) return current;
 
-  // Currency Configuration
-  // We scale the mock data values by 50,000 for Rial to make it look realistic (e.g. 4500 -> 225,000,000)
+      const currentYear = Number(current.year);
+      const latestYear = Number(latest.year);
+
+      const currentMonth = Number(current.month);
+      const latestMonth = Number(latest.month);
+
+      if (
+        currentYear > latestYear ||
+        (currentYear === latestYear && currentMonth > latestMonth)
+      ) {
+        return current;
+      }
+
+      return latest;
+    }, null);
+
+  const { theme } = useTheme();
+  const toast = useToast();
+  const isFa = language === "fa";
   const exchangeRate = isFa ? 50000 : 1;
   const currencySymbol = isFa ? "ریال" : "$";
 
-  const formatCurrency = (val: number, withSign: boolean = false) => {
-    const amount = val * exchangeRate;
-    const formatted = Math.abs(amount).toLocaleString(isFa ? "fa-IR" : "en-US");
-    const sign = withSign ? (val > 0 ? "+" : val < 0 ? "-" : "") : ""; // Handle passed-in logic or inherent sign
+  const data =
+    allAmount
+      ?.filter((item: any) => Number(item?.netPayment) > 0)
+      ?.sort((a: any, b: any) => {
+        const yearDiff = Number(a.year) - Number(b.year);
+        if (yearDiff !== 0) return yearDiff;
 
-    // For input like -150, val is negative.
-    // If withSign is true, we want to ensure we show the sign.
-    // If val is strictly positive and withSign is true, we add '+'.
-    const displaySign = val < 0 ? "-" : withSign && val > 0 ? "+" : "";
+        return Number(a.month) - Number(b.month);
+      })
+      ?.map((item: any) => ({
+        month: StringHelpers.toPersianMonthName(item.month),
+        total: Number(item.netPayment),
+        year: item.year,
+        rawMonth: item.month,
+      })) ?? [];
+  const handleGetSalaryPerMonth = asyncWrapper(async () => {
+    const res = await getSalaryPerMonth(Number(userLogin?.PersonalCode));
+    const { code, data, message }: any = res;
+    setAllAmount(data);
+  }, toast);
 
-    if (isFa) {
-      // Persian: +۲۵۰,۰۰۰ ریال
-      return `${displaySign}${formatted} ${currencySymbol}`;
-    }
-    // English: +$250
-    return `${displaySign}${currencySymbol}${formatted}`;
-  };
-
-  // Translate month names for the chart
-  const data = rawData.map((d, index) => ({
-    ...d,
-    month: t("months")[index] || d.month,
-  }));
-
-  const paymentDate = isFa ? "۷ تیر ۱۴۰۲" : "June 28, 2023";
-  const paidOnText = isFa
-    ? `پرداخت شده در ${paymentDate}`
-    : `Paid on ${paymentDate}`;
-
-  // Get latest month data for the summary card
   const latest = rawData[rawData.length - 1];
+
+  useEffect(() => {
+    if (!userLogin?.PersonalCode) return;
+    handleGetSalaryPerMonth();
+  }, [userLogin?.PersonalCode]);
+
+  console.log(lastPay);
 
   return (
     <div className="space-y-6">
@@ -81,15 +105,12 @@ const Payslips: React.FC = () => {
           </span>
         </button>
       </div>
-
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Chart Section */}
         <div className="lg:col-span-2 bg-bmw-surface border border-bmw-border rounded-lg p-6 shadow-sm">
           <h3 className="text-lg font-bold text-bmw-text mb-6">
             {t("income_overview")}
           </h3>
           <div className="h-72 w-full" style={{ direction: "ltr" }}>
-            {/* Force LTR for chart to keep X-axis consistent left-to-right for time */}
             <ResponsiveContainer width="100%" height="100%" minWidth={0}>
               <BarChart data={data}>
                 <CartesianGrid
@@ -117,14 +138,13 @@ const Payslips: React.FC = () => {
                   }}
                   axisLine={false}
                   tickLine={false}
-                  width={isFa ? 50 : 40}
+                  width={isFa ? 80 : 60}
                   tickFormatter={(val) => {
                     if (isFa) {
-                      // Show in Millions for Persian to save space (e.g. 200 M)
-                      const millions = (val * exchangeRate) / 1000000;
-                      return `${millions.toLocaleString("fa-IR")} م`;
+                      const millions = Number(val) / 1000000;
+                      return ` ${millions.toLocaleString("fa-IR")} م`;
                     }
-                    return `$${val}`;
+                    return Number(val).toLocaleString("en-US");
                   }}
                 />
                 <Tooltip
@@ -145,13 +165,14 @@ const Payslips: React.FC = () => {
                         : "rgba(0,0,0,0.05)",
                   }}
                   formatter={(value: number) => [
-                    formatCurrency(value),
-                    t("table.size")?.replace("Size", "Amount") || "Amount",
+                    `${StringHelpers.toPrice(value)} ریال`,
+                    "دریافتی",
                   ]}
+                  labelFormatter={(label) => `ماه ${label}`}
                   labelStyle={{ textAlign: isFa ? "right" : "left" }}
                 />
                 <Bar dataKey="total" radius={[4, 4, 0, 0]} barSize={40}>
-                  {data.map((entry, index) => (
+                  {data.map((entry: any, index: number) => (
                     <Cell
                       key={`cell-${index}`}
                       fill={
@@ -175,34 +196,35 @@ const Payslips: React.FC = () => {
               {t("last_net_salary")}
             </p>
             <h2 className="text-4xl font-bold tracking-tight" dir="ltr">
-              {formatCurrency(latest.total)}
+              {StringHelpers?.toPrice(lastPay?.netPayment)}
             </h2>
-            <p className="text-sm text-blue-200 mt-2">{paidOnText}</p>
+            <p className="text-sm text-blue-200 mt-2">
+              پرداخت شده در {StringHelpers?.toPersianMonthName(lastPay?.month)}{" "}
+              {lastPay?.year}
+            </p>
           </div>
-
           <div className="space-y-3 mt-8">
             <div className="flex justify-between text-sm border-b border-white/20 pb-2">
               <span className="text-blue-100">{t("base_salary")}</span>
               <span className="font-semibold" dir="ltr">
-                {formatCurrency(latest.base)}
+                {StringHelpers?.toPrice(lastPay?.baseAmount)}
               </span>
             </div>
             <div className="flex justify-between text-sm border-b border-white/20 pb-2">
               <span className="text-blue-100">{t("overtime_bonus")}</span>
               <span className="font-semibold text-green-300" dir="ltr">
-                {formatCurrency(latest.bonus, true)}
+                {StringHelpers?.toPrice(lastPay?.totalBenefits)}
               </span>
             </div>
             <div className="flex justify-between text-sm pb-2">
               <span className="text-blue-100">{t("deductions")}</span>
               <span className="font-semibold text-red-300" dir="ltr">
-                {formatCurrency(-latest.deductions)}
+                - {StringHelpers?.toPrice(lastPay?.totalDeductions)}
               </span>
             </div>
           </div>
         </div>
       </div>
-
       <div
         className="bg-bmw-surface 
                 w-full 
@@ -220,7 +242,6 @@ const Payslips: React.FC = () => {
             {t("view_history")}
           </button>
         </div>
-
         <div className="flex-1 overflow-y-auto divide-y divide-bmw-border">
           {data
             .slice()
@@ -244,16 +265,19 @@ const Payslips: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-4 md:gap-6">
+                <div className="flex  items-center  gap-4 md:gap-6">
                   <span
-                    className="text-bmw-text font-mono hidden sm:block"
+                    className="text-bmw-text  font-mono hidden sm:block"
                     dir="ltr"
                   >
-                    {formatCurrency(item.total)}
+                    {/* {formatCurrency(item.total)} */}
                   </span>
 
                   <button className="p-2 text-bmw-textSec hover:text-bmw-text transition-colors">
-                    <Download size={18} />
+                    <Download
+                      size={18}
+                      className="cursor-pointer hover:text-bmw-blue"
+                    />
                   </button>
                 </div>
               </div>

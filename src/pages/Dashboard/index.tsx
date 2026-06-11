@@ -14,6 +14,7 @@ import AllNews from "./AllNews";
 import PaginationForms from "../../common/PaginationForms";
 import { useHasPermission } from "../../hooks/usePermissions";
 import StringHelpers from "../../utils/stringHelpers";
+import CustomImage from "../../components/UI/CustomImage";
 
 const Dashboard: React.FC = () => {
   const { t, language } = useLanguage();
@@ -101,15 +102,8 @@ const Dashboard: React.FC = () => {
             <Bell size={20} />
             <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-bmw-surface"></span>
           </button>
-          <div
-            onClick={() => navigate("/profile")}
-            className="h-10 w-10 rounded-full overflow-hidden border-2 border-bmw-blue cursor-pointer hover:opacity-80 transition-opacity"
-          >
-            <img
-              src="/assets/1002.jpg"
-              alt="User"
-              className="w-full h-full object-cover"
-            />
+          <div onClick={() => navigate("/profile")} className="">
+            <CustomImage size={50} />
           </div>
         </div>
       </div>
@@ -147,7 +141,7 @@ const Dashboard: React.FC = () => {
         ))}
       </div>
       <div className="grid grid-cols-1  lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 space-y-6 ">
+        <div className="lg:col-span-2 space-y-6  rounded-xl">
           <div className="flex items-center justify-between">
             <h2 className="text-xl  font-bold text-bmw-text">
               {t("latest_news")}

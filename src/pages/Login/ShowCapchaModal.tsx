@@ -45,7 +45,7 @@ const ShowCapchaModal: React.FC<any> = ({
     if (code === 0) {
       setValue("capchaCode", "");
       setSecondsLeft(TWO_MINUTES);
-      setTimerKey((prev) => prev + 1); // ریست واقعی تایمر
+      setTimerKey((prev) => prev + 1);
     }
   }, toast);
 
@@ -58,10 +58,7 @@ const ShowCapchaModal: React.FC<any> = ({
       code: capchaCode,
     };
     const res = await verifyLoginCode(postData);
-
     const { code, data }: any = res?.data;
-
-    console.log(data);
     if (code === 0) {
       navigate("/dashboard");
       localStorage.setItem("permissions", data.permissions);

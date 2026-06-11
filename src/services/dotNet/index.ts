@@ -38,3 +38,9 @@ export const updateCompanyNews = (postData: any) => {
     postData,
   );
 };
+
+export const getSalaryPerMonth = async (PersonalCode: any) => {
+  return await api.get(
+    `/api/salary/getSalaryPerMonth?PersonalCode=${PersonalCode}`,
+  );
+};

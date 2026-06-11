@@ -16,6 +16,8 @@ const PublicLayout: React.FC = () => {
   const per = localStorage.getItem("permissions");
   const handleRefreshUser = () => {
     const decoded: any = jwtDecode<JwtPayload | null>(token);
+    console.log(decoded?.PersonalCode);
+
     dispatch(RsetUserLogin(decoded));
   };
 
