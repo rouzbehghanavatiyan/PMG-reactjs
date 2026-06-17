@@ -99,8 +99,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       "outline-danger":
         "border border-red-600 bg-transparent text-red-600 hover:bg-red-50",
       "outline-ghost":
-        "border border-transparent bg-transparent text-bmw-text hover:bg-bmw-base",
-      // New outline variants
+        "border border-transparent text-bmw-blue hover:bg-bmw-base",
       "outline-warning":
         "border border-yellow-500 bg-transparent text-yellow-500 hover:bg-yellow-50",
       "outline-success":

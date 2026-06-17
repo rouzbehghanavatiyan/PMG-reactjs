@@ -28,6 +28,10 @@ export const createCompanyNews = (postData: any) => {
   return api.post("/api/companyNews/createCompanyNews", postData);
 };
 
+export const createPoll = (postData: any) => {
+  return api.post("/api/poll/createPoll", postData);
+};
+
 export const deleteCompanyNews = (id: any) => {
   return api.delete(`/api/companyNews/deleteCompanyNews/${id}`);
 };
@@ -43,4 +47,17 @@ export const getSalaryPerMonth = async (PersonalCode: any) => {
   return await api.get(
     `/api/salary/getSalaryPerMonth?PersonalCode=${PersonalCode}`,
   );
+};
+
+export const allPolls = async (PersonalCode: string | number) => {
+  console.log(
+    "PersonalCodePersonalCodePersonalCodePersonalCodePersonalCodePersonalCode",
+    PersonalCode,
+  );
+
+  return await api.get(`/api/poll/allPolls?PersonalCode=${PersonalCode}`);
+};
+
+export const createQuestionAnswerUser = async (postData: any) => {
+  return await api.post(`/api/poll/createQuestionAnswerUser`, postData);
 };

@@ -41,10 +41,39 @@ export default class StringHelpers {
 
     return months[monthNumber] ?? "";
   };
+  static getDaysInPersianMonth = (month: number | string): number => {
+    const m = Number(month);
+    if (m >= 1 && m <= 6) return 31;
+    if (m >= 7 && m <= 12) return 30;
+    return 0;
+  };
+  static minutesToTime = (minutes: number | string): string => {
+    const totalMinutes = Number(minutes);
+
+    if (isNaN(totalMinutes) || totalMinutes < 0) return "00:00";
+
+    const hours = Math.floor(totalMinutes / 60);
+    const mins = totalMinutes % 60;
+
+    const h = hours.toString().padStart(2, "0");
+    const m = mins.toString().padStart(2, "0");
+
+    return `${h}:${m}`;
+  };
+
   static toPrice = (value: string | number | null | undefined): string => {
     if (value === null || value === undefined) return "0";
     const num = Number(value);
     if (isNaN(num)) return "0";
     return num.toLocaleString("fa-IR");
+  };
+  static toPersianFullDateTime = (date: string) => {
+    if (!date) return "";
+
+    return new DateObject({
+      date: new Date(date),
+      calendar: persian,
+      locale: persian_fa,
+    }).format("YYYY/MM/DD");
   };
 }

@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Bell, ArrowUpRight, Plus } from "lucide-react";
 import { useLanguage } from "../../contexts/LanguageContext";
 import BirthdaysWidget from "../BirthdaysWidget";
-import { useAppSelector } from "../../features/store";
+import { useAppDispatch, useAppSelector } from "../../features/store";
 import { getallcompanynews } from "../../services/dotNet";
 import { useApi } from "../../hooks/useApi";
 import Button from "../../components/UI/Button";
@@ -15,10 +15,12 @@ import PaginationForms from "../../common/PaginationForms";
 import { useHasPermission } from "../../hooks/usePermissions";
 import StringHelpers from "../../utils/stringHelpers";
 import CustomImage from "../../components/UI/CustomImage";
+import { RsetFetchNewsList } from "../../features/slices/mainSlice";
 
 const Dashboard: React.FC = () => {
   const { t, language } = useLanguage();
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
   const [getAllNews, setGetAllNews] = useState([]);
   const [showAddNews, setShowAddNews] = useState(false);
   const [loading, setLoading] = useState<boolean>(false);
@@ -64,6 +66,7 @@ const Dashboard: React.FC = () => {
       showSuccessMessage: false,
       onSuccess: (data) => {
         setGetAllNews(data?.result);
+        // dispatch(RsetFetchNewsList(data?.result));
       },
     });
   };
@@ -155,8 +158,8 @@ const Dashboard: React.FC = () => {
               />
             )}
             {/* <button
-              onClick={() => navigate("/news")}
-              className="text-sm text-bmw-blue hover:text-blue-400"
+              onClick={() => navigate("/dashboard/allNews")}
+              className="text-sm text-bmw-blue hover:text-blue-400 cursor-pointer"
             >
               {t("view_all")}
             </button> */}

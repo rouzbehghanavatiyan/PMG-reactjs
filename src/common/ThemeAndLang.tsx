@@ -10,7 +10,15 @@ const ThemeAndLang = () => {
     setLanguage(language === "en" ? "fa" : "en");
   };
   return (
-    <div className="flex justify-between mt-2 mx-2 ">
+    <div className="flex justify-between mt-2 mx-4">
+      <button
+        type="button"
+        onClick={toggleTheme}
+        className="flex items-center justify-center   text-bmw-textSec hover:text-bmw-text hover:bg-bmw-hover rounded-md transition-colors"
+        title="Toggle Theme"
+      >
+        {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
+      </button>
       <button
         type="button"
         onClick={toggleLanguage}
@@ -21,14 +29,6 @@ const ThemeAndLang = () => {
         <span className="text-sm font-medium">
           {language === "en" ? "FA" : "EN"}
         </span>
-      </button>
-      <button
-        type="button"
-        onClick={toggleTheme}
-        className="flex items-center justify-center   text-bmw-textSec hover:text-bmw-text hover:bg-bmw-hover rounded-md transition-colors"
-        title="Toggle Theme"
-      >
-        {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
       </button>
     </div>
   );

@@ -4,11 +4,13 @@ interface StateType {
   userLogin: any;
   permission: any;
   messageModal: any;
+  fetchNewsList: any;
+  poll: any;
 }
 const saved = localStorage.getItem("permission");
 const initialState: StateType = {
-  // userLogin: {},
-  // permission: [],
+  poll: [],
+  fetchNewsList: [],
   messageModal: { show: false, title: "", varient: "warning" },
   permission: saved ? saved.split(",") : [],
   userLogin: JSON.parse(localStorage.getItem("userLogin") || "{}"),
@@ -27,9 +29,21 @@ const mainSlice = createSlice({
     RsetPermission: (state, { payload }: any) => {
       state.permission = payload;
     },
+    RsetPoll: (state, { payload }: any) => {
+      state.poll = payload;
+    },
+
+    RsetFetchNewsList: (state, { payload }: any) => {
+      state.fetchNewsList = payload;
+    },
   },
 });
 
-export const { RsetUserLogin, RsetPermission, RsetMessageModal } =
-  mainSlice.actions;
+export const {
+  RsetFetchNewsList,
+  RsetPoll,
+  RsetUserLogin,
+  RsetPermission,
+  RsetMessageModal,
+} = mainSlice.actions;
 export default mainSlice.reducer;

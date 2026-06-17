@@ -9,11 +9,14 @@ import {
   Shield,
   Calendar,
   UserRound,
+  Plus,
 } from "lucide-react";
 import { useLanguage } from "../contexts/LanguageContext";
 import { useAppSelector } from "../features/store";
 import CustomImage from "../components/UI/CustomImage";
 import BackPMG from "../assets/profilecover.png";
+import Button from "../components/UI/Button";
+import { useHasPermission } from "../hooks/usePermissions";
 
 const Profile: React.FC = () => {
   const { t, dir, language } = useLanguage();
@@ -25,6 +28,7 @@ const Profile: React.FC = () => {
   const email = user?.main?.userLogin?.Email;
   const mobile = user?.main?.userLogin?.Mobile;
   const employmentDate = user?.main?.userLogin?.EmploymentDate;
+  const { hasPermission } = useHasPermission();
 
   const profileData = {
     en: {
@@ -60,6 +64,8 @@ const Profile: React.FC = () => {
     },
   };
 
+  const handleShowAddNews = () => {};
+
   const data = profileData[language === "fa" ? "fa" : "en"];
 
   return (
@@ -73,9 +79,7 @@ const Profile: React.FC = () => {
           />
           <div className="absolute inset-0 bg-gradient-to-t from-bmw-base to-transparent"></div>
         </div>
-        <div
-          className={`absolute -bottom-12 right-8 flex items-end gap-6`}
-        >
+        <div className={`absolute -bottom-12 right-8 flex items-end gap-6`}>
           <CustomImage size={120} />
           <div className="mb-2">
             <h1 className="text-3xl font-bold text-bmw-text">
@@ -149,6 +153,14 @@ const Profile: React.FC = () => {
         </div>
 
         <div className="md:col-span-2 space-y-6">
+          {hasPermission("JobDescription.Create") && (
+            <Button
+              onClick={handleShowAddNews}
+              leftIcon={<Plus />}
+              label="شرح کار"
+              variant="success"
+            />
+          )}
           <div className="bg-bmw-surface border border-bmw-border rounded-lg p-6 shadow-sm">
             <div className="flex justify-between items-start mb-4">
               <h3 className="text-xl font-bold text-bmw-text">

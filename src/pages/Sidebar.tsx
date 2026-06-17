@@ -72,12 +72,39 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
     ${isOpen ? "translate-x-0" : dir === "rtl" ? "translate-x-full" : "-translate-x-full"}
   `}
       >
-        <ThemeAndLang />
+        <div className="h-20 flex items-center justify-between px-6 border-b border-bmw-border">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-900 to-bmw-blue flex items-center justify-center border border-white/20">
+              <span className="text-white font-bold text-xs">PMG</span>
+            </div>
+            <span className="text-bmw-text font-semibold tracking-wide text-lg">
+              PERSIA<span className="font-light">KHODRO</span>
+            </span>
+          </div>
+          <button className="lg:hidden text-bmw-textSec hover:text-bmw-text">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              className="lucide lucide-x"
+              aria-hidden="true"
+            >
+              <path d="M18 6 6 18"></path>
+              <path d="m6 6 12 12"></path>
+            </svg>
+          </button>
+        </div>
         <div className="flex flex-col h-full">
-          <div className="bg-gray-100 mt-4 py-2 flex items-center justify-center gap-2 ">
+          {/* <div className="bg-gray-100 mt-4 py-2 flex items-center justify-center gap-2 ">
             <span className="font-light text-lg">{firstName}</span>
             <span className="font-light">{lastName}</span>
-          </div>
+          </div> */}
           <button
             onClick={() => setIsOpen(false)}
             className="lg:hidden text-bmw-textSec hover:text-bmw-text"
@@ -107,13 +134,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
             ))}
           </nav>
           <div className="p-4 border-t mb-5 border-bmw-border space-y-2 w-full">
+            <ThemeAndLang />
             <button className="flex items-center gap-3 px-4 py-3 w-full max-w-full text-bmw-textSec hover:text-bmw-text hover:bg-bmw-hover rounded-md transition-colors">
               <Settings size={20} className="shrink-0" />
               <span className="text-sm font-medium truncate">
                 {t("settings")}
               </span>
             </button>
-
             <button
               onClick={handleLogout}
               className="flex items-center gap-3 px-4 py-3 w-full max-w-full text-red-400 hover:text-red-300 hover:bg-red-900/20 rounded-md transition-colors"

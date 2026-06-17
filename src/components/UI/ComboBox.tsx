@@ -25,7 +25,6 @@ export default function ComboBox({
     original: item,
   }));
 
-  // ✅ هندل صحیح برای single و multi
   const mappedValue = isMulti
     ? Array.isArray(value)
       ? value.map((item) => ({
@@ -35,12 +34,12 @@ export default function ComboBox({
         }))
       : []
     : value
-    ? {
-        value: value[keyId],
-        label: value[keyValue],
-        original: value,
-      }
-    : null;
+      ? {
+          value: value[keyId],
+          label: value[keyValue],
+          original: value,
+        }
+      : null;
 
   return (
     <div className="w-full">
@@ -49,7 +48,6 @@ export default function ComboBox({
           {label}
         </label>
       )}
-
       <Select
         isRtl
         options={mappedOptions}
@@ -57,7 +55,7 @@ export default function ComboBox({
         isMulti={isMulti}
         isSearchable
         placeholder="انتخاب کنید..."
-        closeMenuOnSelect={!isMulti} // ✅ مهم برای multi
+        closeMenuOnSelect={!isMulti}
         onChange={(selected: any) => {
           if (isMulti) {
             onChange(selected ? selected.map((x: any) => x.original) : []);
