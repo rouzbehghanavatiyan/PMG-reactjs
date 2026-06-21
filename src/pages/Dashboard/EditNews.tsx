@@ -6,6 +6,7 @@ import { Controller, useForm } from "react-hook-form";
 import ComboBox from "../../components/UI/ComboBox";
 import {
   addAttachment,
+  addNewsAttachments,
   getAllCategoryNews,
   updateCompanyNews,
 } from "../../services/dotNet";
@@ -50,6 +51,8 @@ const EditNews: React.FC<any> = ({
   };
 
   const handleRemoveExistingImage = (attachment: any) => {
+    console.log("attachment attachment attachment", attachment);
+
     setExistingImages((prev) =>
       prev.filter((item) => item.id !== attachment.id),
     );
@@ -75,12 +78,14 @@ const EditNews: React.FC<any> = ({
     if (code === 0) {
       if (selectedImages.length > 0) {
         const formData = new FormData();
+
         selectedImages.forEach((file) => {
           formData.append("FormFiles", file);
         });
-        formData.append("AttachmentId", initialData?.id);
-        formData.append("AttachmentType", "images/news");
-        await addAttachment(formData);
+
+        formData.append("CompanyNewsId", String(initialData.id));
+
+        await addNewsAttachments(formData);
       }
 
       setShowEditNews(false);
@@ -90,7 +95,7 @@ const EditNews: React.FC<any> = ({
   }, toast);
 
   const fixImages = initialData?.attachments?.map((item) =>
-    StringHelpers.getImage(item),
+    StringHelpers.getImage(item?.url),
   );
   console.log(fixImages);
 
@@ -204,25 +209,29 @@ const EditNews: React.FC<any> = ({
 
         {(fixImages?.length > 0 || selectedImages.length > 0) && (
           <div className="md:col-span-2 flex flex-wrap gap-4 mt-2">
-            {existingImages.map((attachment: any, index: number) => (
-              <div
-                key={`old-${attachment.id || index}`}
-                className="relative group"
-              >
-                <img
-                  src={StringHelpers.getImage(attachment)}
-                  alt={`news-${index}`}
-                  className="h-24 w-24 object-cover rounded-lg border border-gray-200"
-                />
-                <button
-                  type="button"
-                  onClick={() => handleRemoveExistingImage(attachment)}
-                  className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 shadow-sm opacity-90 hover:opacity-100"
+            {existingImages.map((attachment: any, index: number) => {
+              console.log("{existingImages.map((", attachment);
+
+              return (
+                <div
+                  key={`old-${attachment.id || index}`}
+                  className="relative group"
                 >
-                  <X size={14} />
-                </button>
-              </div>
-            ))}
+                  <img
+                    src={StringHelpers.getImage(attachment?.url)}
+                    alt={`news-${index}`}
+                    className="h-24 w-24 object-cover rounded-lg border border-gray-200"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveExistingImage(attachment)}
+                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 shadow-sm opacity-90 hover:opacity-100"
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+              );
+            })}
             {selectedImages.map((file, index) => (
               <div key={`new-${index}`} className="relative group">
                 <img

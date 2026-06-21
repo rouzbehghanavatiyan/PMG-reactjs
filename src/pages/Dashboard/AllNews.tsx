@@ -28,6 +28,8 @@ const AllNews: React.FC<any> = ({
     });
   };
 
+  console.log(news.attachments);
+
   return (
     <div
       key={key}
@@ -37,7 +39,7 @@ const AllNews: React.FC<any> = ({
       <div className="w-full md:w-48 h-48 md:h-auto shrink-0 relative">
         {news.attachments?.length !== 0 ? (
           <img
-            src={StringHelpers.getImage(news.attachments?.[0])}
+            src={StringHelpers.getImage(news.attachments?.[0]?.url)}
             alt={news.title}
             className="w-full h-full object-cover"
           />

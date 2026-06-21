@@ -24,12 +24,24 @@ export const addAttachment = (formData: FormData) => {
   });
 };
 
+export const addNewsAttachments = (formData: FormData) => {
+  return api.post("/api/companyNews/addAttachments", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+};
+
 export const createCompanyNews = (postData: any) => {
   return api.post("/api/companyNews/createCompanyNews", postData);
 };
 
 export const createPoll = (postData: any) => {
   return api.post("/api/poll/createPoll", postData);
+};
+
+export const deletePoll = (id: any) => {
+  return api.delete(`/api/poll/deletePoll/${id}`);
 };
 
 export const deleteCompanyNews = (id: any) => {

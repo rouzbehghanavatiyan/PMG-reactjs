@@ -5,7 +5,13 @@ import { useAppDispatch, useAppSelector } from "../../features/store";
 import { RsetMessageModal } from "../../features/slices/mainSlice";
 import Button from "./Button";
 
-const MessageModal: React.FC<any> = ({
+interface MessageModalPropTypes {
+  setShowDeleteModal: any;
+  showDeleteModal: any;
+  handleAccept: any;
+}
+
+const MessageModal: React.FC<MessageModalPropTypes> = ({
   setShowDeleteModal,
   showDeleteModal,
   handleAccept,

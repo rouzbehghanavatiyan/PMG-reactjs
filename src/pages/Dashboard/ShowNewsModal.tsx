@@ -1,14 +1,15 @@
 import React, { useEffect, useState } from "react";
 import ModalUI from "../../components/UI/ModalUI";
-import Button from "../../components/UI/Button";
 import StringHelpers from "../../utils/stringHelpers";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination, Autoplay } from "swiper/modules";
 import { Calendar, Tag } from "lucide-react";
 
 const ShowNewsModal: React.FC<any> = ({ showNews, setShowNews, itemNews }) => {
+  console.log(itemNews);
+
   const imageNews = itemNews?.attachments?.map((item: any) =>
-    StringHelpers?.getImage(item),
+    StringHelpers?.getImage(item?.url),
   );
 
   return (
@@ -32,17 +33,21 @@ const ShowNewsModal: React.FC<any> = ({ showNews, setShowNews, itemNews }) => {
               autoplay={{ delay: 4000 }}
               className="w-full h-full"
             >
-              {imageNews.map((img: string, index: number) => (
-                <SwiperSlide key={index}>
-                  <div className="w-full h-full flex items-center justify-center bg-black/5">
-                    <img
-                      src={img}
-                      alt={itemNews?.title}
-                      className="w-full h-full object-contain"
-                    />
-                  </div>
-                </SwiperSlide>
-              ))}
+              {imageNews.map((img: string, index: number) => {
+                console.log(img);
+
+                return (
+                  <SwiperSlide key={index}>
+                    <div className="w-full h-full flex items-center justify-center bg-black/5">
+                      <img
+                        src={img}
+                        alt={itemNews?.title}
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
+                  </SwiperSlide>
+                );
+              })}
             </Swiper>
           </div>
         )}

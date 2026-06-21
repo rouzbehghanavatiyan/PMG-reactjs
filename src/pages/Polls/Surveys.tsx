@@ -13,11 +13,13 @@ import AddPollsModal from "./AddPollsModal";
 import { useForm } from "react-hook-form";
 import { asyncWrapper } from "../../utils/asyncWrapper";
 import { useToast } from "../../hooks/useToast";
-import { allPolls, createPoll } from "../../services/dotNet";
+import { allPolls, createPoll, deletePoll } from "../../services/dotNet";
 import StringHelpers from "../../utils/stringHelpers";
 import { useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../features/store";
 import { RsetPoll } from "../../features/slices/mainSlice";
+import MessageModal from "../../components/UI/MessageModal";
+import { useApi } from "../../hooks/useApi";
 
 interface Question {
   id: string;
@@ -39,15 +41,23 @@ interface Survey {
 
 const Surveys: React.FC = () => {
   const { t } = useLanguage();
+  const dispatch = useAppDispatch();
+  const toast = useToast();
+  const navigate = useNavigate();
+
   const [activeTab, setActiveTab] = useState<"active" | "history">("active");
-  const [answers, setAnswers] = useState<Record<string, number>>({});
+  const [pollItem, setPollItem] = useState<Record<string, number>>({});
   const [allPoll, setAllPoll] = useState([]);
   const [showAddPolls, setShowAddPolls] = useState(false);
-  const toast = useToast();
+  const [loading, setLoading] = useState(false);
+  const [showDeletePoll, setShowDeletePoll] = useState(false);
   const userLogin = useAppSelector((state) => state?.main?.userLogin);
-  const dispatch = useAppDispatch();
-  const { control, handleSubmit, reset } = useForm<any>();
-  const navigate = useNavigate();
+  const { control, handleSubmit } = useForm<any>();
+  const { call } = useApi({ loading, setLoading });
+  const handleDeletePoll = (survey: any) => {
+    setPollItem(survey);
+    setShowDeletePoll(true);
+  };
 
   const onSubmit = asyncWrapper(async (data: any) => {
     const postData = {
@@ -77,6 +87,15 @@ const Surveys: React.FC = () => {
     }
   }, toast);
 
+  const handleDeletePolls = () => {
+    call(() => deletePoll(pollItem?.id), {
+      onSuccess: () => {
+        setShowDeletePoll(false);
+        handleGetAllPoll();
+      },
+    });
+  };
+
   const handleStartSurvey = (item: any) => {
     navigate("questions");
     dispatch(RsetPoll(item));
@@ -97,11 +116,12 @@ const Surveys: React.FC = () => {
     handleGetAllPoll();
   }, [userLogin]);
 
-  const filteredPolls = allPoll.filter((poll: any) =>
-    activeTab === "history"
+  const filteredPolls = allPoll.filter((poll: any) => {
+    console.log("filteredPolls filteredPolls filteredPolls", poll);
+    return activeTab === "history"
       ? poll.checkAnswerPoll === true
-      : poll.checkAnswerPoll === false,
-  );
+      : poll.checkAnswerPoll === false;
+  });
 
   return (
     <div className="space-y-8">
@@ -137,71 +157,80 @@ const Surveys: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredPolls?.map((survey: any) => {
           return (
-            <div
-              key={survey.id}
-              className="bg-bmw-surface border border-bmw-border rounded-xl overflow-hidden hover:border-bmw-blue/50 transition-all group flex flex-col h-full shadow-sm"
-            >
-              <div className="p-6 flex-1">
-                <div className="flex justify-between items-start mb-4">
-                  <div className="px-2 py-1 bg-bmw-base rounded border border-bmw-border text-xs text-bmw-textSec font-mono">
-                    {survey.questions?.length} {t("questions_count")}
-                  </div>
-                  {activeTab === "history" ? (
-                    <div className="flex items-center gap-1 text-green-500 text-xs font-bold bg-green-900/10 px-2 py-1 rounded">
-                      <CheckCircle size={12} /> {t("completed")}
+            survey?.isActive && (
+              <div
+                key={survey.id}
+                className="bg-bmw-surface border border-bmw-border rounded-xl overflow-hidden hover:border-bmw-blue/50 transition-all group flex flex-col h-full shadow-sm"
+              >
+                <div className="p-6 flex-1">
+                  <div className="flex justify-between items-start mb-4">
+                    <div className="px-2 py-1 bg-bmw-base rounded border border-bmw-border text-xs text-bmw-textSec font-mono">
+                      {survey.questions?.length} {t("questions_count")}
                     </div>
-                  ) : (
-                    <div className="flex items-center gap-1 text-yellow-500 text-xs font-bold bg-yellow-900/10 px-2 py-1 rounded">
-                      <Trophy size={12} /> {survey.score} {t("points")}
+                    <Button
+                      type="button"
+                      variant="outline-danger"
+                      onClick={() => handleDeletePoll(survey)}
+                      className="text-red-500 border rounded px-2 py-1 text-sm hover:text-red-600 whitespace-nowrap"
+                      label="حذف"
+                    />
+                    {activeTab === "history" ? (
+                      <div className="flex items-center gap-1 text-green-500 text-xs font-bold bg-green-900/10 px-2 py-1 rounded">
+                        <CheckCircle size={12} /> {t("completed")}
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-1 text-yellow-500 text-xs font-bold bg-yellow-900/10 px-2 py-1 rounded">
+                        <Trophy size={12} /> {survey.score} {t("points")}
+                      </div>
+                    )}
+                  </div>
+
+                  <h3 className="text-xl font-bold text-bmw-text mb-2 line-clamp-2 group-hover:text-bmw-blue transition-colors">
+                    {survey.title}
+                  </h3>
+                  <p className="text-bmw-textSec text-sm line-clamp-3 mb-4">
+                    {survey.description}
+                  </p>
+
+                  <div className="flex items-center gap-4 text-xs text-bmw-textSec">
+                    <div className="flex items-center gap-1">
+                      <Clock size={14} /> {survey.timeLeft} {t("minutes")}
                     </div>
-                  )}
-                </div>
-
-                <h3 className="text-xl font-bold text-bmw-text mb-2 line-clamp-2 group-hover:text-bmw-blue transition-colors">
-                  {survey.title}
-                </h3>
-                <p className="text-bmw-textSec text-sm line-clamp-3 mb-4">
-                  {survey.description}
-                </p>
-
-                <div className="flex items-center gap-4 text-xs text-bmw-textSec">
-                  <div className="flex items-center gap-1">
-                    <Clock size={14} /> {survey.timeLeft} {t("minutes")}
-                  </div>
-                  <div>
-                    Deadline:{" "}
-                    <span className="text-bmw-text font-medium">
-                      {StringHelpers.toPersianFullDateTime(survey.expireTime)}
-                    </span>
+                    <div>
+                      Deadline:{" "}
+                      <span className="text-bmw-text font-medium">
+                        {StringHelpers.toPersianFullDateTime(survey.expireTime)}
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div className="p-4 border-t border-bmw-border bg-bmw-base/50">
-                {activeTab === "active" ? (
-                  <button
-                    onClick={() => handleStartSurvey(survey)}
-                    className={`
+                <div className="p-4 border-t border-bmw-border bg-bmw-base/50">
+                  {activeTab === "active" ? (
+                    <button
+                      onClick={() => handleStartSurvey(survey)}
+                      className={`
                   w-full py-2.5 cursor-pointer rounded-lg font-medium text-sm transition-all flex items-center justify-center gap-2
                   bg-bmw-blue text-white hover:bg-blue-600 shadow-lg shadow-blue-900/20"
                 `}
-                  >
-                    <>
-                      {t("start_survey")}{" "}
-                      <ArrowRight size={16} className="rtl:rotate-180" />
-                    </>
-                  </button>
-                ) : (
-                  <button
-                    className={`
+                    >
+                      <>
+                        {t("start_survey")}{" "}
+                        <ArrowRight size={16} className="rtl:rotate-180" />
+                      </>
+                    </button>
+                  ) : (
+                    <button
+                      className={`
                   w-full py-2.5 cursor-pointer rounded-lg font-medium text-sm transition-all flex items-center justify-center gap-2
                   bg-gray-200 text-bmw-textSec hover:bg-blue-600 "
                 `}
-                  >
-                    <>تکمیل شد </>
-                  </button>
-                )}
+                    >
+                      <>تکمیل شد </>
+                    </button>
+                  )}
+                </div>
               </div>
-            </div>
+            )
           );
         })}
         {filteredPolls.length === 0 && (
@@ -218,6 +247,14 @@ const Surveys: React.FC = () => {
         showAddPolls={showAddPolls}
         setShowAddPolls={setShowAddPolls}
       />
+
+      {showDeletePoll && (
+        <MessageModal
+          showDeleteModal={showDeletePoll}
+          setShowDeleteModal={setShowDeletePoll}
+          handleAccept={() => handleDeletePolls()}
+        />
+      )}
     </div>
   );
 };

@@ -6,8 +6,8 @@ export default class StringHelpers {
   static baseURL: string | undefined = import.meta.env.VITE_API_URL;
 
   static getImage = (data: any, code?: string | number) => {
-    return `${StringHelpers.baseURL}/uploads/${data?.fileName}`;
-    // return `${StringHelpers.baseURL}/${data?.attachmentType}/${data?.fileName}`;
+    // return `${StringHelpers.baseURL}/uploads/${data?.fileName}`;
+    return `${StringHelpers.baseURL}/${data}`;
   };
   static toPersianDateTime = (date: string) => {
     return new DateObject({

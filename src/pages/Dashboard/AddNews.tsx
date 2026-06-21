@@ -6,6 +6,7 @@ import { Controller, useForm } from "react-hook-form";
 import ComboBox from "../../components/UI/ComboBox";
 import {
   addAttachment,
+  addNewsAttachments,
   createCompanyNews,
   getAllCategoryNews,
 } from "../../services/dotNet";
@@ -46,6 +47,37 @@ const AddNews: React.FC<any> = ({
     setSelectedImages((prev) => prev.filter((_, i) => i !== index));
   };
 
+  // const handleAdd = asyncWrapper(async (data: any) => {
+  //   const fixCategories = selectedUser?.map((item) => item?.id);
+  //   const postData = {
+  //     title: data?.title,
+  //     content: data?.content,
+  //     isPinned: data?.isPinned || false,
+  //     categoryIds: fixCategories,
+  //   };
+  //   const resCompanyNews = await createCompanyNews(postData);
+  //   console.log(resCompanyNews);
+  //   const { result, code, message } = resCompanyNews?.data;
+  //   if (code === 0) {
+  //     const formData = new FormData();
+  //     console.log(formData);
+  //     selectedImages.forEach((file) => {
+  //       // const fixExt = file?.type?.split("/")?.[1];
+  //       formData.append("FormFiles", file);
+  //       // formData.append("Ext", fixExt);
+  //     });
+  //     formData.append("AttachmentId", resCompanyNews?.data?.result);
+  //     formData.append("AttachmentType", "images/news");
+  //     // formData.append("FileName", "ne");
+  //     const resAttachment = await addAttachment(formData);
+  //     console.log(resAttachment);
+  //     const { code, result, message } = resAttachment?.data;
+  //     setShowAddNews(false);
+  //     handleGetAllNews();
+  //     toast.success(message);
+  //   }
+  // }, toast);
+
   const handleAdd = asyncWrapper(async (data: any) => {
     const fixCategories = selectedUser?.map((item) => item?.id);
     const postData = {
@@ -55,28 +87,58 @@ const AddNews: React.FC<any> = ({
       categoryIds: fixCategories,
     };
     const resCompanyNews = await createCompanyNews(postData);
-    console.log(resCompanyNews);
-
     const { result, code, message } = resCompanyNews?.data;
+
     if (code === 0) {
       const formData = new FormData();
-      console.log(formData);
       selectedImages.forEach((file) => {
-        // const fixExt = file?.type?.split("/")?.[1];
         formData.append("FormFiles", file);
-        // formData.append("Ext", fixExt);
       });
-      formData.append("AttachmentId", resCompanyNews?.data?.result);
-      formData.append("AttachmentType", "images/news");
-      // formData.append("FileName", "ne");
-      const resAttachment = await addAttachment(formData);
-      console.log(resAttachment);
-      const { code, result, message } = resAttachment?.data;
+      formData.append("CompanyNewsId", result); // آیدی خبر
+
+      const resAttachment = await addNewsAttachments(formData); // ← اندپوینت جدید
+      const { code, message } = resAttachment?.data;
       setShowAddNews(false);
       handleGetAllNews();
       toast.success(message);
     }
   }, toast);
+
+  // const handleAdd = asyncWrapper(async (data: any) => {
+  //   const fixCategories = selectedUser?.map((item) => item?.id);
+  //   const formData = new FormData();
+
+  //   formData.append("Title", data.title);
+  //   formData.append("Content", data.content);
+  //   formData.append("IsPinned", data.isPinned ?? false);
+
+  //   fixCategories.forEach((id) => {
+  //     formData.append("CategoryIds", id);
+  //   });
+  //   selectedImages.forEach((file) => {
+  //     formData.append("Images", file);
+  //   });
+  //   const res = await createCompanyNews(formData);
+  //   // console.log(resCompanyNews);
+  //   // const { result, code, message } = resCompanyNews?.data;
+  //   // if (code === 0) {
+  //   //   const formData = new FormData();
+  //   //   console.log(formData);
+  //   //   selectedImages.forEach((file) => {
+  //   //     // const fixExt = file?.type?.split("/")?.[1];
+  //   //     formData.append("FormFiles", file);
+  //   //     // formData.append("Ext", fixExt);
+  //   //   });
+  //   //   formData.append("AttachmentId", resCompanyNews?.data?.result);
+  //   //   formData.append("AttachmentType", "images/news");
+  //   //   // formData.append("FileName", "ne");
+  //   //   const resAttachment = await addAttachment(formData);
+  //   console.log(res);
+  //   const { code, result, message } = res?.data;
+  //   setShowAddNews(false);
+  //   handleGetAllNews();
+  //   toast.success(message);
+  // }, toast);
 
   useEffect(() => {
     if (!showAddNews) return;
@@ -148,7 +210,6 @@ const AddNews: React.FC<any> = ({
           value={selectedUser}
           onChange={setSelectedUser}
         />
-
         <CustomInput
           isTextArea
           label="محتوا"
