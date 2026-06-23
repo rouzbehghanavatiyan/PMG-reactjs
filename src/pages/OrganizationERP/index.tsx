@@ -1,9 +1,14 @@
 import React, { useState } from "react";
 import { categories } from "./Categories";
 import "@tabler/icons-webfont/dist/tabler-icons.min.css";
+import { useTheme } from "../../contexts/ThemeContext";
 
-const brandColors = ["#185FA5", "#1C4282", "#C3002F", "#124734"];
-
+const brandColors = [
+  "#0099ff", // Default
+  "#1C4282", // BMW
+  "#C3002F", // Nissan
+  "#F7C600", // Opel (Yellow)
+];
 const brandDots = [
   { title: "پیش‌فرض", className: "b0" },
   { title: "BMW", className: "b1" },
@@ -12,8 +17,8 @@ const brandDots = [
 ];
 
 const OrganizationPortal = () => {
-  // const [theme, setTheme] = useState<"light" | "dark">("light");
-  // const [currentBrand, setCurrentBrand] = useState(0);
+  const { theme, toggleTheme } = useTheme();
+  const [currentBrand, setCurrentBrand] = useState(0);
   const [openCategories, setOpenCategories] = useState<number[]>([0]);
 
   const toggleCategory = (index: number) => {
@@ -24,15 +29,14 @@ const OrganizationPortal = () => {
     );
   };
 
-  // const handleSetBrand = (index: number) => {
-  //   setCurrentBrand(index);
-  // };
+  const handleSetBrand = (index: number) => {
+    setCurrentBrand(index);
 
-  // const toggleTheme = () => {
-  //   const nextTheme = theme === "dark" ? "light" : "dark";
-  //   setTheme(nextTheme);
-  //   document.documentElement.setAttribute("data-theme", nextTheme);
-  // };
+    document.documentElement.style.setProperty(
+      "--brand-color",
+      brandColors[index],
+    );
+  };
 
   return (
     <div className="py-4 rtl" id="portal" dir="rtl">
@@ -50,9 +54,8 @@ const OrganizationPortal = () => {
             </h1>
             <span className="text-2xl font-bold text-bmw-text">Persia ERP</span>
           </div>
-
           <div className="flex items-center gap-1.5">
-            {/* {brandDots.map((brand, index) => (
+            {brandDots.map((brand, index) => (
               <button
                 key={brand.title}
                 type="button"
@@ -66,41 +69,42 @@ const OrganizationPortal = () => {
                   backgroundColor: brandColors[index],
                 }}
               />
-            ))} */}
-
-            {/* <button
-              className="flex items-center gap-1 rounded-md border border-gray-300 px-3 py-1 text-xs text-gray-600"
+            ))}
+            <button
+              className="flex items-center gap-1 rounded-2xl border border-gray-300 px-3 py-2 text-xs text-gray-600"
               type="button"
               onClick={toggleTheme}
             >
-              <i className="ti ti-sun" aria-hidden="true" />
               تغییر ظاهر
-            </button> */}
+              <i className="ti ti-sun" aria-hidden="true" />
+            </button>
           </div>
         </div>
-
-        <p className="text-[16px] leading-6 text-gray-500">
+        <p className="text-[16px] leading-6 text-bmw-textSec">
           دسترسی به تمامی سیستم‌ها و پرتال‌های داخلی براساس بخش‌های سازمانی.
         </p>
       </div>
       <div className="space-y-3">
         {categories.map((category, categoryIndex) => {
           const isOpen = openCategories.includes(categoryIndex);
-
           return (
             <div
               key={category.title}
-              className="overflow-hidden  rounded-xl border-gray-200 bg-gray-100"
+              className="overflow-hidden rounded-xl bg-bmw-base"
             >
               <button
                 type="button"
-                className="flex w-full items-center border border-gray-200 rounded-xl justify-between bg-white px-4 py-3 text-right hover:bg-gray-50"
+                className="flex w-full items-center border border-bmw-border rounded-xl justify-between bg-bmw-surface px-4 py-3 text-right hover:bg-bmw-hover transition-colors"
                 onClick={() => toggleCategory(categoryIndex)}
                 aria-expanded={isOpen}
               >
                 <div className="flex items-center gap-2">
-                  <i className={category.icon} aria-hidden="true" />
-                  <span className="text-sm  font16 font-bold   text-gray-800">
+                  <i
+                    className={category.icon}
+                    aria-hidden="true"
+                    style={{ color: "var(--brand-color)" }}
+                  />
+                  <span className="text-sm  font16 font-bold   text-bmw-text">
                     {category.title}
                   </span>
                 </div>
@@ -125,7 +129,16 @@ const OrganizationPortal = () => {
                       {category.items.map((item) => (
                         <a
                           key={`${category.title}-${item.title}`}
-                          className="flex flex-col items-center justify-center gap-2 rounded-md border border-gray-200 bg-white px-2 py-4 text-center transition hover:border-gray-300 hover:bg-gray-50"
+                          className="
+  flex flex-col items-center justify-center gap-2
+  rounded-md
+  border border-bmw-border
+  bg-bmw-surface
+  px-2 py-4
+  text-center
+  transition-all duration-200
+  hover:bg-bmw-hover
+"
                           href={item.href}
                           target={
                             item.href.startsWith("http") ? "_blank" : undefined
@@ -136,14 +149,15 @@ const OrganizationPortal = () => {
                               : undefined
                           }
                         >
-                          <span className="inline-flex rounded-full bg-gray-100 p-3">
+                          <span className="inline-flex rounded-full bg-bmw-hover p-3">
+                            {" "}
                             <i
                               className={item.icon}
                               aria-hidden="true"
-                              // style={{ color: brandColors[currentBrand] }}
+                              style={{ color: brandColors[currentBrand] }}
                             />
                           </span>
-                          <span className="text-[13px]  text-gray-800">
+                          <span className="text-[13px] text-bmw-text">
                             {item.title}
                           </span>
                         </a>

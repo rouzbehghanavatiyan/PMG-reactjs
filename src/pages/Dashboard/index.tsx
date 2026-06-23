@@ -20,7 +20,6 @@ import clsx from "clsx";
 const Dashboard: React.FC = () => {
   const { t, language } = useLanguage();
   const navigate = useNavigate();
-  const dispatch = useAppDispatch();
   const [getAllNews, setGetAllNews] = useState([]);
   const [showAddNews, setShowAddNews] = useState(false);
   const [loading, setLoading] = useState<boolean>(false);
