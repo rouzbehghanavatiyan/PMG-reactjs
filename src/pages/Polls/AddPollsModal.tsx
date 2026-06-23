@@ -1,10 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Button from "../../components/UI/Button";
 import ModalUI from "../../components/UI/ModalUI";
 import CustomInput from "../../components/UI/CustomInput";
 import AddQuestions from "./AddQuestions";
 import CustomDatePicker from "../../components/UI/CustomDatePicker";
 import { Check, Pencil, Trash2, X } from "lucide-react";
+import {} from "react";
 
 const AddPollsModal: React.FC<any> = ({
   control,
@@ -12,6 +13,9 @@ const AddPollsModal: React.FC<any> = ({
   setShowAddPolls,
   handleSubmit,
   onSubmit,
+  editingPoll,
+  setEditingPoll,
+  setValue,
 }) => {
   const [showAddQuestions, setShowAddQuestions] = useState(false);
   const [questions, setQuestions] = useState<any>([]);
@@ -26,7 +30,6 @@ const AddPollsModal: React.FC<any> = ({
       questions: questions,
     };
     onSubmit(finalData);
-    setShowAddPolls(false);
   };
 
   const handleStartEdit = (question: any) => {
@@ -89,21 +92,45 @@ const AddPollsModal: React.FC<any> = ({
     ]);
   };
 
+  useEffect(() => {
+    if (editingPoll) {
+      setValue("title", editingPoll.title);
+      setValue("score", editingPoll.score);
+      setValue("content", editingPoll.description);
+      setValue("leftTime", editingPoll.timeLeft);
+      setValue(
+        "date",
+        editingPoll.expireTime ? new Date(editingPoll.expireTime) : null,
+      );
+
+      setQuestions(
+        editingPoll.questions?.map((q: any) => ({
+          id: q.id || Date.now() + Math.random(),
+          questionTitle: q.questionText,
+          options: q.options.map((opt: any) => ({
+            text: opt.optionText,
+          })),
+        })) || [],
+      );
+    }
+  }, [editingPoll]);
+
   return (
     <ModalUI
       isOpen={showAddPolls}
-      onClose={() => setShowAddPolls(false)}
+      onClose={() => {
+        setShowAddPolls(false);
+        setEditingPoll(null);
+      }}
       title={"افزودن نظرسنجی"}
       size="xl"
       closeOnBackdrop={false}
       footer={
-        <>
-          <Button
-            onClick={handleSubmit(handleFinalSubmit)}
-            variant="primary"
-            label="تایید"
-          />
-        </>
+        <Button
+          onClick={handleSubmit(handleFinalSubmit)}
+          variant="primary"
+          label="تایید"
+        />
       }
     >
       <div className="grid grid-cols-1 md:grid-cols-1 xl:grid-cols-3 gap-4">
@@ -121,6 +148,7 @@ const AddPollsModal: React.FC<any> = ({
             className="rounded-xl border border-gray-200 px-4 outline-none focus:border-bmw-blue"
           />
           <CustomDatePicker
+            minDate={new Date()}
             control={control}
             name="date"
             label="تاریخ پایان نظرسنجی"
@@ -165,8 +193,7 @@ const AddPollsModal: React.FC<any> = ({
           <div className="border border-gray-200 rounded-2xl bg-gray-50/60 p-3 md:p-4">
             <div className="h-[300px] overflow-y-auto pr-1">
               <div className="space-y-4">
-                {questions.map((q, index) => {
-                  console.log("qqqqqqqqqqqqq", q);
+                {questions.map((q: any, index: number) => {
 
                   const isEditing = editingQuestionId === q.id;
                   return (
@@ -231,7 +258,6 @@ const AddPollsModal: React.FC<any> = ({
                               placeholder="متن سوال را وارد کنید"
                             />
                           </div>
-
                           <div>
                             <label className="block text-xs text-gray-500 mb-2">
                               گزینه‌های پاسخ
@@ -291,7 +317,6 @@ const AddPollsModal: React.FC<any> = ({
                     </div>
                   );
                 })}
-
                 {questions.length === 0 && (
                   <div className="h-full min-h-[200px] flex items-center justify-center text-sm text-gray-500">
                     هنوز سوالی اضافه نشده است

@@ -6,6 +6,8 @@ import {
   CheckCircle,
   ArrowRight,
   Plus,
+  Pencil,
+  Trash,
 } from "lucide-react";
 import { useLanguage } from "../../contexts/LanguageContext";
 import Button from "../../components/UI/Button";
@@ -13,13 +15,19 @@ import AddPollsModal from "./AddPollsModal";
 import { useForm } from "react-hook-form";
 import { asyncWrapper } from "../../utils/asyncWrapper";
 import { useToast } from "../../hooks/useToast";
-import { allPolls, createPoll, deletePoll } from "../../services/dotNet";
+import {
+  allPolls,
+  createPoll,
+  deletePoll,
+  updatePolls,
+} from "../../services/dotNet";
 import StringHelpers from "../../utils/stringHelpers";
 import { useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../features/store";
 import { RsetPoll } from "../../features/slices/mainSlice";
 import MessageModal from "../../components/UI/MessageModal";
 import { useApi } from "../../hooks/useApi";
+import { useHasPermission } from "../../hooks/usePermissions";
 
 interface Question {
   id: string;
@@ -27,24 +35,11 @@ interface Question {
   options: string[];
 }
 
-interface Survey {
-  id: string;
-  title: string;
-  description: string;
-  points: number;
-  questionsCount: number;
-  timeEst: number; // minutes
-  deadline: string;
-  status: "active" | "completed" | "expired";
-  questions: Question[];
-}
-
 const Surveys: React.FC = () => {
   const { t } = useLanguage();
   const dispatch = useAppDispatch();
   const toast = useToast();
   const navigate = useNavigate();
-
   const [activeTab, setActiveTab] = useState<"active" | "history">("active");
   const [pollItem, setPollItem] = useState<Record<string, number>>({});
   const [allPoll, setAllPoll] = useState([]);
@@ -52,39 +47,66 @@ const Surveys: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [showDeletePoll, setShowDeletePoll] = useState(false);
   const userLogin = useAppSelector((state) => state?.main?.userLogin);
-  const { control, handleSubmit } = useForm<any>();
+  const { control, handleSubmit, setValue } = useForm<any>();
+  const { hasPermission } = useHasPermission();
   const { call } = useApi({ loading, setLoading });
   const handleDeletePoll = (survey: any) => {
     setPollItem(survey);
     setShowDeletePoll(true);
   };
+  const [editingPoll, setEditingPoll] = useState<any>(null);
 
   const onSubmit = asyncWrapper(async (data: any) => {
     const postData = {
+      ...(editingPoll && { id: editingPoll.id }),
+
       title: data.title,
       description: data.content,
       isActive: true,
       timeLeft: data?.leftTime,
       expireTime: data.date?.toDate?.().toISOString(),
       score: Number(data.score),
-      questions: data.questions.map((q: any, index: number) => ({
-        questionText: q.questionTitle,
-        displayOrder: index + 1,
-        options: q.options.map((opt: any, optIndex: number) => ({
-          optionText: opt.text,
-          displayOrder: optIndex + 1,
-        })),
-      })),
+
+      questions: data.questions.map((q: any, index: number) => {
+        const editingQuestion = editingPoll?.questions?.find(
+          (question: any) =>
+            question.id === q.id || question.questionText === q.questionTitle,
+        );
+
+        return {
+          ...(editingQuestion && { id: editingQuestion.id }),
+
+          questionText: q.questionTitle,
+          displayOrder: index + 1,
+
+          options: q.options.map((opt: any, optIndex: number) => {
+            const editingOption = editingQuestion?.options?.find(
+              (option: any) =>
+                option.id === opt.id || option.optionText === opt.text,
+            );
+
+            return {
+              ...(editingOption && { id: editingOption.id }),
+
+              optionText: opt.text,
+              displayOrder: optIndex + 1,
+            };
+          }),
+        };
+      }),
     };
-    const res = await createPoll(postData);
-    console.log(" res  res  res", res);
-    const { message, result, code }: any = res?.data;
-    if (code === 0) {
-      toast.success(message);
-      handleGetAllPoll();
+
+    if (editingPoll) {
+      await updatePolls(postData);
+      toast.success("نظرسنجی با موفقیت ویرایش شد");
     } else {
-      toast.error(message);
+      await createPoll(postData);
+      toast.success("نظرسنجی ایجاد شد");
     }
+
+    setEditingPoll(null);
+    setShowAddPolls(false);
+    handleGetAllPoll();
   }, toast);
 
   const handleDeletePolls = () => {
@@ -117,7 +139,12 @@ const Surveys: React.FC = () => {
   }, [userLogin]);
 
   const filteredPolls = allPoll.filter((poll: any) => {
-    console.log("filteredPolls filteredPolls filteredPolls", poll);
+    const expireTime = poll?.expireTime ? new Date(poll.expireTime) : null;
+    const now = new Date();
+    const isNotExpired = expireTime && expireTime > now;
+
+    if (!isNotExpired) return false;
+
     return activeTab === "history"
       ? poll.checkAnswerPoll === true
       : poll.checkAnswerPoll === false;
@@ -148,12 +175,14 @@ const Surveys: React.FC = () => {
           {t("survey_history")}
         </button>
       </div>
-      <Button
-        onClick={() => setShowAddPolls(true)}
-        leftIcon={<Plus />}
-        label="افزودن نظرسنجی"
-        variant="success"
-      />
+      {hasPermission("Poll.Create") && (
+        <Button
+          onClick={() => setShowAddPolls(true)}
+          leftIcon={<Plus />}
+          label="افزودن نظرسنجی"
+          variant="success"
+        />
+      )}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredPolls?.map((survey: any) => {
           return (
@@ -167,13 +196,30 @@ const Surveys: React.FC = () => {
                     <div className="px-2 py-1 bg-bmw-base rounded border border-bmw-border text-xs text-bmw-textSec font-mono">
                       {survey.questions?.length} {t("questions_count")}
                     </div>
-                    <Button
-                      type="button"
-                      variant="outline-danger"
-                      onClick={() => handleDeletePoll(survey)}
-                      className="text-red-500 border rounded px-2 py-1 text-sm hover:text-red-600 whitespace-nowrap"
-                      label="حذف"
-                    />
+                    {hasPermission("Poll.Delete") && (
+                      <Button
+                        size="sm"
+                        type="button"
+                        variant="outline-danger"
+                        onClick={() => handleDeletePoll(survey)}
+                        className="text-red-500 border rounded px-2 py-1 hover:text-red-600 whitespace-nowrap"
+                        label="حذف"
+                        leftIcon={<Trash size={14} />}
+                      />
+                    )}
+                    {hasPermission("Poll.Edit") && (
+                      <Button
+                        size="sm"
+                        type="button"
+                        variant="outline-orange"
+                        label="ویرایش"
+                        leftIcon={<Pencil size={14} />}
+                        onClick={() => {
+                          setEditingPoll(survey);
+                          setShowAddPolls(true);
+                        }}
+                      />
+                    )}
                     {activeTab === "history" ? (
                       <div className="flex items-center gap-1 text-green-500 text-xs font-bold bg-green-900/10 px-2 py-1 rounded">
                         <CheckCircle size={12} /> {t("completed")}
@@ -246,8 +292,10 @@ const Surveys: React.FC = () => {
         onSubmit={onSubmit}
         showAddPolls={showAddPolls}
         setShowAddPolls={setShowAddPolls}
+        editingPoll={editingPoll}
+        setEditingPoll={setEditingPoll}
+        setValue={setValue}
       />
-
       {showDeletePoll && (
         <MessageModal
           showDeleteModal={showDeletePoll}

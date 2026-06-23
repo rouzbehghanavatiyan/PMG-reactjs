@@ -15,7 +15,7 @@ import PaginationForms from "../../common/PaginationForms";
 import { useHasPermission } from "../../hooks/usePermissions";
 import StringHelpers from "../../utils/stringHelpers";
 import CustomImage from "../../components/UI/CustomImage";
-import { RsetFetchNewsList } from "../../features/slices/mainSlice";
+import clsx from "clsx";
 
 const Dashboard: React.FC = () => {
   const { t, language } = useLanguage();
@@ -112,20 +112,46 @@ const Dashboard: React.FC = () => {
       </div>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { labelKey: "food", icon: "🍔", descKey: "food_desc", link: "/food" },
-          { labelKey: "it", icon: "💻", descKey: "it_desc", link: "/support" },
-          { labelKey: "ricoh", icon: "🏆", descKey: "ricoh_desc", link: "#" },
+          {
+            labelKey: "food",
+            icon: "🍔",
+            descKey: "food_desc",
+            link: "/food",
+            disabled: true,
+          },
+          {
+            labelKey: "it",
+            icon: "💻",
+            descKey: "it_desc",
+            link: "/support",
+            disabled: true,
+          },
+          {
+            labelKey: "ricoh",
+            icon: "🏆",
+            descKey: "ricoh_desc",
+            link: "#",
+            disabled: true,
+          },
           {
             labelKey: "surveys",
             icon: "📋",
             descKey: "surveys_desc",
             link: "/surveys",
+            disabled: false,
           },
         ].map((action, idx) => (
           <div
             key={idx}
-            onClick={() => action.link !== "#" && navigate(action.link)}
-            className="bg-bmw-surface border border-bmw-border p-5 rounded-lg hover:border-bmw-blue transition-all cursor-pointer group shadow-sm"
+            onClick={() =>
+              !action.disabled && action.link !== "#" && navigate(action.link)
+            }
+            className={clsx(
+              "bg-bmw-surface border border-bmw-border p-5 rounded-lg transition-all group shadow-sm",
+              action.disabled
+                ? "opacity-50 cursor-not-allowed"
+                : "hover:border-bmw-blue cursor-pointer",
+            )}
           >
             <div className="flex justify-between items-start mb-3">
               <span className="text-2xl">{action.icon}</span>
@@ -201,7 +227,8 @@ const Dashboard: React.FC = () => {
             <h3 className="text-lg font-bold text-bmw-text mb-4 flex items-center gap-2 ">
               <Bell size={18} className="text-bmw-blue" /> {t("notifications")}
             </h3>
-            <div className="space-y-4">
+            {t("statuses.progress")}. . .
+            {/* <div className="space-y-4">
               {currentNotifications.map((note, i) => (
                 <div
                   key={i}
@@ -216,7 +243,7 @@ const Dashboard: React.FC = () => {
                   </div>
                 </div>
               ))}
-            </div>
+            </div> */}
           </div>
           <BirthdaysWidget />
         </div>

@@ -1,0 +1,20 @@
+.portal-container {
+  padding: 24px;
+}
+
+.portal-header {
+  margin-bottom: 24px;
+}
+
+.portal-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.portal-card {
+  display: block;
+  padding: 16px;
+  border-radius: 12px;
+  background: white;
+}

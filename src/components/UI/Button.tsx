@@ -74,8 +74,8 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       "focus-visible:ring-offset-bmw-surface disabled:opacity-60 disabled:cursor-not-allowed";
 
     const sizes: Record<ButtonSize, string> = {
-      sm: "px-3 py-2 text-sm",
-      md: "px-4 py-3 text-sm",
+      sm: "px-3 py-1 text-sm ",
+      md: "px-4 py-2 text-sm",
       lg: "px-5 py-3.5 text-base",
     };
 
@@ -105,7 +105,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       "outline-success":
         "border border-green-500 bg-transparent text-green-500 hover:bg-green-50",
       "outline-orange":
-        "border border-orange-500 bg-transparent text-orange-500 hover:bg-orange-50",
+        "border border-amber-400 bg-transparent text-amber-400 hover:bg-orange-50",
       "outline-purple":
         "border border-purple-500 bg-transparent text-purple-500 hover:bg-purple-50",
       "outline-dark":
@@ -125,7 +125,6 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
           variants[variant],
           fullWidth ? "w-full" : "w-auto",
           className,
-          "h-10",
         )}
         aria-busy={loading ? true : undefined}
         {...rest}

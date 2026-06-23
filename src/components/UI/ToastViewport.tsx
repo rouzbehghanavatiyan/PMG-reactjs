@@ -115,28 +115,33 @@ export default function ToastViewport() {
       className={clsx(
         "fixed z-[9999] pointer-events-none",
         "top-4 right-4 left-4 sm:left-auto sm:w-[420px]",
-        "space-y-3",
       )}
     >
-      {toasts.map((t) => (
-        <ToastItem key={t.id} toast={t} />
-      ))}
+      <div className="relative flex flex-col items-end">
+        {toasts.map((t, i) => (
+          <ToastItem key={t.id} toast={t} index={i} />
+        ))}
+      </div>
     </div>
   );
 }
 
-function ToastItem({ toast }: { toast: Toast }) {
+function ToastItem({ toast, index }: { toast: Toast; index: number }) {
   const styles = typeStyles[toast.type];
 
   return (
     <div
+      style={{
+        transform: `translateY(${index * 12}px) scale(${1 - index * 0.03})`,
+        zIndex: 100 - index,
+      }}
       className={clsx(
-        "pointer-events-auto overflow-hidden",
+        "pointer-events-auto overflow-hidden absolute w-full",
         "rounded-2xl bg-bmw-surface/95 backdrop-blur border border-bmw-border",
         "shadow-2xl shadow-black/25 ring-1",
         styles.ring,
-        // animation
-        "animate-in fade-in slide-in-from-top-2 duration-200",
+        "transition-all duration-300",
+        "animate-in fade-in slide-in-from-top-2",
       )}
       role="status"
       aria-live="polite"

@@ -7,7 +7,10 @@ export default class StringHelpers {
 
   static getImage = (data: any, code?: string | number) => {
     // return `${StringHelpers.baseURL}/uploads/${data?.fileName}`;
-    return `${StringHelpers.baseURL}/${data}`;
+    const fix = `${StringHelpers.baseURL}/${data}`;
+    console.log("fix fix fix", fix);
+
+    return fix;
   };
   static toPersianDateTime = (date: string) => {
     return new DateObject({

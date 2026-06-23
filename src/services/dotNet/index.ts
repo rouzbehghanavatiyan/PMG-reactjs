@@ -44,6 +44,10 @@ export const deletePoll = (id: any) => {
   return api.delete(`/api/poll/deletePoll/${id}`);
 };
 
+export const updatePolls = (postData: any) => {
+  return api.put(`/api/poll/updatePolls/${postData?.id}`, postData);
+};
+
 export const deleteCompanyNews = (id: any) => {
   return api.delete(`/api/companyNews/deleteCompanyNews/${id}`);
 };

@@ -65,7 +65,6 @@ const Profile: React.FC = () => {
   };
 
   const handleShowAddNews = () => {};
-
   const data = profileData[language === "fa" ? "fa" : "en"];
 
   return (
@@ -170,21 +169,25 @@ const Profile: React.FC = () => {
                 {t("active")}
               </span>
             </div>
-            <div className="prose prose-invert max-w-none text-sm text-bmw-textSec space-y-4">
+            در حال تهیه و بررسی توسط واحد منابع انسانی است و به‌زودی در همین بخش
+            به‌روزرسانی خواهد شد.
+            {/* <div className="prose prose-invert max-w-none text-sm text-bmw-textSec space-y-4">
               <p>{data.desc}</p>
               <ul className="list-disc ps-5 space-y-1 opacity-80">
                 {data.bullets.map((item, idx) => (
                   <li key={idx}>{item}</li>
                 ))}
               </ul>
-            </div>
+            </div> */}
           </div>
 
           <div className="bg-bmw-surface border border-bmw-border rounded-lg p-6 shadow-sm">
             <h3 className="text-xl font-bold text-bmw-text mb-4">
               {t("org_chart")}
             </h3>
-            <div className="flex flex-col gap-4">
+            در حال تهیه و بررسی توسط واحد منابع انسانی است و به‌زودی در همین بخش
+            به‌روزرسانی خواهد شد.
+            {/* <div className="flex flex-col gap-4">
               <div className="flex items-center gap-3 p-3 rounded-lg border border-bmw-border bg-bmw-hover opacity-70">
                 <div className="w-10 h-10 rounded-full bg-gray-700 overflow-hidden">
                   <img
@@ -216,12 +219,10 @@ const Profile: React.FC = () => {
                   />
                 </div>
                 <div>
-                  {/* <p className="text-sm font-bold text-bmw-text">{}</p> */}
                   <p className="text-xs text-bmw-blue">{t("senior_manager")}</p>
                 </div>
               </div>
 
-              {/* Subordinates */}
               <div
                 className={`${dir === "rtl" ? "mr-16" : "ml-16"} space-y-3 relative`}
               >
@@ -251,7 +252,7 @@ const Profile: React.FC = () => {
                   </div>
                 ))}
               </div>
-            </div>
+            </div> */}
           </div>
         </div>
       </div>

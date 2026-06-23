@@ -6,6 +6,7 @@ import { useApi } from "../../hooks/useApi";
 import MessageModal from "../../components/UI/MessageModal";
 import EditNews from "./EditNews";
 import { useHasPermission } from "../../hooks/usePermissions";
+import Button from "../../components/UI/Button";
 const AllNews: React.FC<any> = ({
   handleShowNews,
   news,
@@ -83,25 +84,28 @@ const AllNews: React.FC<any> = ({
             {news?.isActive ? (
               <>
                 {hasPermission("CompanyNews.Delete") && (
-                  <button
+                  <Button
                     onClick={() => setShowDeleteModal(true)}
-                    className="flex items-center gap-1 border border-red-500 rounded px-2 py-1 text-red-500 hover:bg-red-50 transition-colors"
-                  >
-                    <span className="text-xs font-light">حذف</span>
-                    <Trash size={14} />
-                  </button>
+                    size="sm"
+                    type="button"
+                    variant="outline-danger"
+                    className="text-red-500 border rounded px-2 py-1 hover:text-red-600 whitespace-nowrap"
+                    label="حذف"
+                    leftIcon={<Trash size={14} />}
+                  />
                 )}
                 {hasPermission("CompanyNews.Edit") && (
-                  <button
+                  <Button
                     onClick={() => {
                       setEditingNews(news);
                       setShowEditNews(true);
                     }}
-                    className="flex items-center gap-1 border border-amber-400 rounded px-2 py-1 text-amber-400 hover:bg-amber-50 transition-colors"
-                  >
-                    <span className="text-xs font-light">ویرایش</span>
-                    <Pencil size={14} />
-                  </button>
+                    size="sm"
+                    type="button"
+                    variant="outline-orange"
+                    label="ویرایش"
+                    leftIcon={<Pencil size={14} />}
+                  />
                 )}
               </>
             ) : (

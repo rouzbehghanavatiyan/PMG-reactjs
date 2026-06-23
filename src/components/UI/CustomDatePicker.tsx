@@ -4,7 +4,7 @@ import DatePicker from "react-multi-date-picker";
 import persian from "react-date-object/calendars/persian";
 import persian_fa from "react-date-object/locales/persian_fa";
 
-const CustomDatePicker = ({ control, name, label, rules }: any) => {
+const CustomDatePicker = ({ control, name, label, rules, minDate }: any) => {
   return (
     <div className="flex flex-col w-full">
       {label && (
@@ -19,6 +19,7 @@ const CustomDatePicker = ({ control, name, label, rules }: any) => {
         render={({ field, fieldState }) => (
           <>
             <DatePicker
+              minDate={minDate}
               value={field.value}
               onChange={(date) => field.onChange(date)}
               calendar={persian}

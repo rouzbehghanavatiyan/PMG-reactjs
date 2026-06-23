@@ -27,8 +27,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
   const navigate = useNavigate();
   const { t, language, setLanguage, dir } = useLanguage();
   const user = useAppSelector((state) => state);
-  const firstName = user?.main?.userLogin?.FirstName;
-  const lastName = user?.main?.userLogin?.LastName;
+
   const handleLogout = () => {
     navigate("/");
   };
@@ -41,12 +40,18 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
     { icon: LayoutDashboard, label: "dashboard", path: "/dashboard" },
     { icon: User, label: "profile", path: "/profile" },
     { icon: CreditCard, label: "payslips", path: "/payslips" },
-    { icon: CalendarDays, label: "calendar", path: "/calendar" },
+    {
+      icon: CalendarDays,
+      label: "calendar",
+      path: "/calendar",
+      disabled: true,
+    },
     { icon: LayoutGrid, label: "erp_title", path: "/erp" },
-    { icon: FileText, label: "documents", path: "/documents" },
-    { icon: Utensils, label: "food_order", path: "/food" },
+
+    { icon: FileText, label: "documents", path: "/documents", disabled: true },
+    { icon: Utensils, label: "food_order", path: "/food", disabled: true },
     { icon: ClipboardList, label: "surveys", path: "/surveys" },
-    { icon: Ticket, label: "support", path: "/support" },
+    { icon: Ticket, label: "support", path: "/support", disabled: true },
   ];
 
   const hiddenTransform =
@@ -112,30 +117,45 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
             <X size={24} />
           </button>
           <nav className="flex-1 py-2 px-2 space-y-1">
-            {navItems.map((item) => (
-              <NavLink
-                key={item.path}
-                to={item.path}
-                onClick={() => setIsOpen(false)}
-                className={({ isActive }) => `
-                  flex items-center gap-3 px-4 py-3 rounded-md transition-all duration-200 group
-                  ${
-                    isActive
-                      ? "bg-bmw-blue text-white shadow-sm shadow-blue-900/50"
-                      : "text-bmw-textSec hover:bg-bmw-hover hover:text-bmw-text"
-                  }
-                `}
-              >
-                <item.icon size={20} className="stroke-[1.5]" />
-                <span className="text-sm font-medium tracking-wide">
-                  {t(item.label)}
-                </span>
-              </NavLink>
-            ))}
+            {navItems.map((item) =>
+              item.disabled ? (
+                <div
+                  key={item.path}
+                  className="flex items-center gap-3 px-4 py-3 rounded-md text-gray-500 cursor-not-allowed opacity-50"
+                >
+                  <item.icon size={20} className="stroke-[1.5]" />
+                  <span className="text-sm font-medium tracking-wide">
+                    {t(item.label)}
+                  </span>
+                </div>
+              ) : (
+                <NavLink
+                  key={item.path}
+                  to={item.path}
+                  onClick={() => setIsOpen(false)}
+                  className={({ isActive }) => `
+        flex items-center gap-3 px-4 py-3 rounded-md transition-all duration-200 group
+        ${
+          isActive
+            ? "bg-bmw-blue text-white shadow-sm shadow-blue-900/50"
+            : "text-bmw-textSec hover:bg-bmw-hover hover:text-bmw-text"
+        }
+      `}
+                >
+                  <item.icon size={20} className="stroke-[1.5]" />
+                  <span className="text-sm font-medium tracking-wide">
+                    {t(item.label)}
+                  </span>
+                </NavLink>
+              ),
+            )}
           </nav>
           <div className="p-4 border-t mb-5 border-bmw-border space-y-2 w-full">
             <ThemeAndLang />
-            <button className="flex items-center gap-3 px-4 py-3 w-full max-w-full text-bmw-textSec hover:text-bmw-text hover:bg-bmw-hover rounded-md transition-colors">
+            <button
+              disabled={true}
+              className="flex text-gray-300 items-center gap-3 px-4 py-3 w-full max-w-full text-bmw-textSec rounded-md transition-colors"
+            >
               <Settings size={20} className="shrink-0" />
               <span className="text-sm font-medium truncate">
                 {t("settings")}

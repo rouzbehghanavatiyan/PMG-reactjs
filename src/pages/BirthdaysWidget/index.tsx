@@ -66,7 +66,8 @@ const BirthdaysWidget: React.FC = () => {
         <Gift size={18} className="text-bmw-blue" />
         {t("born_in_month")} {monthName}
       </h3>
-      <div className="flex-1 flex items-center justify-between">
+      <span className="">{t("statuses.progress")}. . .</span>
+      {/* <div className="flex-1 flex items-center justify-between">
         <button
           onClick={dir === "rtl" ? nextSlide : prevSlide}
           className="p-2 text-bmw-textSec hover:text-bmw-text hover:bg-bmw-hover rounded-full transition-colors"
@@ -99,7 +100,7 @@ const BirthdaysWidget: React.FC = () => {
         >
           <ChevronRight size={24} />
         </button>
-      </div>
+      </div> */}
     </div>
   );
 };
