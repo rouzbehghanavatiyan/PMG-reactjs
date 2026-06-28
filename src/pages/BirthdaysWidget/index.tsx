@@ -21,7 +21,6 @@ const BirthdaysWidget: React.FC = () => {
   const [birthdays, setBirthdays] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(false);
   const toast = useToast();
-  const { call } = useApi({ loading, setLoading });
 
   const currentMonthEn = new Date().toLocaleString("en-US", { month: "long" });
   const currentMonthFa = new Intl.DateTimeFormat("fa-IR", {
@@ -38,14 +37,6 @@ const BirthdaysWidget: React.FC = () => {
     setCurrentIndex((prev) => (prev === 0 ? birthdays.length - 1 : prev - 1));
   };
 
-  // const handleGetBirthday = () => {
-  //   call(() => getBirthday(), {
-  //     onSuccess: (res: Employee[]) => {
-  //       setBirthdays(res || []);
-  //     },
-  //   });
-  // };
-
   const handleGetBirthday = asyncWrapper(async () => {
     const res = await getBirthday();
     console.log(res?.data);
@@ -53,10 +44,6 @@ const BirthdaysWidget: React.FC = () => {
       setBirthdays(res?.data);
     }
   }, toast);
-
-  // useEffect(() => {
-  //   handleGetBirthday();
-  // }, []);
 
   useEffect(() => {
     handleGetBirthday();
@@ -73,6 +60,7 @@ const BirthdaysWidget: React.FC = () => {
   }
 
   const currentEmployee: any = birthdays[currentIndex];
+  const fixBirthdayDay = currentEmployee?.BirthDate?.split("/")?.[2];
 
   return (
     <div className="bg-bmw-surface border border-bmw-border rounded-lg p-5 shadow-sm flex flex-col min-h-[200px]">
@@ -80,13 +68,12 @@ const BirthdaysWidget: React.FC = () => {
         <Gift size={18} className="text-bmw-blue" />
         {t("born_in_month")} {monthName}
       </h3>
-
       <div className="flex-1 flex items-center justify-between">
         <button
           onClick={dir === "rtl" ? nextSlide : prevSlide}
-          className="p-2 text-bmw-textSec hover:text-bmw-text hover:bg-bmw-hover rounded-full transition-colors"
+          className="p-2 cursor-pointer text-bmw-textSec hover:text-bmw-text hover:bg-bmw-hover rounded-full transition-colors"
         >
-          <ChevronLeft size={24} />
+          <ChevronRight size={24} />
         </button>
         <div
           className="flex flex-col items-center justify-center text-center px-4 animate-in fade-in zoom-in duration-300"
@@ -98,25 +85,55 @@ const BirthdaysWidget: React.FC = () => {
           <h4 className="font-bold text-lg text-bmw-text">
             {currentEmployee.FirstName} {currentEmployee.LastName}
           </h4>
-          <p className="text-sm text-bmw-textSec">
-            {currentEmployee.department}
+          <p className="text-sm text-bmw-textSec my-1">
+            {currentEmployee.Department}
           </p>
           <p className="text-xs font-medium bg-bmw-hover text-bmw-text px-2 py-1 rounded mt-2">
             {/* {language === "fa"
               ? `${currentEmployee.day} ${monthName}`
               : `${monthName} ${currentEmployee.day}`} */}
-            {currentEmployee?.BirthDate}
+            {fixBirthdayDay} {monthName}
+            {/* {currentEmployee?.BirthDate} */}
           </p>
         </div>
         <button
           onClick={dir === "rtl" ? prevSlide : nextSlide}
-          className="p-2 text-bmw-textSec hover:text-bmw-text hover:bg-bmw-hover rounded-full transition-colors"
+          className="p-2 cursor-pointer text-bmw-textSec hover:text-bmw-text hover:bg-bmw-hover rounded-full transition-colors"
         >
-          <ChevronRight size={24} />
+          <ChevronLeft size={24} />
         </button>
       </div>
+      {/* <div className="flex justify-center mt-3 text-xs text-bmw-textSec">
+        {currentIndex + 1} / {birthdays.length}
+      </div> */}
     </div>
   );
 };
 
 export default BirthdaysWidget;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

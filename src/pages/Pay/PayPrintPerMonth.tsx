@@ -48,7 +48,6 @@ const PayPrintPerMonth = forwardRef<HTMLDivElement, any>(
     const getVam = (element: string) =>
       historyItem?.deductions?.find((x: any) => x.element === element)?.value ??
       0;
-
     return (
       <div
         ref={ref}
@@ -58,10 +57,10 @@ const PayPrintPerMonth = forwardRef<HTMLDivElement, any>(
           پرشیا خودرو
         </span>
         <div className="flex justify-center items-center gap-4 my-2">
-          <span className="font-bold text-xl">فیش حقوقی ماه</span>
           <span> {StringHelpers?.toPersianMonthName(historyItem?.month)} </span>
-          <span className="font-bold text-xl">سال</span>
+          <span className="font-bold text-xl">فیش حقوقی ماه</span>
           <span>{historyItem?.year}</span>
+          <span className="font-bold text-xl">سال</span>
         </div>
         <div className="flex px-2 justify-between border-3 border-gray-400 bg-gray-200 ">
           <div className="">

@@ -95,18 +95,14 @@ const Payslips: React.FC = () => {
     setAllAmount(data);
   }, toast);
 
-  const latest = rawData[rawData.length - 1];
-
   useEffect(() => {
     if (!userLogin?.PersonalCode) return;
     handleGetSalaryPerMonth();
   }, [userLogin?.PersonalCode]);
 
-  console.log(allAmount);
-
   const handlePrint = useReactToPrint({
     contentRef: printRef,
-    // documentTitle: `فیش حقوقی-${historyItem?.year}-${historyItem?.month}`,
+    documentTitle: `فیش-حقوقی- ${historyItem?.month}-${historyItem?.year}`,
   });
 
   const handlePrintHistoryPerMonth = (item: any) => {
@@ -168,7 +164,7 @@ const Payslips: React.FC = () => {
         heightLeft -= pageHeight;
       }
 
-      pdf.save(`فیش-${item.year}-${item.month}.pdf`);
+      pdf.save(`فیش-حقوقی-${item.month}-${item.year}.pdf`);
     } catch (error) {
       console.error("PDF generation error:", error);
     }
