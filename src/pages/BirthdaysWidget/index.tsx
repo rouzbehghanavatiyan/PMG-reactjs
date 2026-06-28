@@ -1,7 +1,11 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight, Gift } from "lucide-react";
 import { useLanguage } from "../../contexts/LanguageContext";
 import CustomImage from "../../components/UI/CustomImage";
+import { getBirthday } from "../../services/dotNet";
+import { useApi } from "../../hooks/useApi";
+import { asyncWrapper } from "../../utils/asyncWrapper";
+import { useToast } from "../../hooks/useToast";
 
 interface Employee {
   id: string;
@@ -11,33 +15,13 @@ interface Employee {
   imageUrl: string;
 }
 
-const mockBirthdays: Employee[] = [
-  {
-    id: "1",
-    name: "Behzad Naderloo",
-    department: "Sales",
-    day: 5,
-    imageUrl: "/assets/1002.jpg",
-  },
-  {
-    id: "2",
-    name: "Sara Ahmadi",
-    department: "HR",
-    day: 12,
-    imageUrl: "/assets/1002.jpg",
-  },
-  {
-    id: "3",
-    name: "Mohammad Karimi",
-    department: "IT",
-    day: 24,
-    imageUrl: "/assets/1002.jpg",
-  },
-];
-
 const BirthdaysWidget: React.FC = () => {
   const { t, language, dir } = useLanguage();
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [birthdays, setBirthdays] = useState<Employee[]>([]);
+  const [loading, setLoading] = useState(false);
+  const toast = useToast();
+  const { call } = useApi({ loading, setLoading });
 
   const currentMonthEn = new Date().toLocaleString("en-US", { month: "long" });
   const currentMonthFa = new Intl.DateTimeFormat("fa-IR", {
@@ -47,18 +31,48 @@ const BirthdaysWidget: React.FC = () => {
   const monthName = language === "fa" ? currentMonthFa : currentMonthEn;
 
   const nextSlide = () => {
-    setCurrentIndex((prev) =>
-      prev === mockBirthdays.length - 1 ? 0 : prev + 1,
-    );
+    setCurrentIndex((prev) => (prev === birthdays.length - 1 ? 0 : prev + 1));
   };
 
   const prevSlide = () => {
-    setCurrentIndex((prev) =>
-      prev === 0 ? mockBirthdays.length - 1 : prev - 1,
-    );
+    setCurrentIndex((prev) => (prev === 0 ? birthdays.length - 1 : prev - 1));
   };
 
-  const currentEmployee = mockBirthdays[currentIndex];
+  // const handleGetBirthday = () => {
+  //   call(() => getBirthday(), {
+  //     onSuccess: (res: Employee[]) => {
+  //       setBirthdays(res || []);
+  //     },
+  //   });
+  // };
+
+  const handleGetBirthday = asyncWrapper(async () => {
+    const res = await getBirthday();
+    console.log(res?.data);
+    if (res?.data !== 0) {
+      setBirthdays(res?.data);
+    }
+  }, toast);
+
+  // useEffect(() => {
+  //   handleGetBirthday();
+  // }, []);
+
+  useEffect(() => {
+    handleGetBirthday();
+  }, []);
+
+  console.log(birthdays);
+
+  if (!birthdays.length) {
+    return (
+      <div className="bg-bmw-surface border border-bmw-border rounded-lg p-5 shadow-sm">
+        <span>{t("statuses.progress")}...</span>
+      </div>
+    );
+  }
+
+  const currentEmployee: any = birthdays[currentIndex];
 
   return (
     <div className="bg-bmw-surface border border-bmw-border rounded-lg p-5 shadow-sm flex flex-col min-h-[200px]">
@@ -66,8 +80,8 @@ const BirthdaysWidget: React.FC = () => {
         <Gift size={18} className="text-bmw-blue" />
         {t("born_in_month")} {monthName}
       </h3>
-      <span className="">{t("statuses.progress")}. . .</span>
-      {/* <div className="flex-1 flex items-center justify-between">
+
+      <div className="flex-1 flex items-center justify-between">
         <button
           onClick={dir === "rtl" ? nextSlide : prevSlide}
           className="p-2 text-bmw-textSec hover:text-bmw-text hover:bg-bmw-hover rounded-full transition-colors"
@@ -79,28 +93,28 @@ const BirthdaysWidget: React.FC = () => {
           key={currentEmployee.id}
         >
           <span className="mb-6">
-            <CustomImage size={70} />
+            <CustomImage size={70} src={currentEmployee.imageUrl} />
           </span>
           <h4 className="font-bold text-lg text-bmw-text">
-            {currentEmployee.name}
+            {currentEmployee.FirstName} {currentEmployee.LastName}
           </h4>
           <p className="text-sm text-bmw-textSec">
             {currentEmployee.department}
           </p>
           <p className="text-xs font-medium bg-bmw-hover text-bmw-text px-2 py-1 rounded mt-2">
-            {language === "fa"
+            {/* {language === "fa"
               ? `${currentEmployee.day} ${monthName}`
-              : `${monthName} ${currentEmployee.day}`}
+              : `${monthName} ${currentEmployee.day}`} */}
+            {currentEmployee?.BirthDate}
           </p>
         </div>
-
         <button
           onClick={dir === "rtl" ? prevSlide : nextSlide}
           className="p-2 text-bmw-textSec hover:text-bmw-text hover:bg-bmw-hover rounded-full transition-colors"
         >
           <ChevronRight size={24} />
         </button>
-      </div> */}
+      </div>
     </div>
   );
 };

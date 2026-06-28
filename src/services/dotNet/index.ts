@@ -77,3 +77,7 @@ export const allPolls = async (PersonalCode: string | number) => {
 export const createQuestionAnswerUser = async (postData: any) => {
   return await api.post(`/api/poll/createQuestionAnswerUser`, postData);
 };
+
+export const getBirthday = async () => {
+  return await api.get(`/api/birthday/getBirthday`);
+};

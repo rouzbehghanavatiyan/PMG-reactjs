@@ -3,21 +3,56 @@ import StringHelpers from "../../utils/stringHelpers";
 
 const PayPrintPerMonth = forwardRef<HTMLDivElement, any>(
   ({ historyItem }, ref) => {
-    const rowStyle: React.CSSProperties = {
-      marginTop: 2,
-      marginBottom: 2,
-      paddingLeft: 3,
-      paddingRight: 3,
-      fontSize: 13,
-      display: "flex",
-      justifyContent: "space-between",
-    };
+    const Section = ({
+      title,
+      items,
+      isPerformance = false,
+    }: {
+      isPerformance?: boolean;
+      title: string;
+      items?: { element: string; value: number }[];
+    }) => (
+      <div className="border border-gray-400 flex flex-col">
+        <div className="bg-white border-b border-gray-400 text-center py-2">
+          {title}
+        </div>
+        <div className="min-h-[320px]">
+          {items?.map((item) => (
+            <div
+              key={item.element}
+              className="flex justify-between items-center px-2 py-1 text-sm border-b border-gray-200"
+            >
+              <span className="text-[12px]">
+                {isPerformance
+                  ? item.element.includes("روزانه")
+                    ? item.value
+                    : StringHelpers.minutesToTime(item.value)
+                  : StringHelpers.toPrice(item.value)}
+              </span>
+              <span className="text-end text-[11px]">{item.element}</span>
+            </div>
+          ))}
+          {isPerformance && (
+            <div className="flex justify-between items-center px-2 py-1 text-sm border-b border-gray-200 bg-white">
+              <span className="text-[12px]">31</span>
+
+              <span className="text-end text-[12px]">کارکرد موثر</span>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+
+    const getValue = (element: string) =>
+      historyItem?.others?.find((x: any) => x.element === element)?.value ?? 0;
+    const getVam = (element: string) =>
+      historyItem?.deductions?.find((x: any) => x.element === element)?.value ??
+      0;
+
     return (
       <div
         ref={ref}
-        dir="rtl"
-        style={{ fontFamily: "Vazirmatn, sans-serif" }}
-        className="bg-white text-black border-4 border-gray-400 w-[900px] p-10"
+        className="bg-white text-black border-4 border-gray-400 p-2"
       >
         <span className="flex justify-center font-bold text-xl">
           پرشیا خودرو
@@ -44,240 +79,66 @@ const PayPrintPerMonth = forwardRef<HTMLDivElement, any>(
             <span> {historyItem?.costCenterTitle} </span>
           </div>
         </div>
-        <div className="grid grid-cols-4 justify-between border-2 border-gray-400 mt-1">
-          <div className="col-span-1 border">
-            <span className="flex row border justify-center"> سایر</span>
-            <div>
-              <div
-                style={rowStyle}
-                className="my-4  text-[13px] flex justify-between px-2 "
-              >
-                <span> کارکرد ساعتی نهایی </span>
-                <span> 0 </span>
-              </div>
-              <div
-                style={rowStyle}
-                className="my-4  text-[13px] flex justify-between px-2 "
-              >
-                <span> ماموریت روزانه تعطیل ماهانه نهایی </span>
-                <span> 0 </span>
-              </div>
-              <div
-                style={rowStyle}
-                className="my-4  text-[13px] flex justify-between px-2 "
-              >
-                <span>ماموریت روزانه عادی ماهانه نهایی </span>
-                <span> 0 </span>
-              </div>
-              <div
-                style={rowStyle}
-                className="my-4  text-[13px] flex justify-between px-2 "
-              >
-                <span>کسر کار ماهانه نهایی </span>
-                <span> 0 </span>
-              </div>
-              <div
-                style={rowStyle}
-                className="my-4  text-[13px] flex justify-between px-2 "
-              >
-                <span>غیبت ماهانه نهایی </span>
-                <span>
-                  {StringHelpers.minutesToTime(historyItem?.monthlyAbsence)}
+        <div className="grid grid-cols-4 gap-2">
+          <div>
+            <Section title="وام" items={historyItem?.loans} />
+            <div className="mt-2">
+              <div className="my-2 flex justify-between bg-gray-200 p-2">
+                <span className="text-[12px]">
+                  {StringHelpers.toPrice(getVam("جمع اقساط وام"))}
                 </span>
+                <span className="text-[11px]">جمع اقساط وام</span>
               </div>
-              <div
-                style={rowStyle}
-                className="my-4  text-[13px] flex justify-between px-2 "
-              >
-                <span>اضافه کار روز عادی نهایی </span>
-                <span>
-                  {StringHelpers.minutesToTime(
-                    historyItem?.overtimeFinalRegularDay,
-                  )}
+              <div className="my-2 flex justify-between bg-gray-200 p-2">
+                <span className="text-[11px]">
+                  {historyItem?.accountNumber ?? "-"}
                 </span>
-              </div>
-              <div
-                style={rowStyle}
-                className="my-4  text-[13px] flex justify-between px-2 "
-              >
-                <span>تعطیل کاری ماهانه نهایی </span>
-                <span>
-                  {StringHelpers.minutesToTime(
-                    historyItem?.finalMonthlyWorkday,
-                  )}
-                </span>
-              </div>
-              <div
-                style={rowStyle}
-                className="my-4  text-[13px] flex justify-between px-2 "
-              >
-                <span>کارکرد موثر </span>
-                <span>
-                  {StringHelpers.getDaysInPersianMonth(historyItem?.month)}
-                </span>
+                <span className="text-[11px]">شماره حساب</span>
               </div>
             </div>
           </div>
-          <div className="col-span-1 border">
-            <span className="flex row border justify-center"> مزایا</span>
-            <div className="">
-              <div
-                style={rowStyle}
-                className="my-4  text-[13px] flex justify-between px-2 "
-              >
-                <span> حقوق پایه</span>
-                <span>{StringHelpers.toPrice(historyItem?.baseAmount)}</span>
-              </div>
-              <div
-                style={rowStyle}
-                className="my-4  text-[13px] flex justify-between px-2 "
-              >
-                <span>ایاب و ذهاب </span>
-                <span>
-                  {StringHelpers.toPrice(historyItem?.transportation)}
+          <div>
+            <Section title="کسور" items={historyItem?.deductions} />
+            <div className="mt-2">
+              <div className="my-2 flex justify-between bg-gray-200 p-2">
+                <span className="text-[12px]">
+                  {StringHelpers.toPrice(getValue("جمع کسور"))}
                 </span>
-              </div>
-              <div
-                style={rowStyle}
-                className="my-4  text-[13px] flex justify-between px-2 "
-              >
-                <span>حق مسکن </span>
-                <span>
-                  {StringHelpers.toPrice(historyItem?.housingAllowance)}
-                </span>
-              </div>
-              <div
-                style={rowStyle}
-                className="my-4  text-[13px] flex justify-between px-2 "
-              >
-                <span>حق خوار و بار </span>
-                <span>
-                  {StringHelpers.toPrice(historyItem?.groceryAllowance)}
-                </span>
-              </div>
-              <div
-                style={rowStyle}
-                className="my-4  text-[13px] flex justify-between px-2 "
-              >
-                <span>فوق العاده جذب </span>
-                <span>
-                  {StringHelpers.toPrice(historyItem?.attractionAllowance)}
-                </span>
-              </div>
-              <div
-                style={rowStyle}
-                className="my-4  text-[13px] flex justify-between px-2 "
-              >
-                <span>حق مسئولیت </span>
-                <span>
-                  {StringHelpers.toPrice(historyItem?.responsibilityAllowance)}
-                </span>
-              </div>
-              <div
-                style={rowStyle}
-                className="my-4  text-[13px] flex justify-between px-2 "
-              >
-                <span>اضافه کاری </span>
-                <span>{StringHelpers.toPrice(historyItem?.overtime)}</span>
-              </div>
-              <div
-                style={rowStyle}
-                className="my-4  text-[13px] flex justify-between px-2 "
-              >
-                <span>سایر مزایا (م) </span>
-                <span>{StringHelpers.toPrice(historyItem?.otherBenefits)}</span>
-              </div>
-              <div
-                style={rowStyle}
-                className="my-4  text-[13px] flex justify-between px-2 "
-              >
-                <span>پایه سنوات </span>
-                <span>{StringHelpers.toPrice(historyItem?.longevityPay)}</span>
+                <span className="text-[11px]">جمع کسور</span>
               </div>
             </div>
           </div>
-          <div className="col-span-1 border">
-            <span className="flex border row justify-center"> کسور</span>
-            <div>
-              <div
-                style={rowStyle}
-                className="my-4  text-[13px] flex justify-between px-2 "
-              >
-                <span> بیمه تامین اجتماعی سهم کارمند</span>
-                <span>
-                  {StringHelpers?.toPrice(historyItem?.socialSecurityEmployee)}
+          <div>
+            <Section title="مزایا" items={historyItem?.benefits} />
+            <div className="mt-2">
+              <div className="my-2 flex justify-between bg-gray-200 p-2">
+                <span className="text-[12px]">
+                  {StringHelpers.toPrice(getValue("جمع مزایا"))}
                 </span>
+                <span className="text-[11px]">جمع مزایا</span>
               </div>
-              <div
-                style={rowStyle}
-                className="my-4  text-[13px] flex justify-between px-2 "
-              >
-                <span>مالیات</span>
-                <span> {StringHelpers?.toPrice(historyItem?.tax)} </span>
-              </div>
-              <div
-                style={rowStyle}
-                className="my-4  text-[13px] flex justify-between px-2 "
-              >
-                <span>بیمه تکمیلی سهم کارمند </span>
-                <span>
-                  {StringHelpers?.toPrice(historyItem?.supplementaryInsurance)}
+
+              <div className="my-1 flex justify-between bg-gray-200 p-2">
+                <span className="text-[12px]">
+                  {StringHelpers.toPrice(getValue("خالص پرداختی"))}
                 </span>
+                <span className="text-[11px]">خالص پرداختی</span>
               </div>
             </div>
           </div>
-          <div className="col-span-1">
-            <span className="flex row border justify-center"> وام</span>
-            <div className=""></div>
-          </div>
-        </div>
-        <div className="grid grid-cols-4">
-          <div className="col-span-1"></div>
-          <div className="col-span-1">
-            <div className="border bg-gray-300 my-1 px-2 flex justify-between items-center ">
-              <span>جمع مزایا</span>
-              <span style={rowStyle}>
-                {" "}
-                {StringHelpers?.toPrice(historyItem?.totalBenefits)}{" "}
-              </span>
-            </div>
-          </div>
-          <div className="col-span-1">
-            <div className="border bg-gray-300 my-1 px-2 flex justify-between items-center ">
-              <span>جمع کسور </span>
-              <span style={rowStyle}>
-                {StringHelpers?.toPrice(historyItem?.totalDeductions)}
-              </span>
-            </div>
-          </div>
-          <div className="col-span-1">
-            <div className="border bg-gray-300 my-1 px-2 flex justify-between items-center ">
-              <span>جمع اقساط وام </span>
-              <span style={rowStyle}> </span>
-            </div>
-          </div>
-        </div>
-        <div className="grid grid-cols-4">
-          <div className="col-span-1"></div>
-          <div className="col-span-1">
-            <div className="border bg-gray-300 my-1 px-2 flex justify-between items-center ">
-              <span>خالص پرداختی </span>
-              <span style={rowStyle}>
-                {StringHelpers?.toPrice(historyItem?.netPayment)}{" "}
-              </span>
-            </div>
-          </div>
-          <div className="col-span-1"></div>
-          <div className="col-span-1">
-            <div className="border bg-gray-300 my-1 px-2 flex justify-between items-center ">
-              <span>شماره حساب </span>
-              <span style={rowStyle}> {historyItem?.accountNumber} </span>
-            </div>
+          <div>
+            <Section
+              isPerformance
+              title="سایر"
+              items={historyItem?.performance}
+            />
           </div>
         </div>
       </div>
     );
   },
 );
+
+PayPrintPerMonth.displayName = "PayPrintPerMonth";
 
 export default PayPrintPerMonth;

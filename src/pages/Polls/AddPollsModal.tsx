@@ -194,7 +194,6 @@ const AddPollsModal: React.FC<any> = ({
             <div className="h-[300px] overflow-y-auto pr-1">
               <div className="space-y-4">
                 {questions.map((q: any, index: number) => {
-
                   const isEditing = editingQuestionId === q.id;
                   return (
                     <div
@@ -228,11 +227,11 @@ const AddPollsModal: React.FC<any> = ({
                             </>
                           ) : (
                             <>
-                              <Pencil
+                              {/* <Pencil
                                 size={18}
                                 onClick={() => handleStartEdit(q)}
                                 className="cursor-pointer text-blue-500 hover:text-blue-600 transition"
-                              />
+                              /> */}
 
                               <Trash2
                                 size={18}

@@ -1,12 +1,12 @@
 import React, { useRef, useEffect, useState } from "react";
 import {
+  ResponsiveContainer,
   BarChart,
   Bar,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
-  ResponsiveContainer,
   Cell,
 } from "recharts";
 import { Download, FileText, Lock } from "lucide-react";
@@ -37,48 +37,57 @@ const Payslips: React.FC = () => {
   const { t, language } = useLanguage();
   const printRef = useRef<HTMLDivElement | null>(null);
   const userLogin = useAppSelector((state) => state?.main?.userLogin);
-  const [allAmount, setAllAmount] = useState([]);
+  const [allAmount, setAllAmount] = useState<any>([]);
   const [historyItem, setHistoryItem] = useState({});
   const isMobile = useMediaQuery({ maxWidth: 767 });
-  const lastPay = allAmount
-    ?.filter((item: any) => Number(item?.netPayment) > 0)
-    ?.reduce((latest: any, current: any) => {
-      if (!latest) return current;
+  const lastPay = allAmount?.find((item: any) => {
+    const netPayment = item.others?.find(
+      (x: any) => x.element === "خالص پرداختی",
+    );
 
-      const currentYear = Number(current.year);
-      const latestYear = Number(latest.year);
+    return Number(netPayment?.value ?? 0) > 0;
+  });
 
-      const currentMonth = Number(current.month);
-      const latestMonth = Number(latest.month);
+  const benefits = lastPay?.benefits?.map((item: any) => ({
+    title: item.element,
+    amount: item.value,
+  }));
 
-      if (
-        currentYear > latestYear ||
-        (currentYear === latestYear && currentMonth > latestMonth)
-      ) {
-        return current;
-      }
+  const getValue = (list: any[] = [], element: string) =>
+    list.find((item) => item.element === element)?.value ?? 0;
 
-      return latest;
-    }, null);
+  const baseSalary = getValue(lastPay?.benefits, "حقوق پایه");
+  const overtime = getValue(lastPay?.benefits, "اضافه کاری");
+  const totalBenefits = getValue(lastPay?.others, "جمع مزایا");
+  const totalDeductions = getValue(lastPay?.others, "جمع کسور");
+  const netPayment = getValue(lastPay?.others, "خالص پرداختی");
+  const tax = getValue(lastPay?.deductions, "مالیات");
+
+  console.log();
+
   const { theme } = useTheme();
   const toast = useToast();
   const isFa = language === "fa";
 
   const data =
     allAmount
-      ?.filter((item: any) => Number(item?.netPayment) > 0)
-      ?.sort((a: any, b: any) => {
-        const yearDiff = Number(a.year) - Number(b.year);
-        if (yearDiff !== 0) return yearDiff;
+      ?.map((item: any) => {
+        const netPayment =
+          item?.others?.find((x: any) => x.element === "خالص پرداختی")?.value ??
+          0;
 
-        return Number(a.month) - Number(b.month);
+        return {
+          month: StringHelpers.toPersianMonthName(item.month),
+          total: Number(netPayment),
+          year: item.year,
+          rawMonth: item.month,
+        };
       })
-      ?.map((item: any) => ({
-        month: StringHelpers.toPersianMonthName(item.month),
-        total: Number(item.netPayment),
-        year: item.year,
-        rawMonth: item.month,
-      })) ?? [];
+      ?.filter((item: any) => item.total > 0)
+      ?.sort((a: any, b: any) => {
+        if (a.year !== b.year) return a.year - b.year;
+        return a.rawMonth - b.rawMonth;
+      }) ?? [];
 
   const handleGetSalaryPerMonth = asyncWrapper(async () => {
     const res = await getSalaryPerMonth(Number(userLogin?.PersonalCode));
@@ -97,7 +106,7 @@ const Payslips: React.FC = () => {
 
   const handlePrint = useReactToPrint({
     contentRef: printRef,
-    documentTitle: `فیش حقوقی-${historyItem?.year}-${historyItem?.month}`,
+    // documentTitle: `فیش حقوقی-${historyItem?.year}-${historyItem?.month}`,
   });
 
   const handlePrintHistoryPerMonth = (item: any) => {
@@ -188,73 +197,80 @@ const Payslips: React.FC = () => {
             <h3 className="text-lg font-bold text-bmw-text mb-6">
               {t("income_overview")}
             </h3>
-            <div className="h-72 w-full" style={{ direction: "ltr" }}>
-              <ResponsiveContainer width="100%" height="100%" minWidth={0}>
-                <BarChart data={data}>
+            <div className="h-72 w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={data}
+                  margin={{
+                    top: 10,
+                    right: 20,
+                    left: 20,
+                    bottom: 5,
+                  }}
+                >
                   <CartesianGrid
                     strokeDasharray="3 3"
                     stroke={theme === "dark" ? "#333" : "#E5E7EB"}
                     vertical={false}
                   />
+
                   <XAxis
                     dataKey="month"
                     stroke={theme === "dark" ? "#666" : "#9CA3AF"}
-                    tick={{
-                      fill: theme === "dark" ? "#999" : "#6B7280",
-                      fontSize: 12,
-                      fontFamily: isFa ? "Vazirmatn" : "Inter",
-                    }}
                     axisLine={false}
                     tickLine={false}
-                  />
-                  <YAxis
-                    stroke={theme === "dark" ? "#666" : "#9CA3AF"}
                     tick={{
                       fill: theme === "dark" ? "#999" : "#6B7280",
                       fontSize: 12,
                       fontFamily: isFa ? "Vazirmatn" : "Inter",
                     }}
+                  />
+
+                  <YAxis
+                    stroke={theme === "dark" ? "#666" : "#9CA3AF"}
                     axisLine={false}
                     tickLine={false}
                     width={isFa ? 80 : 60}
-                    tickFormatter={(val) => {
-                      if (isFa) {
-                        const millions = Number(val) / 1000000;
-                        return ` ${millions.toLocaleString("fa-IR")} م`;
-                      }
-                      return Number(val).toLocaleString("en-US");
+                    tick={{
+                      fill: theme === "dark" ? "#999" : "#6B7280",
+                      fontSize: 12,
+                      fontFamily: isFa ? "Vazirmatn" : "Inter",
                     }}
+                    tickFormatter={(value) =>
+                      isFa
+                        ? `${(Number(value) / 1_000_000).toLocaleString("fa-IR")} م`
+                        : Number(value).toLocaleString("en-US")
+                    }
                   />
+
                   <Tooltip
+                    cursor={{
+                      fill:
+                        theme === "dark"
+                          ? "rgba(255,255,255,.05)"
+                          : "rgba(0,0,0,.05)",
+                    }}
                     contentStyle={{
-                      backgroundColor: theme === "dark" ? "#1C1C1C" : "#FFFFFF",
+                      backgroundColor: theme === "dark" ? "#1C1C1C" : "#FFF",
                       border:
                         theme === "dark"
                           ? "1px solid #444"
                           : "1px solid #E5E7EB",
-                      borderRadius: "4px",
-                      color: theme === "dark" ? "#fff" : "#111827",
+                      borderRadius: 8,
+                      color: theme === "dark" ? "#FFF" : "#111827",
                       fontFamily: isFa ? "Vazirmatn" : "Inter",
-                      direction: isFa ? "rtl" : "ltr",
-                      boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
-                    }}
-                    cursor={{
-                      fill:
-                        theme === "dark"
-                          ? "rgba(255,255,255,0.05)"
-                          : "rgba(0,0,0,0.05)",
                     }}
                     formatter={(value: number) => [
                       `${StringHelpers.toPrice(value)} ریال`,
                       "دریافتی",
                     ]}
                     labelFormatter={(label) => `ماه ${label}`}
-                    labelStyle={{ textAlign: isFa ? "right" : "left" }}
                   />
-                  <Bar dataKey="total" radius={[4, 4, 0, 0]} barSize={40}>
-                    {data.map((entry: any, index: number) => (
+
+                  <Bar dataKey="total" radius={[6, 6, 0, 0]} maxBarSize={40}>
+                    {data.map((_, index) => (
                       <Cell
-                        key={`cell-${index}`}
+                        key={index}
                         fill={
                           index === data.length - 1
                             ? "#0066B1"
@@ -276,7 +292,7 @@ const Payslips: React.FC = () => {
                 {t("last_net_salary")}
               </p>
               <h2 className="text-4xl font-bold tracking-tight" dir="ltr">
-                {StringHelpers?.toPrice(lastPay?.netPayment)}
+                {StringHelpers?.toPrice(netPayment)}
               </h2>
               <p className="text-sm text-blue-200 mt-2">
                 پرداخت شده در{" "}
@@ -288,19 +304,19 @@ const Payslips: React.FC = () => {
               <div className="flex justify-between text-sm border-b border-white/20 pb-2">
                 <span className="text-blue-100">{t("base_salary")}</span>
                 <span className="font-semibold" dir="ltr">
-                  {StringHelpers?.toPrice(lastPay?.baseAmount)}
+                  {StringHelpers?.toPrice(baseSalary)}
                 </span>
               </div>
               <div className="flex justify-between text-sm border-b border-white/20 pb-2">
                 <span className="text-blue-100">{t("overtime_bonus")}</span>
                 <span className="font-semibold text-green-300" dir="ltr">
-                  {StringHelpers?.toPrice(lastPay?.totalBenefits)}
+                  {StringHelpers?.toPrice(totalBenefits)}
                 </span>
               </div>
               <div className="flex justify-between text-sm pb-2">
                 <span className="text-blue-100">{t("deductions")}</span>
                 <span className="font-semibold text-red-300" dir="ltr">
-                  - {StringHelpers?.toPrice(lastPay?.totalDeductions)}
+                  - {StringHelpers?.toPrice(totalDeductions)}
                 </span>
               </div>
             </div>
@@ -325,45 +341,47 @@ const Payslips: React.FC = () => {
             </button>
           </div>
           <div className="flex-1 overflow-y-auto divide-y divide-bmw-border">
-            {allAmount.map((item, idx) => (
-              <div
-                key={idx}
-                className="p-4 flex items-center justify-between hover:bg-bmw-hover transition-colors group"
-              >
-                <div className="flex items-center gap-4 group-hover:text-bmw-blue">
-                  <div className="p-2 bg-bmw-base rounded text-bmw-textSec group-hover:text-bmw-blue transition-colors">
-                    <FileText size={20} />
+            {allAmount.map((item, idx) => {
+              return (
+                <div
+                  key={idx}
+                  className="p-4 flex items-center justify-between hover:bg-bmw-hover transition-colors group"
+                >
+                  <div className="flex items-center gap-4 group-hover:text-bmw-blue">
+                    <div className="p-2 bg-bmw-base rounded text-bmw-textSec group-hover:text-bmw-blue transition-colors">
+                      <FileText size={20} />
+                    </div>
+                    <div>
+                      <p className="text-bmw-text font-medium group-hover:text-bmw-blue">
+                        فیش حقوقی -
+                        {StringHelpers.toPersianMonthName(item?.month)}/
+                        {item?.year}
+                      </p>
+                      <p className="text-xs text-bmw-textSec">
+                        {t("processed_via")}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-bmw-text font-medium group-hover:text-bmw-blue">
-                      فیش حقوقی -{StringHelpers.toPersianMonthName(item?.month)}
-                      /{item?.year}
-                    </p>
-                    <p className="text-xs text-bmw-textSec">
-                      {t("processed_via")}
-                    </p>
+                  <div className="flex  items-center  gap-4 md:gap-6">
+                    <span
+                      className="text-bmw-text  font-mono hidden sm:block"
+                      dir="ltr"
+                    >
+                      {/* {formatCurrency(item.total)} */}
+                    </span>
+                    <button
+                      onClick={() => handlePrintHistoryPerMonth(item)}
+                      className="p-2 text-bmw-textSec hover:text-bmw-text transition-colors"
+                    >
+                      <Download
+                        size={18}
+                        className="cursor-pointer hover:text-bmw-blue"
+                      />
+                    </button>
                   </div>
                 </div>
-                <div className="flex  items-center  gap-4 md:gap-6">
-                  <span
-                    className="text-bmw-text  font-mono hidden sm:block"
-                    dir="ltr"
-                  >
-                    {/* {formatCurrency(item.total)} */}
-                  </span>
-
-                  <button
-                    onClick={() => handlePrintHistoryPerMonth(item)}
-                    className="p-2 text-bmw-textSec hover:text-bmw-text transition-colors"
-                  >
-                    <Download
-                      size={18}
-                      className="cursor-pointer hover:text-bmw-blue"
-                    />
-                  </button>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </div>
