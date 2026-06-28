@@ -59,6 +59,10 @@ export const updateCompanyNews = (postData: any) => {
   );
 };
 
+export const updatedProfile = (postData: any) => {
+  return api.put(`/api/users/updatedProfile`, postData);
+};
+
 export const getSalaryPerMonth = async (PersonalCode: any) => {
   return await api.get(
     `/api/salary/getSalaryPerMonth?PersonalCode=${PersonalCode}`,

@@ -1,14 +1,11 @@
-﻿import React from "react";
+﻿import React, { useEffect, useState } from "react";
 import {
-  User,
   Mail,
   Phone,
   Briefcase,
   MapPin,
-  Edit2,
   Shield,
   Calendar,
-  UserRound,
   Plus,
 } from "lucide-react";
 import { useLanguage } from "../contexts/LanguageContext";
@@ -17,55 +14,50 @@ import CustomImage from "../components/UI/CustomImage";
 import BackPMG from "../assets/profilecover.png";
 import Button from "../components/UI/Button";
 import { useHasPermission } from "../hooks/usePermissions";
+import { asyncWrapper } from "../utils/asyncWrapper";
+import { updatedProfile } from "../services/dotNet";
+import { useToast } from "../hooks/useToast";
 
 const Profile: React.FC = () => {
   const { t, dir, language } = useLanguage();
   const user = useAppSelector((state) => state);
+  const [showBirthday, setShowBirthday] = useState(false);
   const firstName = user?.main?.userLogin?.FirstName;
   const lastName = user?.main?.userLogin?.LastName;
   const department = user?.main?.userLogin?.Department;
   const personalCode = user?.main?.userLogin?.PersonalCode;
   const email = user?.main?.userLogin?.Email;
+  const isActiveBirthdayJWT = user?.main?.userLogin?.isActiveBirthday;
   const mobile = user?.main?.userLogin?.Mobile;
   const employmentDate = user?.main?.userLogin?.EmploymentDate;
   const { hasPermission } = useHasPermission();
+  const toast = useToast();
+  const [birthdayLoading, setBirthdayLoading] = useState(false);
 
-  const profileData = {
-    en: {
-      name: "Behzad Naderloo",
-      address: "Tehran HQ, 4th Floor",
-      dept: "Sales & Marketing",
-      date: "March 12, 2018",
-      desc: "Responsible for overseeing the sales team at the central branch, ensuring targets are met, and maintaining high standards of customer service consistent with the BMW brand.",
-      bullets: [
-        "Develop and implement strategic sales plans.",
-        "Manage customer relationships and resolve escalations.",
-        "Coordinate with the marketing team for product launches.",
-        "Prepare monthly performance reports for the board.",
-      ],
-      manager: "Hossein Tehrani",
-      sub1: "Sara Mohammadi",
-      sub2: "Reza Karimi",
-    },
-    fa: {
-      address: "دفتر مرکزی تهران، طبقه ۴",
-      dept: "فروش و بازاریابی",
-      date: "۲۲ اسفند ۱۳۹۶",
-      desc: "مسئول نظارت بر تیم فروش در شعبه مرکزی، اطمینان از تحقق اهداف و حفظ استانداردهای بالای خدمات مشتری مطابق با برند BMW.",
-      bullets: [
-        "توسعه و اجرای استراتژی‌های فروش.",
-        "مدیریت روابط با مشتریان و حل مشکلات پیچیده.",
-        "هماهنگی با تیم بازاریابی برای معرفی محصولات جدید.",
-        "تهیه گزارش‌های ماهانه عملکرد برای هیئت مدیره.",
-      ],
-      manager: "حسین تهرانی",
-      sub1: "سارا محمدی",
-      sub2: "رضا کریمی",
-    },
-  };
+  const handleShowBirthday = asyncWrapper(async () => {
+    try {
+      setBirthdayLoading(true);
 
-  const handleShowAddNews = () => {};
-  const data = profileData[language === "fa" ? "fa" : "en"];
+      const postData = {
+        isActiveBirthday: showBirthday ? 1 : 0,
+      };
+
+      const res = await updatedProfile(postData);
+      const { code, message } = res?.data;
+
+      if (code === 0) {
+        toast.success(message);
+      }
+    } finally {
+      setBirthdayLoading(false);
+    }
+  }, toast);
+
+  useEffect(() => {
+    if (isActiveBirthdayJWT !== undefined && isActiveBirthdayJWT !== null) {
+      setShowBirthday(isActiveBirthdayJWT === 1);
+    }
+  }, [isActiveBirthdayJWT]);
 
   return (
     <div className="max-w-5xl mx-auto space-y-8">
@@ -93,7 +85,6 @@ const Profile: React.FC = () => {
           <Edit2 size={16} /> {t("edit_profile")}
         </button> */}
       </div>
-
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         <div className="space-y-6">
           <div className="bg-bmw-surface border border-bmw-border rounded-lg p-6 shadow-sm">
@@ -113,7 +104,7 @@ const Profile: React.FC = () => {
               </div>
               <div className="flex items-center gap-3 text-bmw-textSec">
                 <MapPin size={18} className="text-gray-500" />
-                <span className="text-sm">{data.address}</span>
+                <span className="text-sm">دفتر مرکزی تهران، طبقه</span>
               </div>
             </div>
           </div>
@@ -149,12 +140,48 @@ const Profile: React.FC = () => {
               </div>
             </div>
           </div>
+          <div className="bg-bmw-surface border border-bmw-border rounded-lg p-6 shadow-sm">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between gap-4 rounded-lg border border-bmw-border bg-bmw-hover/40 px-4 py-3">
+                <div className="flex flex-col">
+                  <span className="text-xs text-bmw-textSec">
+                    {showBirthday
+                      ? "تولد شما در ویجت متولدین این ماه نمایش داده می‌شود."
+                      : "تولد شما برای سایر همکاران نمایش داده نخواهد شد."}
+                  </span>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    className="sr-only peer"
+                    checked={showBirthday}
+                    onChange={(e) => setShowBirthday(e.target.checked)}
+                  />
+                  <div className="w-11 h-6 bg-gray-300 rounded-full peer transition-colors peer-checked:bg-bmw-blue"></div>
+                  <div
+                    className={`absolute top-1 h-4 w-4 rounded-full bg-white transition-all ${
+                      dir === "rtl"
+                        ? "right-1 peer-checked:right-6"
+                        : "left-1 peer-checked:left-6"
+                    }`}
+                  ></div>
+                </label>
+              </div>
+              <div className="flex justify-end">
+                <Button
+                  loading={birthdayLoading}
+                  onClick={handleShowBirthday}
+                  variant="success"
+                  label="تایید"
+                />
+              </div>
+            </div>
+          </div>
         </div>
-
         <div className="md:col-span-2 space-y-6">
           {hasPermission("JobDescription.Create") && (
             <Button
-              onClick={handleShowAddNews}
+              // onClick={handleShowAddNews}
               leftIcon={<Plus />}
               label="شرح کار"
               variant="success"
@@ -180,7 +207,6 @@ const Profile: React.FC = () => {
               </ul>
             </div> */}
           </div>
-
           <div className="bg-bmw-surface border border-bmw-border rounded-lg p-6 shadow-sm">
             <h3 className="text-xl font-bold text-bmw-text mb-4">
               {t("org_chart")}
