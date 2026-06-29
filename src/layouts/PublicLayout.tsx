@@ -4,8 +4,11 @@ import { Menu } from "lucide-react";
 import Sidebar from "../pages/Sidebar";
 import { useLanguage } from "../contexts/LanguageContext";
 import { useDispatch, useSelector } from "react-redux";
-import { jwtDecode, type JwtPayload } from "jwt-decode";
-import { RsetUserLogin } from "../features/slices/mainSlice";
+import { jwtDecode } from "jwt-decode";
+import { RsetUserProfile } from "../features/slices/mainSlice";
+import { getUserProfile } from "../services/dotNet";
+import { asyncWrapper } from "../utils/asyncWrapper";
+import { useToast } from "../hooks/useToast";
 
 const PublicLayout: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -14,12 +17,19 @@ const PublicLayout: React.FC = () => {
   const user = useSelector((state) => state);
   const dispatch = useDispatch();
   const per = localStorage.getItem("permissions");
-  const handleRefreshUser = () => {
-    const decoded: any = jwtDecode<JwtPayload | null>(token);
-    console.log(decoded?.PersonalCode);
+  const toast = useToast();
 
-    dispatch(RsetUserLogin(decoded));
-  };
+  const handleRefreshUser = asyncWrapper(async () => {
+    if (!token) return;
+    const decoded: any = jwtDecode(token);
+    console.log(decoded?.PersonalCode);
+    const res = await getUserProfile();
+    const { code, result }: any = res?.data;
+    console.log(result);
+    if (code === 0) {
+      dispatch(RsetUserProfile({ token: decoded, userLogin: result }));
+    }
+  }, toast);
 
   useEffect(() => {
     handleRefreshUser();

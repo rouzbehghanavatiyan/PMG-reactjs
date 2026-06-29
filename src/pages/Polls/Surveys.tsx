@@ -46,7 +46,7 @@ const Surveys: React.FC = () => {
   const [showAddPolls, setShowAddPolls] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showDeletePoll, setShowDeletePoll] = useState(false);
-  const userLogin = useAppSelector((state) => state?.main?.userLogin);
+  const userLogin = useAppSelector((state) => state?.main?.userProfile?.userLogin);
   const { control, handleSubmit, setValue } = useForm<any>();
   const { hasPermission } = useHasPermission();
   const { call } = useApi({ loading, setLoading });
@@ -124,7 +124,7 @@ const Surveys: React.FC = () => {
   };
 
   const handleGetAllPoll = asyncWrapper(async () => {
-    const res = await allPolls(userLogin?.PersonalCode);
+    const res = await allPolls(userLogin?.personalCode);
     console.log(res);
     const { result, code, message } = res?.data;
 
@@ -134,7 +134,7 @@ const Surveys: React.FC = () => {
   }, toast);
 
   useEffect(() => {
-    if (!userLogin?.PersonalCode) return;
+    if (!userLogin?.personalCode) return;
     handleGetAllPoll();
   }, [userLogin]);
 

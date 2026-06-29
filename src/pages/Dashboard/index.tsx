@@ -28,7 +28,7 @@ const Dashboard: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 3;
   const user = useAppSelector((state) => state);
-  const firstName = user?.main?.userLogin?.FirstName;
+  const firstName = user?.main?.userProfile?.firstName;
   const { hasPermission } = useHasPermission();
   const { call } = useApi({ loading, setLoading });
 

@@ -6,7 +6,6 @@ import { useForm } from "react-hook-form";
 import InlineLoading from "../../components/UI/InlineLoading";
 import { usersLogin, verifyLoginCode } from "../../services/dotNet";
 import { useNavigate } from "react-router-dom";
-import { RsetPermission, RsetUserLogin } from "../../features/slices/mainSlice";
 import { useDispatch } from "react-redux";
 import { asyncWrapper } from "../../utils/asyncWrapper";
 import { useToast } from "../../hooks/useToast";
@@ -51,7 +50,6 @@ const ShowCapchaModal: React.FC<any> = ({
 
   const handleCheckVerifyCapcha = asyncWrapper(async () => {
     if (expired) return;
-
     setIsLoading(true);
     const postData = {
       personalCode: persoanlCode,
@@ -62,10 +60,8 @@ const ShowCapchaModal: React.FC<any> = ({
     if (code === 0) {
       navigate("/dashboard");
       localStorage.setItem("permissions", data.permissions);
-      dispatch(RsetUserLogin(data));
       localStorage.setItem("token", data.token);
     }
-
     setIsLoading(false);
   }, toast);
 

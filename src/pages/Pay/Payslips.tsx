@@ -36,7 +36,7 @@ const rawData: SalaryData[] = [
 const Payslips: React.FC = () => {
   const { t, language } = useLanguage();
   const printRef = useRef<HTMLDivElement | null>(null);
-  const userLogin = useAppSelector((state) => state?.main?.userLogin);
+  const userLogin = useAppSelector((state) => state?.main?.userProfile?.userLogin);
   const [allAmount, setAllAmount] = useState<any>([]);
   const [historyItem, setHistoryItem] = useState({});
   const isMobile = useMediaQuery({ maxWidth: 767 });
@@ -90,15 +90,15 @@ const Payslips: React.FC = () => {
       }) ?? [];
 
   const handleGetSalaryPerMonth = asyncWrapper(async () => {
-    const res = await getSalaryPerMonth(Number(userLogin?.PersonalCode));
+    const res = await getSalaryPerMonth(Number(userLogin?.personalCode));
     const { code, data, message }: any = res;
     setAllAmount(data);
   }, toast);
 
   useEffect(() => {
-    if (!userLogin?.PersonalCode) return;
+    if (!userLogin?.personalCode) return;
     handleGetSalaryPerMonth();
-  }, [userLogin?.PersonalCode]);
+  }, [userLogin?.personalCode]);
 
   const handlePrint = useReactToPrint({
     contentRef: printRef,

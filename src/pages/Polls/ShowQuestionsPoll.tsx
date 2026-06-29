@@ -41,7 +41,9 @@ const ShowQuestionsPoll: React.FC<ShowQuestionsPollProps> = () => {
   const { t } = useLanguage();
   const poll = useAppSelector((state) => state?.main?.poll);
   const toast = useToast();
-  const userLogin = useAppSelector((state) => state?.main.userLogin);
+  const userLogin = useAppSelector(
+    (state) => state?.main?.userProfile?.userLogin,
+  );
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [isSubmitted, setIsSubmitted] = useState(false);
   const navigate = useNavigate();
@@ -62,7 +64,7 @@ const ShowQuestionsPoll: React.FC<ShowQuestionsPollProps> = () => {
   const handleAnswerQuestionUser = asyncWrapper(async () => {
     const postData = {
       pollId: poll?.id || null,
-      personalCode: userLogin?.PersonalCode || null,
+      personalCode: userLogin?.personalCode || null,
       answers: Object.entries(answers).map(
         ([pollQuestionId, pollOptionId]) => ({
           pollQuestionId,

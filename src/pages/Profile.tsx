@@ -22,17 +22,20 @@ const Profile: React.FC = () => {
   const { t, dir, language } = useLanguage();
   const user = useAppSelector((state) => state);
   const [showBirthday, setShowBirthday] = useState(false);
-  const firstName = user?.main?.userLogin?.FirstName;
-  const lastName = user?.main?.userLogin?.LastName;
-  const department = user?.main?.userLogin?.Department;
-  const personalCode = user?.main?.userLogin?.PersonalCode;
-  const email = user?.main?.userLogin?.Email;
-  const isActiveBirthdayJWT = user?.main?.userLogin?.isActiveBirthday;
-  const mobile = user?.main?.userLogin?.Mobile;
-  const employmentDate = user?.main?.userLogin?.EmploymentDate;
+  const firstName = user?.main?.userProfile?.userLogin?.firstName;
+  const lastName = user?.main?.userProfile?.userLogin?.lastName;
+  const department = user?.main?.userProfile?.userLogin?.department;
+  const personalCode = user?.main?.userProfile?.userLogin?.personalCode;
+  const email = user?.main?.userProfile?.userLogin?.email;
+  const isActiveBirthdayJWT =
+    user?.main?.userProfile?.userLogin?.isActiveBirthday;
+  const mobile = user?.main?.userProfile?.userLogin?.mobile;
+  const employmentDate = user?.main?.userProfile?.userLogin?.employmentDate;
   const { hasPermission } = useHasPermission();
   const toast = useToast();
   const [birthdayLoading, setBirthdayLoading] = useState(false);
+
+  console.log(user?.main?.userProfile.userLogin);
 
   const handleShowBirthday = asyncWrapper(async () => {
     try {

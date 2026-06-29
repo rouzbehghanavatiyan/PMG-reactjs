@@ -1,10 +1,10 @@
 import { createSlice } from "@reduxjs/toolkit";
 
 interface StateType {
-  userLogin: any;
   permission: any;
   messageModal: any;
   fetchNewsList: any;
+  userProfile: any;
   poll: any;
 }
 const saved = localStorage.getItem("permission");
@@ -13,15 +13,15 @@ const initialState: StateType = {
   fetchNewsList: [],
   messageModal: { show: false, title: "", varient: "warning" },
   permission: saved ? saved.split(",") : [],
-  userLogin: JSON.parse(localStorage.getItem("userLogin") || "{}"),
+  userProfile: {},
 };
 
 const mainSlice = createSlice({
   name: "main",
   initialState,
   reducers: {
-    RsetUserLogin: (state, { payload }: any) => {
-      state.userLogin = payload;
+    RsetUserProfile: (state, { payload }: any) => {
+      state.userProfile = payload;
     },
     RsetMessageModal: (state, { payload }: any) => {
       state.messageModal = payload;
@@ -42,7 +42,7 @@ const mainSlice = createSlice({
 export const {
   RsetFetchNewsList,
   RsetPoll,
-  RsetUserLogin,
+  RsetUserProfile,
   RsetPermission,
   RsetMessageModal,
 } = mainSlice.actions;
