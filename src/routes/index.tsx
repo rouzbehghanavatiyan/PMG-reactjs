@@ -15,6 +15,7 @@ import PublicLayout from "../layouts/PublicLayout";
 import ProtectedRoute from "./ProtectedRoute";
 import AllNewsRoute from "../pages/News/AllNewsRoute";
 import ShowQuestionsPoll from "../pages/Polls/ShowQuestionsPoll";
+import IntroOrgan from "../pages/IntroOrgan";
 
 export const RoutesApp: React.FC = () => {
   return (
@@ -32,6 +33,8 @@ export const RoutesApp: React.FC = () => {
             <Route path="/calendar" element={<CalendarView />} />
             <Route path="/support" element={<Support />} />
             <Route path="/surveys" element={<Surveys />} />
+            <Route path="/introductionOrganization" element={<IntroOrgan />} />
+            
             <Route path="/surveys/questions" element={<ShowQuestionsPoll />} />
             <Route path="/erp" element={<OrganizationERP />} />
             <Route path="/news" element={<NewsPage />} />

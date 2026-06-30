@@ -14,6 +14,7 @@ const translations: Record<Language, Record<string, any>> = {
   en: {
     // Sidebar
     dashboard: "Dashboard",
+    introductionOrganization: "IntroductionOrganization",
     profile: "Profile",
     payslips: "Payslips",
     documents: "Documents",
@@ -232,6 +233,7 @@ const translations: Record<Language, Record<string, any>> = {
   },
   fa: {
     // Sidebar
+    introductionOrganization: "معرفی سازمان",
     dashboard: "داشبورد",
     profile: "پروفایل",
     payslips: "فیش حقوقی",

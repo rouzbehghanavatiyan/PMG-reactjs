@@ -16,6 +16,8 @@ import { useHasPermission } from "../../hooks/usePermissions";
 import StringHelpers from "../../utils/stringHelpers";
 import CustomImage from "../../components/UI/CustomImage";
 import clsx from "clsx";
+import Notification from "../NotificationPage";
+import NotificationPage from "../NotificationPage";
 
 const Dashboard: React.FC = () => {
   const { t, language } = useLanguage();
@@ -28,7 +30,7 @@ const Dashboard: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 3;
   const user = useAppSelector((state) => state);
-  const firstName = user?.main?.userProfile?.firstName;
+  const firstName = user?.main?.userProfile?.userLogin?.firstName;
   const { hasPermission } = useHasPermission();
   const { call } = useApi({ loading, setLoading });
 
@@ -261,6 +263,7 @@ const Dashboard: React.FC = () => {
           handleGetAllNews={handleGetAllNews}
         />
       )}
+      <NotificationPage />
     </div>
   );
 };

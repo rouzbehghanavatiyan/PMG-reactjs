@@ -73,3 +73,11 @@ export const getBirthday = async () => {
 export const getUserProfile = async () => {
   return await api.get(`/api/users/getUserProfile`);
 };
+
+export const subscribePushNotification = (subscription: PushSubscription) => {
+  return api.post("/api/notif/subscribe", {
+    endpoint: subscription.endpoint,
+    p256dh: subscription.toJSON().keys?.p256dh,
+    auth: subscription.toJSON().keys?.auth,
+  });
+};

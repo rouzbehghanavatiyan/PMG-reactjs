@@ -9,46 +9,62 @@ import {
   Plus,
 } from "lucide-react";
 import { useLanguage } from "../contexts/LanguageContext";
-import { useAppSelector } from "../features/store";
+import { useAppDispatch, useAppSelector } from "../features/store";
 import CustomImage from "../components/UI/CustomImage";
 import BackPMG from "../assets/profilecover.png";
 import Button from "../components/UI/Button";
 import { useHasPermission } from "../hooks/usePermissions";
 import { asyncWrapper } from "../utils/asyncWrapper";
-import { updatedProfile } from "../services/dotNet";
+import { getUserProfile, updatedProfile } from "../services/dotNet";
 import { useToast } from "../hooks/useToast";
+import {
+  RsetIsShowBirthday,
+  RsetUserProfile,
+} from "../features/slices/mainSlice";
+import { jwtDecode } from "jwt-decode";
 
 const Profile: React.FC = () => {
   const { t, dir, language } = useLanguage();
   const user = useAppSelector((state) => state);
-  const [showBirthday, setShowBirthday] = useState(false);
+  const token = localStorage.getItem("token");
+
   const firstName = user?.main?.userProfile?.userLogin?.firstName;
   const lastName = user?.main?.userProfile?.userLogin?.lastName;
   const department = user?.main?.userProfile?.userLogin?.department;
   const personalCode = user?.main?.userProfile?.userLogin?.personalCode;
   const email = user?.main?.userProfile?.userLogin?.email;
-  const isActiveBirthdayJWT =
-    user?.main?.userProfile?.userLogin?.isActiveBirthday;
+  const dispatch = useAppDispatch();
+  const isShowBirthday = user?.main?.isShowBirthday;
+  const profileBirthday =
+    user?.main?.userProfile?.userLogin?.isActiveBirthday ?? false;
   const mobile = user?.main?.userProfile?.userLogin?.mobile;
   const employmentDate = user?.main?.userProfile?.userLogin?.employmentDate;
   const { hasPermission } = useHasPermission();
   const toast = useToast();
   const [birthdayLoading, setBirthdayLoading] = useState(false);
 
-  console.log(user?.main?.userProfile.userLogin);
+  const handleRefreshUser = asyncWrapper(async () => {
+    if (!token) return;
+    const decoded: any = jwtDecode(token);
+    const res = await getUserProfile();
+    const { code, result }: any = res?.data;
+    console.log(result);
+    if (code === 0) {
+      dispatch(RsetUserProfile({ token: decoded, userLogin: result }));
+    }
+  }, toast);
 
   const handleShowBirthday = asyncWrapper(async () => {
     try {
       setBirthdayLoading(true);
-
       const postData = {
-        isActiveBirthday: showBirthday ? 1 : 0,
+        isActiveBirthday: isShowBirthday ? 1 : 0,
       };
-
       const res = await updatedProfile(postData);
       const { code, message } = res?.data;
 
       if (code === 0) {
+        handleRefreshUser();
         toast.success(message);
       }
     } finally {
@@ -57,10 +73,8 @@ const Profile: React.FC = () => {
   }, toast);
 
   useEffect(() => {
-    if (isActiveBirthdayJWT !== undefined && isActiveBirthdayJWT !== null) {
-      setShowBirthday(isActiveBirthdayJWT === 1);
-    }
-  }, [isActiveBirthdayJWT]);
+    dispatch(RsetIsShowBirthday(profileBirthday));
+  }, [profileBirthday, dispatch]);
 
   return (
     <div className="max-w-5xl mx-auto space-y-8">
@@ -148,7 +162,7 @@ const Profile: React.FC = () => {
               <div className="flex items-center justify-between gap-4 rounded-lg border border-bmw-border bg-bmw-hover/40 px-4 py-3">
                 <div className="flex flex-col">
                   <span className="text-xs text-bmw-textSec">
-                    {showBirthday
+                    {isShowBirthday
                       ? "تولد شما در ویجت متولدین این ماه نمایش داده می‌شود."
                       : "تولد شما برای سایر همکاران نمایش داده نخواهد شد."}
                   </span>
@@ -157,8 +171,10 @@ const Profile: React.FC = () => {
                   <input
                     type="checkbox"
                     className="sr-only peer"
-                    checked={showBirthday}
-                    onChange={(e) => setShowBirthday(e.target.checked)}
+                    checked={isShowBirthday}
+                    onChange={(e) =>
+                      dispatch(RsetIsShowBirthday(e.target.checked))
+                    }
                   />
                   <div className="w-11 h-6 bg-gray-300 rounded-full peer transition-colors peer-checked:bg-bmw-blue"></div>
                   <div

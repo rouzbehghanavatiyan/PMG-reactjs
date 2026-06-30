@@ -13,6 +13,7 @@ import {
   CalendarDays,
   ClipboardList,
   LayoutGrid,
+  Building,
 } from "lucide-react";
 import { useLanguage } from "../contexts/LanguageContext";
 import ThemeAndLang from "../common/ThemeAndLang";
@@ -39,6 +40,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
   const navItems = [
     { icon: LayoutDashboard, label: "dashboard", path: "/dashboard" },
     { icon: User, label: "profile", path: "/profile" },
+    {
+      icon: Building,
+      label: "introductionOrganization",
+      path: "/introductionOrganization",
+    },
     { icon: CreditCard, label: "payslips", path: "/payslips" },
     {
       icon: CalendarDays,
