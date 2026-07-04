@@ -61,7 +61,6 @@ export const allPolls = async (PersonalCode: string | number) => {
     "PersonalCodePersonalCodePersonalCodePersonalCodePersonalCodePersonalCode",
     PersonalCode,
   );
-
   return await api.get(`/api/poll/allPolls?PersonalCode=${PersonalCode}`);
 };
 export const createQuestionAnswerUser = async (postData: any) => {
@@ -74,10 +73,18 @@ export const getUserProfile = async () => {
   return await api.get(`/api/users/getUserProfile`);
 };
 
-export const subscribePushNotification = (subscription: PushSubscription) => {
-  return api.post("/api/notif/subscribe", {
-    endpoint: subscription.endpoint,
-    p256dh: subscription.toJSON().keys?.p256dh,
-    auth: subscription.toJSON().keys?.auth,
-  });
+export const subscribePushNotification = (postData: any) => {
+  return api.post("/api/notif/subscribe", postData);
+};
+
+export const sendNotifUser = (postData: any) => {
+  return api.post("/api/notif/sendNotifUser", postData);
+};
+
+export const getNotifAll = async (userId: number) => {
+  return await api.get(`/api/notif/getNotifAll/${userId}`);
+};
+
+export const isReadNotif = async (postData: any) => {
+  return await api.put(`/api/notif/isReadNotif`, postData);
 };

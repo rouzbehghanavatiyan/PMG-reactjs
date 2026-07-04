@@ -3,8 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { Bell, ArrowUpRight, Plus } from "lucide-react";
 import { useLanguage } from "../../contexts/LanguageContext";
 import BirthdaysWidget from "../BirthdaysWidget";
-import { useAppDispatch, useAppSelector } from "../../features/store";
-import { getallcompanynews } from "../../services/dotNet";
+import { useAppSelector } from "../../features/store";
+import { getallcompanynews, getNotifAll } from "../../services/dotNet";
 import { useApi } from "../../hooks/useApi";
 import Button from "../../components/UI/Button";
 import AddNews from "./AddNews";
@@ -15,16 +15,23 @@ import PaginationForms from "../../common/PaginationForms";
 import { useHasPermission } from "../../hooks/usePermissions";
 import StringHelpers from "../../utils/stringHelpers";
 import CustomImage from "../../components/UI/CustomImage";
-import clsx from "clsx";
-import Notification from "../NotificationPage";
+import * as signalR from "@microsoft/signalr";
+import ModalUI from "../../components/UI/ModalUI";
+import CustomInput from "../../components/UI/CustomInput";
+import { useForm } from "react-hook-form";
 import NotificationPage from "../NotificationPage";
+import { asyncWrapper } from "../../utils/asyncWrapper";
+import { useToast } from "../../hooks/useToast";
+import Head from "./Head";
 
 const Dashboard: React.FC = () => {
-  const { t, language } = useLanguage();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [getAllNews, setGetAllNews] = useState([]);
   const [showAddNews, setShowAddNews] = useState(false);
   const [loading, setLoading] = useState<boolean>(false);
+  const [showSendNotifToAll, setShowSendNotifToAll] = useState<boolean>(false);
+  const { control, handleSubmit } = useForm<any>();
   const [showNews, setShowNews] = useState<boolean>(false);
   const [itemNews, setItemNews] = useState<any>({});
   const [currentPage, setCurrentPage] = useState(1);
@@ -33,34 +40,49 @@ const Dashboard: React.FC = () => {
   const firstName = user?.main?.userProfile?.userLogin?.firstName;
   const { hasPermission } = useHasPermission();
   const { call } = useApi({ loading, setLoading });
+  const activeNews = StringHelpers.filterIsActive(getAllNews) || [];
+  const totalPages = Math.ceil(activeNews.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const currentNews = activeNews.slice(startIndex, startIndex + itemsPerPage);
+  const personalCode = user?.main?.userProfile?.userLogin?.personalCode;
+  const [allNotif, setAllNotif] = useState<any>([]);
+  const toast = useToast();
+  const isReadLength = allNotif?.filter((itm: any) => !itm?.isRead);
+  const userId = user?.main?.userProfile?.userLogin?.id;
 
-  const notificationsData = {
-    en: [
-      {
-        text: "Your leave request for Nov 12 has been approved.",
-        time: "2 hours ago",
-      },
-      { text: "New IT security policy update available.", time: "5 hours ago" },
-      {
-        text: "Meeting reminder: Sales Team Weekly at 2 PM.",
-        time: "1 day ago",
-      },
-    ],
-    fa: [
-      { text: "درخواست مرخصی شما برای ۲۱ آبان تایید شد.", time: "۲ ساعت پیش" },
-      {
-        text: "به‌روزرسانی جدید خط‌مشی امنیت IT در دسترس است.",
-        time: "۵ ساعت پیش",
-      },
-      {
-        text: "یادآوری جلسه: جلسه هفتگی تیم فروش ساعت ۱۴:۰۰.",
-        time: "۱ روز پیش",
-      },
-    ],
+  const handleGetAllNotif = asyncWrapper(async () => {
+    const res = await getNotifAll(userId);
+    setAllNotif(res?.data || []);
+  }, toast);
+
+  useEffect(() => {
+    if (!userId) return;
+    handleGetAllNotif();
+  }, [userId]);
+
+  const handleSendNotif = async (data: any) => {
+    const connection = new signalR.HubConnectionBuilder()
+      .withUrl(`${import.meta.env.VITE_API_URL}/chatHub`)
+      .withAutomaticReconnect()
+      .build();
+
+    console.log("connection connection connection", connection);
+
+    try {
+      await connection.start();
+      await connection.invoke("SendMessage", personalCode, data?.title);
+      toast.success?.("اعلان با موفقیت ارسال شد");
+      setShowSendNotifToAll(false);
+      await handleGetAllNotif();
+    } catch (error) {
+      console.error("Send notification error:", error);
+      toast.error?.("خطا در ارسال اعلان");
+    } finally {
+      if (connection.state !== signalR.HubConnectionState.Disconnected) {
+        await connection.stop();
+      }
+    }
   };
-
-  const currentNotifications =
-    notificationsData[language === "fa" ? "fa" : "en"];
 
   const handleGetAllNews = () => {
     return call(getallcompanynews, {
@@ -86,11 +108,6 @@ const Dashboard: React.FC = () => {
     setShowNews(true);
   };
 
-  const activeNews = StringHelpers.filterIsActive(getAllNews) || [];
-  const totalPages = Math.ceil(activeNews.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const currentNews = activeNews.slice(startIndex, startIndex + itemsPerPage);
-
   return (
     <div className="space-y-8">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -99,77 +116,23 @@ const Dashboard: React.FC = () => {
             {t("welcome")}
             <span className="mx-2">{firstName}</span>
           </h1>
-          {/* <p className="text-bmw-textSec mt-1">{t("welcome_sub")}</p> */}
         </div>
-        <div className="flex gap-3">
-          <button className="p-2 rounded-full bg-bmw-surface border border-bmw-border text-bmw-textSec hover:text-bmw-text hover:bg-bmw-hover transition-colors relative shadow-sm">
-            <Bell size={20} />
-            <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-bmw-surface"></span>
-          </button>
-          <div onClick={() => navigate("/profile")} className="">
+        <div className="flex items-center gap-3">
+          <div className="relative">
+            <Bell
+              className="rounded-full text-bmw-textSec hover:text-bmw-text hover:bg-bmw-hover transition-colors p-2 bg-bmw-surface border border-bmw-border"
+              size={45}
+            />
+            <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-[20px] h-5 px-1 bg-red-500 text-white text-xs font-bold rounded-full border-2 border-bmw-surface">
+              {isReadLength?.length}
+            </span>
+          </div>
+          <div onClick={() => navigate("/profile")}>
             <CustomImage size={50} />
           </div>
         </div>
       </div>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {[
-          {
-            labelKey: "food",
-            icon: "🍔",
-            descKey: "food_desc",
-            link: "/food",
-            disabled: true,
-          },
-          {
-            labelKey: "it",
-            icon: "💻",
-            descKey: "it_desc",
-            link: "/support",
-            disabled: true,
-          },
-          {
-            labelKey: "ricoh",
-            icon: "🏆",
-            descKey: "ricoh_desc",
-            link: "#",
-            disabled: true,
-          },
-          {
-            labelKey: "surveys",
-            icon: "📋",
-            descKey: "surveys_desc",
-            link: "/surveys",
-            disabled: false,
-          },
-        ].map((action, idx) => (
-          <div
-            key={idx}
-            onClick={() =>
-              !action.disabled && action.link !== "#" && navigate(action.link)
-            }
-            className={clsx(
-              "bg-bmw-surface border border-bmw-border p-5 rounded-lg transition-all group shadow-sm",
-              action.disabled
-                ? "opacity-50 cursor-not-allowed"
-                : "hover:border-bmw-blue cursor-pointer",
-            )}
-          >
-            <div className="flex justify-between items-start mb-3">
-              <span className="text-2xl">{action.icon}</span>
-              <ArrowUpRight
-                size={16}
-                className="text-bmw-textSec group-hover:text-bmw-blue transition-colors rtl:rotate-180"
-              />
-            </div>
-            <h3 className="text-bmw-text font-semibold">
-              {t(`quick_actions.${action.labelKey}`)}
-            </h3>
-            <p className="text-xs text-bmw-textSec mt-1">
-              {t(`quick_actions.${action.descKey}`)}
-            </p>
-          </div>
-        ))}
-      </div>
+      <Head t={t} navigate={navigate} />
       <div className="grid grid-cols-1  lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-6  rounded-xl">
           <div className="flex items-center justify-between">
@@ -184,6 +147,7 @@ const Dashboard: React.FC = () => {
                 variant="success"
               />
             )}
+
             {/* <button
               onClick={() => navigate("/dashboard/allNews")}
               className="text-sm text-bmw-blue hover:text-blue-400 cursor-pointer"
@@ -224,27 +188,25 @@ const Dashboard: React.FC = () => {
           )}
         </div>
         <div className="space-y-6">
+          {hasPermission("CompanyNews.Create") && (
+            <span className="flex justify-end">
+              <Button
+                onClick={() => setShowSendNotifToAll(true)}
+                leftIcon={<Plus />}
+                label="ثبت اعلان"
+                variant="success"
+              />
+            </span>
+          )}
           <div className="bg-bmw-surface border border-bmw-border rounded-lg p-5 shadow-sm">
             <h3 className="text-lg font-bold text-bmw-text mb-4 flex items-center gap-2 ">
               <Bell size={18} className="text-bmw-blue" /> {t("notifications")}
             </h3>
-            {t("statuses.progress")}. . .
-            {/* <div className="space-y-4">
-              {currentNotifications.map((note, i) => (
-                <div
-                  key={i}
-                  className="flex gap-3 items-start pb-3 border-b border-bmw-border last:border-0 last:pb-0"
-                >
-                  <div className="w-2 h-2 rounded-full bg-bmw-blue mt-2 shrink-0" />
-                  <div>
-                    <p className="text-sm text-bmw-textSec">{note.text}</p>
-                    <span className="text-xs text-bmw-textSec opacity-70 mt-1 block">
-                      {note.time}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div> */}
+            <NotificationPage
+              setAllNotif={setAllNotif}
+              handleGetAllNotif={handleGetAllNotif}
+              allNotif={allNotif}
+            />
           </div>
           <BirthdaysWidget />
         </div>
@@ -263,7 +225,34 @@ const Dashboard: React.FC = () => {
           handleGetAllNews={handleGetAllNews}
         />
       )}
-      <NotificationPage />
+      <ModalUI
+        isOpen={showSendNotifToAll}
+        onClose={() => setShowSendNotifToAll(false)}
+        title={"اعلان جامع"}
+        size="sm"
+        closeOnBackdrop={false}
+        footer={
+          <>
+            <Button
+              onClick={() => setShowSendNotifToAll(false)}
+              variant="outline-danger"
+              label="لغو"
+            />
+            <Button
+              onClick={handleSubmit(handleSendNotif)}
+              variant="primary"
+              label="تایید"
+            />
+          </>
+        }
+      >
+        <CustomInput
+          label="متن"
+          name="title"
+          control={control}
+          className="rounded-xl border border-gray-200 px-4 outline-none focus:border-bmw-blue"
+        />
+      </ModalUI>
     </div>
   );
 };

@@ -232,7 +232,6 @@ const translations: Record<Language, Record<string, any>> = {
     back_to_news: "Back to News",
   },
   fa: {
-    // Sidebar
     introductionOrganization: "معرفی سازمان",
     dashboard: "داشبورد",
     profile: "پروفایل",
@@ -244,13 +243,11 @@ const translations: Record<Language, Record<string, any>> = {
     surveys: "نظرسنجی",
     settings: "تنظیمات",
     sign_out: "خروج",
-    // Login
     employee_id: "کدپرسنلی",
     password: "رمز عبور",
     sign_in: "ورود",
     auth_only: "فقط پرسنل مجاز",
     login_subtitle: "دسترسی امن کارکنان",
-    // Dashboard
     welcome: "خوش آمدید",
     welcome_sub: "اخبار و رویدادهای امروز پرشیا خودرو.",
     latest_news: "آخرین اخبار",
@@ -269,7 +266,6 @@ const translations: Record<Language, Record<string, any>> = {
       surveys: "نظرسنجی",
       surveys_desc: "نظر خود را ثبت کنید",
     },
-    // Documents
     docs_title: "مرکز اسناد",
     docs_sub: "دسترسی به بخشنامه‌ها، فرم‌ها و قراردادها.",
     upload_pdf: "آپلود PDF",

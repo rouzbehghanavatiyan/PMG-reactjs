@@ -21,7 +21,10 @@ type ButtonVariant =
   | "outline-orange"
   | "outline-purple"
   | "outline-dark"
-  | "outline-brown";
+  | "outline-brown"
+  | "outline-ghost-success"
+  | "outline-ghost-danger"
+  | "outline-ghost-bmw-textSec";
 
 type ButtonSize = "sm" | "md" | "lg";
 
@@ -85,7 +88,6 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       danger: "bg-red-600 text-white hover:bg-red-700",
       ghost: "bg-transparent text-bmw-text hover:bg-bmw-base",
       dark: "bg-gray-900 text-white hover:bg-blue-800",
-      // New variants
       warning: "bg-yellow-500 text-black hover:bg-yellow-600",
       success: "bg-green-500 text-white hover:bg-green-600",
       orange: "bg-orange-500 text-white hover:bg-orange-600",
@@ -100,6 +102,12 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         "border border-red-600 bg-transparent text-red-600 hover:bg-red-50",
       "outline-ghost":
         "border border-transparent text-bmw-blue hover:bg-bmw-base",
+      "outline-ghost-success":
+        "border border-transparent text-green-400 hover:bg-bmw-base",
+      "outline-ghost-danger":
+        "border border-transparent text-red-400 hover:bg-bmw-base",
+      "outline-ghost-bmw-textSec":
+        "border border-transparent text-[#0066B1] hover:bg-bmw-base",
       "outline-warning":
         "border border-yellow-500 bg-transparent text-yellow-500 hover:bg-yellow-50",
       "outline-success":

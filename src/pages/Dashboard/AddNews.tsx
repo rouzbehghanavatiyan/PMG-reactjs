@@ -170,7 +170,6 @@ const AddNews: React.FC<any> = ({
   useEffect(() => {
     handleGetAllCategory();
   }, []);
-  console.log("initialDatainitialDatainitialData", initialData);
 
   return (
     <ModalUI

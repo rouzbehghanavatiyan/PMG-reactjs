@@ -39,7 +39,6 @@ const BirthdaysWidget: React.FC = () => {
 
   const handleGetBirthday = asyncWrapper(async () => {
     const res = await getBirthday();
-    console.log(res?.data);
     if (res?.data !== 0) {
       setBirthdays(res?.data);
     }
@@ -48,8 +47,6 @@ const BirthdaysWidget: React.FC = () => {
   useEffect(() => {
     handleGetBirthday();
   }, []);
-
-  console.log(birthdays);
 
   if (!birthdays.length) {
     return (
@@ -111,29 +108,3 @@ const BirthdaysWidget: React.FC = () => {
 };
 
 export default BirthdaysWidget;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

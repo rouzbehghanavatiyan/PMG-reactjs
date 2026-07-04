@@ -29,8 +29,6 @@ const AllNews: React.FC<any> = ({
     });
   };
 
-  console.log(news.attachments);
-
   return (
     <div
       key={key}

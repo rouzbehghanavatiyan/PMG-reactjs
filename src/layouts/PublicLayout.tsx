@@ -1,20 +1,27 @@
-import React, { useEffect, useCallback, useState } from "react";
+import React, { useEffect, useCallback, useState, useRef } from "react";
 import { Outlet } from "react-router-dom";
 import { Menu } from "lucide-react";
 import Sidebar from "../pages/Sidebar";
 import { useLanguage } from "../contexts/LanguageContext";
 import { useDispatch } from "react-redux";
 import { jwtDecode } from "jwt-decode";
-import { RsetUserProfile } from "../features/slices/mainSlice";
-import { getUserProfile } from "../services/dotNet";
+import {
+  RsetNotifMessage,
+  RsetUserProfile,
+} from "../features/slices/mainSlice";
+import { getUserProfile, sendNotifUser } from "../services/dotNet";
 import { asyncWrapper } from "../utils/asyncWrapper";
 import { useToast } from "../hooks/useToast";
-
-import { subscribePushNotification } from "../services/dotNet";
-import { subscribeUserToPush } from "../utils/pushNotification";
+import * as signalR from "@microsoft/signalr";
+const baseURL = import.meta.env.VITE_API_URL;
 
 const PublicLayout: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [connection, setConnection] = useState<signalR.HubConnection | null>(
+    null,
+  );
+  const connectionStarted = useRef(false);
+
   const { dir } = useLanguage();
   const token = localStorage.getItem("token");
   const dispatch = useDispatch();
@@ -23,6 +30,11 @@ const PublicLayout: React.FC = () => {
   const handleRefreshUser = asyncWrapper(async () => {
     if (!token) return;
     const decoded: any = jwtDecode(token);
+    const postData = {
+      personalCode: "11880",
+      Title: "سلام",
+      message: " این تسته هستش برای شما",
+    };
     const res = await getUserProfile();
     const { code, result }: any = res?.data;
 
@@ -31,39 +43,109 @@ const PublicLayout: React.FC = () => {
     }
   }, toast);
 
-  const handlePushPermission = useCallback(async () => {
-    if (!token) return;
-    if (!("Notification" in window)) return;
-    if (!("serviceWorker" in navigator)) return;
-    if (!("PushManager" in window)) return;
+  // const handlePushPermission = useCallback(async () => {
+  //   if (!token) return;
+  //   if (!("Notification" in window)) return;
+  //   if (!("serviceWorker" in navigator)) return;
+  //   if (!("PushManager" in window)) return;
 
-    if (Notification.permission === "granted") {
-      const subscription = await subscribeUserToPush();
-      if (subscription) {
-        await subscribePushNotification(subscription);
-      }
-      return;
-    }
+  //   if (Notification.permission === "granted") {
+  //     const subscription: any = await subscribeUserToPush();
+  //     const postData = {
+  //       personalCode: "11907",
+  //       endpoint: subscription?.endpoint,
+  //       p256dh: subscription?.toJSON().keys?.p256dh,
+  //       auth: subscription?.toJSON()?.keys?.auth,
+  //     };
+  //     if (subscription) {
+  //       await subscribePushNotification(postData);
+  //     }
+  //     return;
+  //   }
 
-    if (Notification.permission === "default") {
-      const permission = await Notification.requestPermission();
+  //   if (Notification.permission === "default") {
+  //     const permission = await Notification.requestPermission();
 
-      if (permission === "granted") {
-        const subscription = await subscribeUserToPush();
-        if (subscription) {
-          await subscribePushNotification(subscription);
-        }
-      }
-    }
-  }, [token]);
+  //     if (permission === "granted") {
+  //       const subscription: any = await subscribeUserToPush();
+  //       const postData = {
+  //         personalCode: "11907",
+  //         endpoint: subscription?.endpoint,
+  //         p256dh: subscription?.toJSON().keys?.p256dh,
+  //         auth: subscription?.toJSON()?.keys?.auth,
+  //       };
+  //       if (subscription) {
+  //         await subscribePushNotification(postData);
+  //       }
+  //     }
+  //   }
+  // }, [token]);
 
   useEffect(() => {
     handleRefreshUser();
   }, []);
 
+  const getPersonalCodeFromToken = (token: string) => {
+    try {
+      const decoded: any = jwtDecode(token);
+
+      return (
+        decoded?.PersonalCode ||
+        decoded?.personalCode ||
+        decoded?.unique_name ||
+        decoded?.sub ||
+        ""
+      );
+    } catch (error) {
+      console.error("Token decode error:", error);
+      return "";
+    }
+  };
+
   useEffect(() => {
-    handlePushPermission();
-  }, [handlePushPermission]);
+    if (!token || connectionStarted.current) return;
+
+    const pCode = getPersonalCodeFromToken(token);
+
+    const newConnection = new signalR.HubConnectionBuilder()
+      .withUrl(`${baseURL}/chatHub?personalCode=${pCode}`)
+      .withAutomaticReconnect()
+      .build();
+
+    console.log("laaaaaaaaaaaaaaaa", newConnection);
+
+    newConnection.on("ReceiveMessage", (user: string, message: string) => {
+      console.log("ReceiveMessage:", user, message);
+      dispatch(
+        RsetNotifMessage({
+          user,
+          message,
+          hasNew: true,
+        }),
+      );
+    });
+
+    newConnection
+      .start()
+      .then(() => {
+        console.log("SignalR Connected with personalCode:", pCode);
+        connectionStarted.current = true;
+      })
+      .catch((e) => console.error("SignalR Connection Failed: ", e));
+
+    setConnection(newConnection);
+
+    return () => {
+      if (newConnection) {
+        newConnection.stop();
+        connectionStarted.current = false;
+      }
+    };
+  }, [token]);
+
+  // useEffect(() => {
+  //   handlePushPermission();
+  // }, [handlePushPermission]);
 
   return (
     <div className="flex min-h-screen bg-bmw-base transition-colors duration-300">

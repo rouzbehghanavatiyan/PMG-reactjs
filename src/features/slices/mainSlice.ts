@@ -6,6 +6,7 @@ interface StateType {
   fetchNewsList: any;
   userProfile: any;
   poll: any;
+  notifMessage: any;
   isShowBirthday: boolean;
 }
 const saved = localStorage.getItem("permission");
@@ -16,6 +17,7 @@ const initialState: StateType = {
   permission: saved ? saved.split(",") : [],
   userProfile: {},
   isShowBirthday: false,
+  notifMessage: {},
 };
 
 const mainSlice = createSlice({
@@ -24,6 +26,9 @@ const mainSlice = createSlice({
   reducers: {
     RsetUserProfile: (state, { payload }: any) => {
       state.userProfile = payload;
+    },
+    RsetNotifMessage: (state, { payload }: any) => {
+      state.notifMessage = payload;
     },
     RsetMessageModal: (state, { payload }: any) => {
       state.messageModal = payload;
@@ -51,5 +56,6 @@ export const {
   RsetPermission,
   RsetMessageModal,
   RsetIsShowBirthday,
+  RsetNotifMessage,
 } = mainSlice.actions;
 export default mainSlice.reducer;

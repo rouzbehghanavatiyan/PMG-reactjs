@@ -36,7 +36,11 @@ const rawData: SalaryData[] = [
 const Payslips: React.FC = () => {
   const { t, language } = useLanguage();
   const printRef = useRef<HTMLDivElement | null>(null);
-  const userLogin = useAppSelector((state) => state?.main?.userProfile?.userLogin);
+  const userLogin = useAppSelector(
+    (state) => state?.main?.userProfile?.userLogin,
+  );
+
+  const [pendingPrintItem, setPendingPrintItem] = useState<any>(null);
   const [allAmount, setAllAmount] = useState<any>([]);
   const [historyItem, setHistoryItem] = useState({});
   const isMobile = useMediaQuery({ maxWidth: 767 });
@@ -100,6 +104,7 @@ const Payslips: React.FC = () => {
     handleGetSalaryPerMonth();
   }, [userLogin?.personalCode]);
 
+  console.log(historyItem);
   const handlePrint = useReactToPrint({
     contentRef: printRef,
     documentTitle: `فیش-حقوقی- ${historyItem?.month}-${historyItem?.year}`,
@@ -107,17 +112,29 @@ const Payslips: React.FC = () => {
 
   const handlePrintHistoryPerMonth = (item: any) => {
     setHistoryItem(item);
-
-    setTimeout(() => {
-      if (isMobile) {
-        handleDownloadPDF(item);
-      } else {
-        handlePrint();
-      }
-    }, 300);
+    setPendingPrintItem(item);
+    if (isMobile) {
+      handleDownloadPDF(item);
+    } else {
+      handlePrint();
+    }
   };
 
+  useEffect(() => {
+    if (!pendingPrintItem) return;
+
+    if (isMobile) {
+      handleDownloadPDF(pendingPrintItem);
+    } else {
+      handlePrint();
+    }
+
+    setPendingPrintItem(null);
+  }, [historyItem]);
+
   const handleDownloadPDF = async (item: any) => {
+    console.log(item);
+
     const element = printRef.current;
 
     if (!element) {
