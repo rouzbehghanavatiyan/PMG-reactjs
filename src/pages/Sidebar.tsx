@@ -14,6 +14,8 @@ import {
   ClipboardList,
   LayoutGrid,
   Building,
+  MessageSquare,
+  Network,
 } from "lucide-react";
 import { useLanguage } from "../contexts/LanguageContext";
 import ThemeAndLang from "../common/ThemeAndLang";
@@ -53,6 +55,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
       disabled: true,
     },
     { icon: LayoutGrid, label: "erp_title", path: "/erp" },
+    { icon: MessageSquare, label: "chat_pdf", path: "/chatWithPDF" },
+    { icon: Network, label: "knowledge_graph", path: "/smartKnowledgeGraph" },
 
     { icon: FileText, label: "documents", path: "/documents", disabled: true },
     { icon: Utensils, label: "food_order", path: "/food", disabled: true },

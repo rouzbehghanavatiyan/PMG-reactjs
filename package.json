@@ -24,6 +24,7 @@
     "jspdf": "^4.2.1",
     "jwt-decode": "^4.0.0",
     "lucide-react": "^0.561.0",
+    "motion": "^12.42.2",
     "react": "^19.2.3",
     "react-date-object": "^2.1.9",
     "react-dom": "^19.2.3",

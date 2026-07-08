@@ -93,7 +93,6 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       orange: "bg-orange-500 text-white hover:bg-orange-600",
       purple: "bg-purple-500 text-white hover:bg-purple-600",
       brown: "bg-yellow-800 text-white hover:bg-yellow-900",
-
       "outline-primary":
         "border border-bmw-blue bg-transparent text-bmw-blue hover:bg-bmw-blue/10",
       "outline-secondary":

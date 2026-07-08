@@ -17,6 +17,8 @@ const translations: Record<Language, Record<string, any>> = {
     introductionOrganization: "IntroductionOrganization",
     profile: "Profile",
     payslips: "Payslips",
+    chat_pdf: "Chat with PDF",
+    knowledge_graph: "Smart Knowledge Network",
     documents: "Documents",
     food_order: "Food Order",
     calendar: "Calendar",
@@ -232,6 +234,8 @@ const translations: Record<Language, Record<string, any>> = {
     back_to_news: "Back to News",
   },
   fa: {
+    chat_pdf: "مکالمه با اسناد سازمانی",
+    knowledge_graph: "شبکه دانش هوشمند",
     introductionOrganization: "معرفی سازمان",
     dashboard: "داشبورد",
     profile: "پروفایل",

@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { useAppSelector } from "../../features/store";
-import { getNotifAll, isReadNotif } from "../../services/dotNet";
+import { isReadNotif } from "../../services/dotNet";
 import { asyncWrapper } from "../../utils/asyncWrapper";
 import { useToast } from "../../hooks/useToast";
 import StringHelpers from "../../utils/stringHelpers";
@@ -27,7 +27,6 @@ const NotificationPage: React.FC<any> = ({
   const userProfile = useAppSelector((state) => state?.main?.userProfile);
   const userId = userProfile?.userLogin?.id;
   const lastProcessedMessageRef = useRef<string | null>(null);
-  console.log(notifMessage);
 
   useEffect(() => {
     const newMessage = notifMessage?.user?.newMessage;
@@ -67,7 +66,9 @@ const NotificationPage: React.FC<any> = ({
             className="flex justify-between items-start border-b border-bmw-border last:border-0 last:pb-0"
           >
             <div className="flex justify-between gap-2 items-start">
-              <div className="w-2 h-2 rounded-full bg-bmw-blue mt-2 shrink-0" />
+              {!note?.isRead && (
+                <div className="w-2 h-2 rounded-full bg-bmw-blue mt-2 shrink-0" />
+              )}
               <div>
                 <p className="text-[12px] text-bmw-textSec">{note.message}</p>
                 <span className="text-[10px] text-bmw-textSec opacity-70 mt-1 block">

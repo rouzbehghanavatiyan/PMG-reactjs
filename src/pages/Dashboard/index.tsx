@@ -123,9 +123,11 @@ const Dashboard: React.FC = () => {
               className="rounded-full text-bmw-textSec hover:text-bmw-text hover:bg-bmw-hover transition-colors p-2 bg-bmw-surface border border-bmw-border"
               size={45}
             />
-            <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-[20px] h-5 px-1 bg-red-500 text-white text-xs font-bold rounded-full border-2 border-bmw-surface">
-              {isReadLength?.length}
-            </span>
+            {isReadLength?.length > 0 && (
+              <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-[20px] h-5 px-1 bg-red-500 text-white text-xs font-bold rounded-full border-2 border-bmw-surface">
+                {isReadLength?.length}
+              </span>
+            )}
           </div>
           <div onClick={() => navigate("/profile")}>
             <CustomImage size={50} />
@@ -248,6 +250,7 @@ const Dashboard: React.FC = () => {
       >
         <CustomInput
           label="متن"
+          maxLength={30}
           name="title"
           control={control}
           className="rounded-xl border border-gray-200 px-4 outline-none focus:border-bmw-blue"
