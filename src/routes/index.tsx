@@ -16,8 +16,8 @@ import ProtectedRoute from "./ProtectedRoute";
 import AllNewsRoute from "../pages/News/AllNewsRoute";
 import ShowQuestionsPoll from "../pages/Polls/ShowQuestionsPoll";
 import IntroOrgan from "../pages/IntroOrgan";
-import ChatWithPDF from "../pages/Chat/ChatWithPDF";
-import SmartKnowledgeGraph from "../pages/Chat/SmartKnowledgeGraph";
+import ChatWithPDF from "../../components/ChatWithPDF";
+import SmartKnowledgeGraph from "../../components/SmartKnowledgeGraph";
 
 export const RoutesApp: React.FC = () => {
   return (

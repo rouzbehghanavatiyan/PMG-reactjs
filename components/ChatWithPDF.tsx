@@ -22,10 +22,10 @@ import {
   Info,
   ChevronDown,
 } from "lucide-react";
-import { useLanguage } from "../../contexts/LanguageContext";
+import { useLanguage } from "../src/contexts/LanguageContext";
 import { useMediaQuery } from "react-responsive";
-import { useHasPermission } from "../../hooks/usePermissions";
-const baseURL = import.meta.env.VITE_IP_Next;
+import { useHasPermission } from "../src/hooks/usePermissions";
+const baseURL = "http://172.16.10.15:3001";
 
 interface ChatSession {
   id: string;
@@ -365,6 +365,7 @@ const formatResponseText = (text: string, isRtl: boolean) => {
 const ChatWithPDF: React.FC = () => {
   const { t, language } = useLanguage();
   const isRtl = language === "fa";
+  const { hasPermission } = useHasPermission();
 
   // Tab states: 'chat' | 'admin'
   const [activeTab, setActiveTab] = useState<"chat" | "admin">("chat");
@@ -373,11 +374,16 @@ const ChatWithPDF: React.FC = () => {
   const [ragDocs, setRagDocs] = useState<RagDoc[]>([]);
   const [isLoadingDocs, setIsLoadingDocs] = useState(false);
   const [userId] = useState<string>("behzad-naderloo"); // default/logged-in user
+  const isDesktop = useMediaQuery({ minWidth: 1024 });
 
   // Tab 1: Chat States
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [activeSessionId, setActiveSessionId] = useState<string>("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [deleteSessionConfirm, setDeleteSessionConfirm] = useState<{
+    id: string;
+    title: string;
+  } | null>(null);
   const [inputText, setInputText] = useState("");
   const [selectedDocIds, setSelectedDocIds] = useState<number[]>([]);
   const [isLoadingChat, setIsLoading] = useState(false);
@@ -461,18 +467,13 @@ const ChatWithPDF: React.FC = () => {
     id: number;
     title: string;
   } | null>(null);
-  const [deleteConfirmSession, setDeleteConfirmSession] = useState<{
-    id: number;
-    title: string;
-  } | null>(null);
-
   const [currentChunkInfo, setCurrentChunkInfo] = useState<{
     index: number;
     total: number;
     id: number;
     snippet: string;
   } | null>(null);
-  const isDesktop = useMediaQuery({ minWidth: 1024 });
+
   // Document Chunks Editor States
   const [editingDoc, setEditingDoc] = useState<RagDoc | null>(null);
   const [editDocTitle, setEditDocTitle] = useState("");
@@ -486,7 +487,6 @@ const ChatWithPDF: React.FC = () => {
   const [replaceText, setReplaceText] = useState("");
   const [replaceMessage, setReplaceMessage] = useState<string | null>(null);
   const [isSavingDetails, setIsSavingDetails] = useState(false);
-  const { hasPermission } = useHasPermission();
 
   const handleStartEditDoc = async (doc: RagDoc) => {
     setEditingDoc(doc);
@@ -729,11 +729,37 @@ const ChatWithPDF: React.FC = () => {
   };
 
   // Delete chat session
-  const handleDeleteSession = async (
-    e: React.MouseEvent,
-    sessionId: string,
-  ) => {
-    setDeleteConfirmSession({});
+  const handleDeleteSession = (e: React.MouseEvent, sessionId: string) => {
+    e.stopPropagation();
+    const found = sessions.find((s) => s.id === sessionId);
+    setDeleteSessionConfirm({
+      id: sessionId,
+      title: found ? found.title : isRtl ? "این گفتگو" : "this chat session",
+    });
+  };
+
+  const handleConfirmDeleteSession = async () => {
+    if (!deleteSessionConfirm) return;
+    const sessionId = deleteSessionConfirm.id;
+    setDeleteSessionConfirm(null);
+    try {
+      const res = await fetch(`${baseURL}/api/rag/chat/sessions/${sessionId}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        const updated = sessions.filter((s) => s.id !== sessionId);
+        setSessions(updated);
+        if (activeSessionId === sessionId) {
+          if (updated.length > 0) {
+            handleSelectSession(updated[0].id);
+          } else {
+            handleNewChat();
+          }
+        }
+      }
+    } catch (err) {
+      console.error("Error deleting session:", err);
+    }
   };
 
   // Scroll to bottom of chat
@@ -805,6 +831,7 @@ const ChatWithPDF: React.FC = () => {
       if (res.ok) {
         setMessages((prev) => {
           const updated = [...prev];
+          // Update last user message with actual database ID
           if (
             updated.length > 0 &&
             updated[updated.length - 1].role === "user"
@@ -826,6 +853,7 @@ const ChatWithPDF: React.FC = () => {
           ];
         });
         setLastDiagnostics(data.searchDiagnostics);
+        // Refresh sessions list to pull updated/newly created session details
         fetchSessions();
       } else {
         setMessages((prev) => [
@@ -854,6 +882,7 @@ const ChatWithPDF: React.FC = () => {
     }
   };
 
+  // Handle file select
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const file = e.target.files[0];
@@ -867,6 +896,7 @@ const ChatWithPDF: React.FC = () => {
     }
   };
 
+  // Handle PDF upload
   const handleUploadSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setUploadMsg(null);
@@ -1131,7 +1161,6 @@ const ChatWithPDF: React.FC = () => {
           >
             {isRtl ? "گفتگوی هوشمند" : "AI Assistant Chat"}
           </button>
-
           {hasPermission("ChatPDF.Read") && (
             <button
               onClick={() => setActiveTab("admin")}
@@ -1147,8 +1176,10 @@ const ChatWithPDF: React.FC = () => {
         </div>
       </div>
 
+      {/* RAG Chat Assistant Tab */}
       {activeTab === "chat" && (
         <div className="grid grid-cols-12 gap-6 items-start">
+          {/* Sidebar (History & Past Sessions) */}
           <div
             className={`${isSidebarOpen || isDesktop ? "flex" : "hidden"} col-span-12 lg:col-span-4 bg-bmw-surface border border-bmw-border
             rounded-xl p-4 flex-col h-[350px] lg:h-[650px] overflow-hidden shadow-sm`}
@@ -1167,6 +1198,7 @@ const ChatWithPDF: React.FC = () => {
               </button>
             </div>
 
+            {/* Session List */}
             <div className="flex-1 overflow-y-auto space-y-1.5 custom-scrollbar pr-1">
               {sessions.length === 0 ? (
                 <p className="text-xs text-bmw-textSec italic text-center py-8">
@@ -1207,6 +1239,7 @@ const ChatWithPDF: React.FC = () => {
             </div>
           </div>
 
+          {/* Main Chat Interface */}
           <div className="lg:col-span-8 col-span-12 bg-bmw-surface border border-bmw-border rounded-xl flex flex-col h-[500px] sm:h-[600px] lg:h-[650px] overflow-hidden shadow-sm relative">
             {/* Mobile-only header to toggle history/sidebar */}
             <div className="lg:hidden h-14 border-b border-bmw-border px-4 flex items-center justify-between bg-bmw-hover/50 shrink-0 select-none">
@@ -2737,7 +2770,6 @@ const ChatWithPDF: React.FC = () => {
       )}
 
       {/* Custom Delete Confirmation Modal */}
-
       {deleteConfirmDoc && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           {/* Backdrop with elegant blur */}
@@ -2810,30 +2842,32 @@ const ChatWithPDF: React.FC = () => {
         </div>
       )}
 
-      {deleteConfirmSession && (
+      {/* Custom Delete Session Confirmation Modal */}
+      {deleteSessionConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           {/* Backdrop with elegant blur */}
           <div
             className="absolute inset-0 bg-black/70 backdrop-blur-sm transition-opacity"
-            onClick={() => setDeleteConfirmDoc(null)}
+            onClick={() => setDeleteSessionConfirm(null)}
           ></div>
 
           {/* Modal Card */}
-          <div className="relative bg-bmw-surface border border-bmw-border rounded-xl p-6 shadow-2xl max-w-md w-full animate-in fade-in zoom-in-95 duration-200">
+          <div
+            className="relative bg-bmw-surface border border-bmw-border rounded-xl p-6 shadow-2xl max-w-md w-full animate-in fade-in zoom-in-95 duration-200"
+            dir={isRtl ? "rtl" : "ltr"}
+          >
             <div className="flex items-start gap-4">
               <div className="p-3 bg-red-500/10 text-red-500 rounded-full border border-red-500/20 shrink-0">
                 <AlertCircle className="w-6 h-6" />
               </div>
               <div className="flex-1 min-w-0 text-start">
                 <h3 className="text-base font-extrabold text-bmw-text">
-                  {isRtl
-                    ? "حذف کامل سند و اطلاعات مرتبط"
-                    : "Complete Document Deletion"}
+                  {isRtl ? "حذف سابقه گفتگو" : "Delete Chat History"}
                 </h3>
                 <p className="text-xs text-bmw-textSec mt-2 leading-relaxed">
                   {isRtl
-                    ? `آیا از حذف کامل سند "${deleteConfirmDoc.title}" اطمینان دارید؟ با تأیید این کار، تمامی بخش‌ها (Chunks) و کل تاریخچه گفتگوهای کاربران مرتبط با این سند به طور دائم از پایگاه داده حذف خواهد شد.`
-                    : `Are you sure you want to completely delete "${deleteConfirmDoc.title}"? This will permanently erase all associated semantic chunks and user chat histories from the database.`}
+                    ? `آیا از حذف کامل سابقه این گفتگو "${deleteSessionConfirm.title}" اطمینان دارید؟ با تأیید این کار، تمامی پیام‌های رد و بدل شده در این گفتگو به طور دائم از پایگاه داده حذف خواهد شد.`
+                    : `Are you sure you want to delete the chat history for "${deleteSessionConfirm.title}"? This will permanently erase all exchanged messages in this conversation from the database.`}
                 </p>
                 <p className="text-[10px] text-red-400 font-bold mt-2">
                   {isRtl
@@ -2846,36 +2880,18 @@ const ChatWithPDF: React.FC = () => {
             <div className="flex items-center justify-end gap-3 mt-6 border-t border-bmw-border pt-4">
               <button
                 type="button"
-                onClick={() => setDeleteConfirmDoc(null)}
+                onClick={() => setDeleteSessionConfirm(null)}
                 className="px-4 py-2 bg-bmw-hover text-bmw-text border border-bmw-border rounded-lg text-xs font-bold hover:bg-bmw-base transition-all cursor-pointer"
               >
                 {isRtl ? "انصراف" : "Cancel"}
               </button>
               <button
                 type="button"
-                onClick={async () => {
-                  const doc = deleteConfirmDoc;
-                  setDeleteConfirmDoc(null);
-                  try {
-                    const res = await fetch(
-                      `${baseURL}/api/rag/documents/${doc.id}`,
-                      {
-                        method: "DELETE",
-                      },
-                    );
-                    if (res.ok) {
-                      fetchRagDocs();
-                      fetchSessions(false);
-                      handleNewChat();
-                    }
-                  } catch (err) {
-                    console.error("Error deleting document:", err);
-                  }
-                }}
+                onClick={handleConfirmDeleteSession}
                 className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-bold transition-all shadow-md flex items-center gap-1.5 cursor-pointer"
               >
                 <Trash2 className="w-3.5 h-3.5" />
-                {isRtl ? "تأیید و حذف کامل" : "Confirm & Delete"}
+                {isRtl ? "تأیید و حذف" : "Confirm & Delete"}
               </button>
             </div>
           </div>
