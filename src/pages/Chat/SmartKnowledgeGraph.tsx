@@ -27,6 +27,9 @@ import {
   Edit,
 } from "lucide-react";
 import { useLanguage } from "../../contexts/LanguageContext";
+import { useMediaQuery } from "react-responsive";
+import { useHasPermission } from "../../hooks/usePermissions";
+const baseURL = import.meta.env.VITE_IP_Next;
 
 // --- TYPES ---
 interface GraphDoc {
@@ -390,7 +393,6 @@ const InteractiveGraph: React.FC<{ subgraph: Subgraph; isRtl: boolean }> = ({
   const [hoveredNode, setHoveredNode] = useState<SubgraphNode | null>(null);
   const [hoveredLink, setHoveredLink] = useState<SubgraphLink | null>(null);
   const [selectedNode, setSelectedNode] = useState<SubgraphNode | null>(null);
-
   // Zoom & Pan state
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
@@ -943,6 +945,8 @@ export const SmartKnowledgeGraph: React.FC = () => {
   const { language, t, dir } = useLanguage();
   const isRtl = language === "fa";
   const activeUserId = "behzad-naderloo";
+  const isDesktop = useMediaQuery({ minWidth: 1024 });
+  const { hasPermission } = useHasPermission();
 
   // State Tabs
   const [activeTab, setActiveTab] = useState<"chat" | "admin">("chat");
@@ -1998,17 +2002,19 @@ export const SmartKnowledgeGraph: React.FC = () => {
             <MessageSquare size={14} />
             {isRtl ? "مکالمه روابط سازمانی" : "Graph Workspace"}
           </button>
-          <button
-            onClick={() => setActiveTab("admin")}
-            className={`flex items-center gap-2 px-4 py-2 text-xs font-medium rounded-md transition-all ${
-              activeTab === "admin"
-                ? "bg-bmw-blue text-white shadow"
-                : "text-bmw-text-sec hover:text-bmw-text"
-            }`}
-          >
-            <Database size={14} />
-            {isRtl ? "مدیریت شبکه اسناد" : "Knowledge Management"}
-          </button>
+          {hasPermission("ChatSmart.Read") && (
+            <button
+              onClick={() => setActiveTab("admin")}
+              className={`flex items-center gap-2 px-4 py-2 text-xs font-medium rounded-md transition-all ${
+                activeTab === "admin"
+                  ? "bg-bmw-blue text-white shadow"
+                  : "text-bmw-text-sec hover:text-bmw-text"
+              }`}
+            >
+              <Database size={14} />
+              {isRtl ? "مدیریت شبکه اسناد" : "Knowledge Management"}
+            </button>
+          )}
         </div>
       </div>
 

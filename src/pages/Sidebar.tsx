@@ -56,7 +56,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
     },
     { icon: LayoutGrid, label: "erp_title", path: "/erp" },
     { icon: MessageSquare, label: "chat_pdf", path: "/chatWithPDF" },
-    { icon: Network, label: "knowledge_graph", path: "/smartKnowledgeGraph" },
+    {
+      icon: Network,
+      label: "knowledge_graph",
+      path: "/smartKnowledgeGraph",
+      disabled: true,
+    },
 
     { icon: FileText, label: "documents", path: "/documents", disabled: true },
     { icon: Utensils, label: "food_order", path: "/food", disabled: true },

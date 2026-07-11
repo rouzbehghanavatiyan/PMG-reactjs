@@ -37,7 +37,10 @@ export const RoutesApp: React.FC = () => {
             <Route path="/surveys" element={<Surveys />} />
             <Route path="/introductionOrganization" element={<IntroOrgan />} />
             <Route path="/chatWithPDF" element={<ChatWithPDF />} />
-            <Route path="/smartKnowledgeGraph" element={<SmartKnowledgeGraph />} />
+            <Route
+              path="/smartKnowledgeGraph"
+              element={<SmartKnowledgeGraph />}
+            />
             <Route path="/surveys/questions" element={<ShowQuestionsPoll />} />
             <Route path="/erp" element={<OrganizationERP />} />
             <Route path="/news" element={<NewsPage />} />

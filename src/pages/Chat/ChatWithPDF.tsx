@@ -23,6 +23,9 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { useLanguage } from "../../contexts/LanguageContext";
+import { useMediaQuery } from "react-responsive";
+import { useHasPermission } from "../../hooks/usePermissions";
+const baseURL = import.meta.env.VITE_IP_Next;
 
 interface ChatSession {
   id: string;
@@ -432,7 +435,7 @@ const ChatWithPDF: React.FC = () => {
     });
 
     try {
-      await fetch("/api/rag/chat/message/reaction", {
+      await fetch(`${baseURL}/api/rag/chat/message/reaction`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ messageId: msgId, reaction: newReaction }),
@@ -458,13 +461,18 @@ const ChatWithPDF: React.FC = () => {
     id: number;
     title: string;
   } | null>(null);
+  const [deleteConfirmSession, setDeleteConfirmSession] = useState<{
+    id: number;
+    title: string;
+  } | null>(null);
+
   const [currentChunkInfo, setCurrentChunkInfo] = useState<{
     index: number;
     total: number;
     id: number;
     snippet: string;
   } | null>(null);
-
+  const isDesktop = useMediaQuery({ minWidth: 1024 });
   // Document Chunks Editor States
   const [editingDoc, setEditingDoc] = useState<RagDoc | null>(null);
   const [editDocTitle, setEditDocTitle] = useState("");
@@ -478,6 +486,7 @@ const ChatWithPDF: React.FC = () => {
   const [replaceText, setReplaceText] = useState("");
   const [replaceMessage, setReplaceMessage] = useState<string | null>(null);
   const [isSavingDetails, setIsSavingDetails] = useState(false);
+  const { hasPermission } = useHasPermission();
 
   const handleStartEditDoc = async (doc: RagDoc) => {
     setEditingDoc(doc);
@@ -493,7 +502,7 @@ const ChatWithPDF: React.FC = () => {
     setReplaceMessage(null);
 
     try {
-      const res = await fetch(`/api/rag/documents/${doc.id}/details`);
+      const res = await fetch(`${baseURL}/api/rag/documents/${doc.id}/details`);
       if (!res.ok)
         throw new Error(
           isRtl
@@ -517,7 +526,7 @@ const ChatWithPDF: React.FC = () => {
 
     try {
       const res = await fetch(
-        `/api/rag/documents/${editingDoc.id}/update-chunks`,
+        `${baseURL}/api/rag/documents/${editingDoc.id}/update-chunks`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -619,7 +628,7 @@ const ChatWithPDF: React.FC = () => {
   const fetchRagDocs = async () => {
     setIsLoadingDocs(true);
     try {
-      const res = await fetch("/api/rag/documents");
+      const res = await fetch(`${baseURL}/api/rag/documents`);
       if (res.ok) {
         const data = await res.json();
         setRagDocs(data);
@@ -635,7 +644,7 @@ const ChatWithPDF: React.FC = () => {
   const fetchSessions = async (shouldSelectDefault = false) => {
     try {
       const res = await fetch(
-        `/api/rag/chat/sessions?userId=${encodeURIComponent(userId)}`,
+        `${baseURL}/api/rag/chat/sessions?userId=${encodeURIComponent(userId)}`,
       );
       if (res.ok) {
         const data = await res.json();
@@ -695,7 +704,7 @@ const ChatWithPDF: React.FC = () => {
         setSelectedDocIds(foundSession.active_document_ids);
       }
 
-      const res = await fetch("/api/rag/chat/history", {
+      const res = await fetch(`${baseURL}/api/rag/chat/history`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ sessionId }),
@@ -724,33 +733,7 @@ const ChatWithPDF: React.FC = () => {
     e: React.MouseEvent,
     sessionId: string,
   ) => {
-    e.stopPropagation();
-    if (
-      window.confirm(
-        isRtl
-          ? "آیا از حذف این گفتگو اطمینان دارید؟"
-          : "Are you sure you want to delete this chat session?",
-      )
-    ) {
-      try {
-        const res = await fetch(`/api/rag/chat/sessions/${sessionId}`, {
-          method: "DELETE",
-        });
-        if (res.ok) {
-          const updated = sessions.filter((s) => s.id !== sessionId);
-          setSessions(updated);
-          if (activeSessionId === sessionId) {
-            if (updated.length > 0) {
-              handleSelectSession(updated[0].id);
-            } else {
-              handleNewChat();
-            }
-          }
-        }
-      } catch (err) {
-        console.error("Error deleting session:", err);
-      }
-    }
+    setDeleteConfirmSession({});
   };
 
   // Scroll to bottom of chat
@@ -795,7 +778,7 @@ const ChatWithPDF: React.FC = () => {
         }));
       chatHistory.push({ role: "user", content: query });
 
-      const res = await fetch("http://172.16.10.15:3001/api/rag/chat", {
+      const res = await fetch(`${baseURL}/api/rag/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -822,7 +805,6 @@ const ChatWithPDF: React.FC = () => {
       if (res.ok) {
         setMessages((prev) => {
           const updated = [...prev];
-          // Update last user message with actual database ID
           if (
             updated.length > 0 &&
             updated[updated.length - 1].role === "user"
@@ -844,7 +826,6 @@ const ChatWithPDF: React.FC = () => {
           ];
         });
         setLastDiagnostics(data.searchDiagnostics);
-        // Refresh sessions list to pull updated/newly created session details
         fetchSessions();
       } else {
         setMessages((prev) => [
@@ -873,7 +854,6 @@ const ChatWithPDF: React.FC = () => {
     }
   };
 
-  // Handle file select
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const file = e.target.files[0];
@@ -887,7 +867,6 @@ const ChatWithPDF: React.FC = () => {
     }
   };
 
-  // Handle PDF upload
   const handleUploadSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setUploadMsg(null);
@@ -920,7 +899,7 @@ const ChatWithPDF: React.FC = () => {
       reader.onload = async () => {
         const base64String = (reader.result as string).split(",")[1];
         try {
-          const res = await fetch("/api/rag/upload", {
+          const res = await fetch(`${baseURL}/api/rag/upload`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -1065,7 +1044,7 @@ const ChatWithPDF: React.FC = () => {
   // Toggle document enable/disable state
   const handleToggleDocEnable = async (id: number, currentEnabled: boolean) => {
     try {
-      const res = await fetch(`/api/rag/documents/${id}/toggle`, {
+      const res = await fetch(`${baseURL}/api/rag/documents/${id}/toggle`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ isEnabled: !currentEnabled }),
@@ -1152,25 +1131,27 @@ const ChatWithPDF: React.FC = () => {
           >
             {isRtl ? "گفتگوی هوشمند" : "AI Assistant Chat"}
           </button>
-          <button
-            onClick={() => setActiveTab("admin")}
-            className={`px-4 py-2 text-xs md:text-sm font-bold rounded-md transition-all ${
-              activeTab === "admin"
-                ? "bg-bmw-blue text-white shadow-lg"
-                : "text-bmw-textSec hover:text-bmw-text"
-            }`}
-          >
-            {isRtl ? "مدیریت اسناد" : "Document Manager"}
-          </button>
+
+          {hasPermission("ChatPDF.Read") && (
+            <button
+              onClick={() => setActiveTab("admin")}
+              className={`px-4 py-2 text-xs md:text-sm font-bold rounded-md transition-all ${
+                activeTab === "admin"
+                  ? "bg-bmw-blue text-white shadow-lg"
+                  : "text-bmw-textSec hover:text-bmw-text"
+              }`}
+            >
+              {isRtl ? "مدیریت اسناد" : "Document Manager"}
+            </button>
+          )}
         </div>
       </div>
 
-      {/* RAG Chat Assistant Tab */}
       {activeTab === "chat" && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-          {/* Sidebar (History & Past Sessions) */}
+        <div className="grid grid-cols-12 gap-6 items-start">
           <div
-            className={`${isSidebarOpen ? "flex" : "hidden lg:flex"} lg:col-span-4 bg-bmw-surface border border-bmw-border rounded-xl p-4 flex-col h-[350px] lg:h-[650px] overflow-hidden shadow-sm`}
+            className={`${isSidebarOpen || isDesktop ? "flex" : "hidden"} lg:flex lg:col-span-4 col-span-12 bg-bmw-surface border border-bmw-border 
+            rounded-xl p-4 flex-col h-[350px] lg:h-[650px] overflow-hidden shadow-sm`}
           >
             <div className="flex justify-between items-center mb-4 pb-3 border-b border-bmw-border">
               <span className="text-xs font-bold text-bmw-text uppercase tracking-wider flex items-center gap-1.5">
@@ -1186,7 +1167,6 @@ const ChatWithPDF: React.FC = () => {
               </button>
             </div>
 
-            {/* Session List */}
             <div className="flex-1 overflow-y-auto space-y-1.5 custom-scrollbar pr-1">
               {sessions.length === 0 ? (
                 <p className="text-xs text-bmw-textSec italic text-center py-8">
@@ -1227,8 +1207,7 @@ const ChatWithPDF: React.FC = () => {
             </div>
           </div>
 
-          {/* Main Chat Interface */}
-          <div className="lg:col-span-8 bg-bmw-surface border border-bmw-border rounded-xl flex flex-col h-[500px] sm:h-[600px] lg:h-[650px] overflow-hidden shadow-sm relative">
+          <div className="lg:col-span-8 col-span-12 bg-bmw-surface border border-bmw-border rounded-xl flex flex-col h-[500px] sm:h-[600px] lg:h-[650px] overflow-hidden shadow-sm relative">
             {/* Mobile-only header to toggle history/sidebar */}
             <div className="lg:hidden h-14 border-b border-bmw-border px-4 flex items-center justify-between bg-bmw-hover/50 shrink-0 select-none">
               <button
@@ -2758,6 +2737,7 @@ const ChatWithPDF: React.FC = () => {
       )}
 
       {/* Custom Delete Confirmation Modal */}
+
       {deleteConfirmDoc && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           {/* Backdrop with elegant blur */}
@@ -2805,9 +2785,84 @@ const ChatWithPDF: React.FC = () => {
                   const doc = deleteConfirmDoc;
                   setDeleteConfirmDoc(null);
                   try {
-                    const res = await fetch(`/api/rag/documents/${doc.id}`, {
-                      method: "DELETE",
-                    });
+                    const res = await fetch(
+                      `${baseURL}/api/rag/documents/${doc.id}`,
+                      {
+                        method: "DELETE",
+                      },
+                    );
+                    if (res.ok) {
+                      fetchRagDocs();
+                      fetchSessions(false);
+                      handleNewChat();
+                    }
+                  } catch (err) {
+                    console.error("Error deleting document:", err);
+                  }
+                }}
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-bold transition-all shadow-md flex items-center gap-1.5 cursor-pointer"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                {isRtl ? "تأیید و حذف کامل" : "Confirm & Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {deleteConfirmSession && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          {/* Backdrop with elegant blur */}
+          <div
+            className="absolute inset-0 bg-black/70 backdrop-blur-sm transition-opacity"
+            onClick={() => setDeleteConfirmDoc(null)}
+          ></div>
+
+          {/* Modal Card */}
+          <div className="relative bg-bmw-surface border border-bmw-border rounded-xl p-6 shadow-2xl max-w-md w-full animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-start gap-4">
+              <div className="p-3 bg-red-500/10 text-red-500 rounded-full border border-red-500/20 shrink-0">
+                <AlertCircle className="w-6 h-6" />
+              </div>
+              <div className="flex-1 min-w-0 text-start">
+                <h3 className="text-base font-extrabold text-bmw-text">
+                  {isRtl
+                    ? "حذف کامل سند و اطلاعات مرتبط"
+                    : "Complete Document Deletion"}
+                </h3>
+                <p className="text-xs text-bmw-textSec mt-2 leading-relaxed">
+                  {isRtl
+                    ? `آیا از حذف کامل سند "${deleteConfirmDoc.title}" اطمینان دارید؟ با تأیید این کار، تمامی بخش‌ها (Chunks) و کل تاریخچه گفتگوهای کاربران مرتبط با این سند به طور دائم از پایگاه داده حذف خواهد شد.`
+                    : `Are you sure you want to completely delete "${deleteConfirmDoc.title}"? This will permanently erase all associated semantic chunks and user chat histories from the database.`}
+                </p>
+                <p className="text-[10px] text-red-400 font-bold mt-2">
+                  {isRtl
+                    ? "⚠️ این عملیات غیرقابل بازگشت است!"
+                    : "⚠️ This action is irreversible!"}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 mt-6 border-t border-bmw-border pt-4">
+              <button
+                type="button"
+                onClick={() => setDeleteConfirmDoc(null)}
+                className="px-4 py-2 bg-bmw-hover text-bmw-text border border-bmw-border rounded-lg text-xs font-bold hover:bg-bmw-base transition-all cursor-pointer"
+              >
+                {isRtl ? "انصراف" : "Cancel"}
+              </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  const doc = deleteConfirmDoc;
+                  setDeleteConfirmDoc(null);
+                  try {
+                    const res = await fetch(
+                      `${baseURL}/api/rag/documents/${doc.id}`,
+                      {
+                        method: "DELETE",
+                      },
+                    );
                     if (res.ok) {
                       fetchRagDocs();
                       fetchSessions(false);
