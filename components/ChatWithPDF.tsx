@@ -25,6 +25,7 @@ import {
 import { useLanguage } from "../src/contexts/LanguageContext";
 import { useMediaQuery } from "react-responsive";
 import { useHasPermission } from "../src/hooks/usePermissions";
+import { useAppSelector } from "../src/features/store";
 const baseURL = "http://172.16.10.15:3001";
 
 interface ChatSession {
@@ -392,7 +393,9 @@ const ChatWithPDF: React.FC = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const [visibleCount, setVisibleCount] = useState(5);
-
+  const userLogin = useAppSelector(
+    (state) => state?.main?.userProfile?.userLogin,
+  );
   // Advanced Search & Filter States
   const [hybridSearch, setHybridSearch] = useState(true);
   const [semanticWeight, setSemanticWeight] = useState(0.6);
@@ -644,7 +647,7 @@ const ChatWithPDF: React.FC = () => {
   const fetchSessions = async (shouldSelectDefault = false) => {
     try {
       const res = await fetch(
-        `${baseURL}/api/rag/chat/sessions?userId=${encodeURIComponent(userId)}`,
+        `${baseURL}/api/rag/chat/sessions?userId=${userLogin?.personalCode}`,
       );
       if (res.ok) {
         const data = await res.json();
@@ -670,7 +673,7 @@ const ChatWithPDF: React.FC = () => {
     fetchRagDocs();
     fetchSessions(false);
     handleNewChat();
-  }, []);
+  }, [userLogin?.personalCode]);
 
   // Set default intro message
   const setDefaultIntro = () => {
@@ -812,7 +815,7 @@ const ChatWithPDF: React.FC = () => {
           documentIds: selectedDocIds,
           appLanguage: language,
           sessionId,
-          userId,
+          userId: userLogin?.personalCode,
           searchSettings: {
             hybridSearch,
             semanticWeight,

@@ -25,6 +25,7 @@ import {
 import { useLanguage } from "../../contexts/LanguageContext";
 import { useMediaQuery } from "react-responsive";
 import { useHasPermission } from "../../hooks/usePermissions";
+import { useAppSelector } from "../../features/store";
 const baseURL = import.meta.env.VITE_IP_Next;
 
 interface ChatSession {
@@ -444,7 +445,9 @@ const ChatWithPDF: React.FC = () => {
       console.error("Error saving RAG message reaction:", err);
     }
   };
-
+  const userLogin = useAppSelector(
+    (state) => state?.main?.userProfile?.userLogin,
+  );
   // Tab 2: Admin/Upload States
   const [docTitle, setDocTitle] = useState("");
   const [docYear, setDocYear] = useState(2026);
@@ -751,18 +754,17 @@ const ChatWithPDF: React.FC = () => {
     setInputText("");
 
     // Clear draft from localStorage on send
-    if (activeSessionId) {
-      localStorage.removeItem(`rag_draft_${activeSessionId}`);
-    } else {
-      localStorage.removeItem(`rag_draft_session-`);
-    }
+    // if (activeSessionId) {
+    //   localStorage.removeItem(`rag_draft_${activeSessionId}`);
+    // } else {
+    //   localStorage.removeItem(`rag_draft_session-`);
+    // }
 
     setIsLoading(true);
 
     // If session ID isn't set, generate one now
-    const sessionId =
-      activeSessionId ||
-      "session-" + Math.random().toString(36).substring(2, 11);
+    // const sessionId =activeSessionId || "session-" + Math.random().toString(36).substring(2, 11);
+    const sessionId = userLogin?.personalCode;
     if (!activeSessionId) {
       setActiveSessionId(sessionId);
     }
@@ -785,8 +787,9 @@ const ChatWithPDF: React.FC = () => {
           messages: chatHistory,
           documentIds: selectedDocIds,
           appLanguage: language,
+          test: "",
           sessionId,
-          userId,
+          userId: userLogin?.personalCode,
           searchSettings: {
             hybridSearch,
             semanticWeight,

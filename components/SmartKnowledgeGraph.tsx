@@ -29,6 +29,7 @@ import {
 import { useLanguage } from "../src/contexts/LanguageContext";
 import { useHasPermission } from "../src/hooks/usePermissions";
 import { useMediaQuery } from "react-responsive";
+import { useAppSelector } from "../src/features/store";
 
 const baseURL = "http://172.16.10.15:3001";
 
@@ -945,7 +946,7 @@ const InteractiveGraph: React.FC<{ subgraph: Subgraph; isRtl: boolean }> = ({
 export const SmartKnowledgeGraph: React.FC = () => {
   const { language, t, dir } = useLanguage();
   const isRtl = language === "fa";
-  const activeUserId = "behzad-naderloo";
+  const isDesktop = useMediaQuery({ minWidth: 1024 });
 
   // State Tabs
   const [activeTab, setActiveTab] = useState<"chat" | "admin">("chat");
@@ -1016,6 +1017,10 @@ export const SmartKnowledgeGraph: React.FC = () => {
   const [findText, setFindText] = useState<string>("");
   const [replaceText, setReplaceText] = useState<string>("");
   const [replaceMessage, setReplaceMessage] = useState<string | null>(null);
+  const userLogin = useAppSelector(
+    (state) => state?.main?.userProfile?.userLogin,
+  );
+  const { hasPermission } = useHasPermission();
 
   // Entity Resolution States
   const [isResolvingEntities, setIsResolvingEntities] =
@@ -1417,7 +1422,7 @@ export const SmartKnowledgeGraph: React.FC = () => {
   useEffect(() => {
     fetchDocuments();
     fetchSessions();
-  }, []);
+  }, [userLogin?.personalCode]);
 
   // Sync selected session's history
   useEffect(() => {
@@ -1452,7 +1457,7 @@ export const SmartKnowledgeGraph: React.FC = () => {
   const fetchSessions = async () => {
     try {
       const res = await fetch(
-        `${baseURL}/api/graph/chat/sessions?userId=${activeUserId}`,
+        `${baseURL}/api/graph/chat/sessions?userId=${userLogin?.personalCode}`,
       );
       const data = await res.json();
       if (data && Array.isArray(data.sessions)) {
@@ -1904,7 +1909,7 @@ export const SmartKnowledgeGraph: React.FC = () => {
         documentIds: activeDocumentIds,
         appLanguage: language,
         sessionId: activeSessId,
-        userId: activeUserId,
+        userId: userLogin?.personalCode,
       };
 
       const res = await fetch(`${baseURL}/api/graph/chat`, {
@@ -2013,25 +2018,27 @@ export const SmartKnowledgeGraph: React.FC = () => {
             <MessageSquare size={14} />
             {isRtl ? "مکالمه روابط سازمانی" : "Graph Workspace"}
           </button>
-          <button
-            onClick={() => setActiveTab("admin")}
-            className={`flex items-center gap-2 px-4 py-2 text-xs font-medium rounded-md transition-all ${
-              activeTab === "admin"
-                ? "bg-bmw-blue text-white shadow"
-                : "text-bmw-text-sec hover:text-bmw-text"
-            }`}
-          >
-            <Database size={14} />
-            {isRtl ? "مدیریت شبکه اسناد" : "Knowledge Management"}
-          </button>
+          {hasPermission("ChatSmart.Read") && (
+            <button
+              onClick={() => setActiveTab("admin")}
+              className={`flex items-center gap-2 px-4 py-2 text-xs font-medium rounded-md transition-all ${
+                activeTab === "admin"
+                  ? "bg-bmw-blue text-white shadow"
+                  : "text-bmw-text-sec hover:text-bmw-text"
+              }`}
+            >
+              <Database size={14} />
+              {isRtl ? "مدیریت شبکه اسناد" : "Knowledge Management"}
+            </button>
+          )}
         </div>
       </div>
 
       {/* WORKSPACE CONTENT */}
       {activeTab === "chat" ? (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        <div className="grid grid-cols-12 gap-6 items-start">
           {/* SIDEBAR: active documents list + chat history */}
-          <div className="lg:col-span-4 flex flex-col gap-6">
+          <div className="lg:col-span-4 col-span-12 flex flex-col gap-6">
             {/* Active Documents Control */}
             <div className="bg-bmw-surface border border-bmw-border rounded-xl p-4 flex flex-col gap-3">
               <div className="flex flex-col gap-1">
@@ -2305,7 +2312,7 @@ export const SmartKnowledgeGraph: React.FC = () => {
           </div>
 
           {/* CHAT DISPLAY + VISUAL SUB-GRAPH */}
-          <div className="lg:col-span-8 flex flex-col gap-6">
+          <div className="lg:col-span-8  col-span-12 flex flex-col gap-6">
             {/* Real-time Interactive SVG Graph Visualization */}
             <InteractiveGraph subgraph={currentSubgraph} isRtl={isRtl} />
 
@@ -2536,9 +2543,9 @@ export const SmartKnowledgeGraph: React.FC = () => {
         </div>
       ) : (
         /* ==================== ADMIN / MANAGEMENT PANEL ==================== */
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        <div className="grid grid-cols-12 gap-6 items-start">
           {/* LEFT: Upload PDF Document */}
-          <div className="lg:col-span-5 bg-bmw-surface border border-bmw-border rounded-xl p-6 flex flex-col gap-4">
+          <div className="lg:col-span-5 col-span-12 bg-bmw-surface border border-bmw-border rounded-xl p-6 flex flex-col gap-4">
             <div>
               <h2 className="text-sm font-semibold text-bmw-text uppercase tracking-wide flex items-center gap-2">
                 <Upload size={16} className="text-bmw-blue" />
@@ -2669,7 +2676,7 @@ export const SmartKnowledgeGraph: React.FC = () => {
           </div>
 
           {/* RIGHT: Document List & Details Table */}
-          <div className="lg:col-span-7 flex flex-col gap-6">
+          <div className="lg:col-span-7 col-span-12 flex flex-col gap-6">
             {/* Table wrapper */}
             <div className="bg-bmw-surface border border-bmw-border rounded-xl p-5 flex flex-col gap-4">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">

@@ -60,9 +60,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
       icon: Network,
       label: "knowledge_graph",
       path: "/smartKnowledgeGraph",
-      disabled: true,
     },
-
     { icon: FileText, label: "documents", path: "/documents", disabled: true },
     { icon: Utensils, label: "food_order", path: "/food", disabled: true },
     { icon: ClipboardList, label: "surveys", path: "/surveys" },
