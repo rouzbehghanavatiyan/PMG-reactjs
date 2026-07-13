@@ -17,7 +17,9 @@ import AllNewsRoute from "../pages/News/AllNewsRoute";
 import ShowQuestionsPoll from "../pages/Polls/ShowQuestionsPoll";
 import IntroOrgan from "../pages/IntroOrgan";
 import ChatWithPDF from "../../components/ChatWithPDF";
+import FeedbackSystem from "../../components/FeedbackSystem";
 import SmartKnowledgeGraph from "../../components/SmartKnowledgeGraph";
+
 
 export const RoutesApp: React.FC = () => {
   return (
@@ -37,6 +39,7 @@ export const RoutesApp: React.FC = () => {
             <Route path="/surveys" element={<Surveys />} />
             <Route path="/introductionOrganization" element={<IntroOrgan />} />
             <Route path="/chatWithPDF" element={<ChatWithPDF />} />
+            <Route path="/feedbackSystem" element={<FeedbackSystem />} />
             <Route
               path="/smartKnowledgeGraph"
               element={<SmartKnowledgeGraph />}

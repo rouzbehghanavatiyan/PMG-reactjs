@@ -1178,7 +1178,6 @@ const ChatWithPDF: React.FC = () => {
           )}
         </div>
       </div>
-
       {/* RAG Chat Assistant Tab */}
       {activeTab === "chat" && (
         <div className="grid grid-cols-12 gap-6 items-start">

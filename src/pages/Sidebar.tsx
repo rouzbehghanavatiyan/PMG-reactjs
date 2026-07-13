@@ -16,6 +16,7 @@ import {
   Building,
   MessageSquare,
   Network,
+  Lightbulb,
 } from "lucide-react";
 import { useLanguage } from "../contexts/LanguageContext";
 import ThemeAndLang from "../common/ThemeAndLang";
@@ -65,6 +66,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
     { icon: Utensils, label: "food_order", path: "/food", disabled: true },
     { icon: ClipboardList, label: "surveys", path: "/surveys" },
     { icon: Ticket, label: "support", path: "/support", disabled: true },
+    { icon: Lightbulb, label: "suggestions_feedback", path: "/feedbackSystem" },
   ];
 
   const hiddenTransform =

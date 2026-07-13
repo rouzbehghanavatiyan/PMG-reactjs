@@ -17,6 +17,7 @@ const translations: Record<Language, Record<string, any>> = {
     introductionOrganization: "IntroductionOrganization",
     profile: "Profile",
     payslips: "Payslips",
+    suggestions_feedback: "Suggestions & Feedback",
     chat_pdf: "Chat with PDF",
     knowledge_graph: "Smart Knowledge Network",
     documents: "Documents",
@@ -234,6 +235,7 @@ const translations: Record<Language, Record<string, any>> = {
     back_to_news: "Back to News",
   },
   fa: {
+    suggestions_feedback: "نظام پیشنهادات و انتقادات",
     chat_pdf: "مکالمه با اسناد سازمانی",
     knowledge_graph: "شبکه دانش هوشمند",
     introductionOrganization: "معرفی سازمان",
