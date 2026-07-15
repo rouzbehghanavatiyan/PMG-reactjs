@@ -1009,7 +1009,6 @@ export const SmartKnowledgeGraph: React.FC = () => {
   const [isAnalyzingCommunities, setIsAnalyzingCommunities] =
     useState<boolean>(false);
 
-  // Find & Replace States
   const [findText, setFindText] = useState<string>("");
   const [replaceText, setReplaceText] = useState<string>("");
   const [replaceMessage, setReplaceMessage] = useState<string | null>(null);

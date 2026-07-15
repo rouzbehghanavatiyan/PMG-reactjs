@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Lightbulb,
   Send,
@@ -10,19 +10,41 @@ import {
   CheckCircle2,
   XCircle,
   AlertCircle,
+  AlertTriangle,
   MessageSquare,
   Plus,
   ShieldAlert,
   ChevronDown,
   ChevronUp,
-  Check,
+  ChevronLeft,
+  ChevronRight,
   Filter,
   Calendar,
   X,
   Search,
   Download,
+  Trash2,
+  RotateCcw,
+  Edit3,
 } from "lucide-react";
 import { useLanguage } from "../src/contexts/LanguageContext";
+import { useAppSelector } from "../src/features/store";
+import {
+  addAttachment,
+  createFeedback,
+  createFeedbackCategories,
+  deleteFeedback,
+  deleteFeedbackCategories,
+  getAllFeedback,
+  getAllFeedbackCategories,
+  getAllFeedbackManager,
+  restoreFeedback,
+  restoreFeedbackCategories,
+  updateFeedback,
+  updateFeedbackCategories,
+  updateStatusManager,
+} from "../src/services/dotNet";
+import { useHasPermission } from "../src/hooks/usePermissions";
 
 interface FeedbackStatusLog {
   status: "submitted" | "under_review" | "approved" | "rejected";
@@ -45,111 +67,286 @@ interface FeedbackItem {
   managerComment?: string;
 }
 
-// Initial realistic mock data in Persian and English
-const initialFeedback: FeedbackItem[] = [
-  {
-    id: "FB-4029",
-    title: "پیشنهاد نصب ایستگاه شارژ خودروهای برقی در پارکینگ همکاران",
-    category: "facility",
-    type: "suggestion",
-    description:
-      "با توجه به افزایش روزافزون استفاده همکاران از خودروهای برقی و پلاگین‌هیبرید پرشیا خودرو، پیشنهاد می‌گردد ۲ ایستگاه شارژ AC در پارکینگ همکاران نصب شود تا بتوان در طول ساعات کاری خودروها را شارژ نمود.",
-    attachmentName: "electric_charging_plan.pdf",
-    status: "approved",
-    createdAt: "2026-07-01 09:30",
-    userEmployeeId: "PK-1024",
-    userName: "امیرحسین رضایی",
-    managerComment:
-      "طرح بسیار عالی و همسو با سیاست‌های سبز پرشیا خودرو است. بودجه تأمین تجهیزات تصویب شد و نصب ایستگاه‌ها تا انتهای ماه آینده توسط واحد پشتیبانی انجام خواهد شد.",
-    logs: [
-      {
-        status: "submitted",
-        date: "2026-07-01 09:30",
-        comment: "پیشنهاد با موفقیت در سامانه ثبت شد.",
-      },
-      {
-        status: "under_review",
-        date: "2026-07-03 14:15",
-        comment:
-          "طرح جهت بررسی فنی و تخصیص بودجه به مدیریت پشتیبانی و مهندسی ارجاع گردید.",
-      },
-      {
-        status: "approved",
-        date: "2026-07-05 11:00",
-        comment: "طرح مورد تأیید نهایی قرار گرفت.",
-      },
-    ],
-  },
-  {
-    id: "FB-3981",
-    title: "انتقاد از کندی سیستم تحویل کار در ساعات شلوغی تعمیرگاه مرکزی",
-    category: "processes",
-    type: "critic",
-    description:
-      "در زمان بازه ساعت ۱۶ الی ۱۸ عصر به دلیل کمبود نیرو در بخش پذیرش و ثبت خروج، همکاران و مشتریان زمان زیادی را معطل می‌شوند. پیشنهاد می‌کنم چینش شیفت‌های کارکنان در این ساعات بازنگری شود.",
-    status: "under_review",
-    createdAt: "2026-07-04 15:20",
-    userEmployeeId: "PK-1288",
-    userName: "سارا کریمی",
-    managerComment:
-      "بررسی توزیع بار کاری تعمیرگاه مرکزی در ساعات مذکور آغاز شده است.",
-    logs: [
-      {
-        status: "submitted",
-        date: "2026-07-04 15:20",
-        comment: "انتقاد ثبت و به واحد بهبود فرآیندها ارجاع شد.",
-      },
-      {
-        status: "under_review",
-        date: "2026-07-06 10:00",
-        comment: "گزارش تردد مشتریان در بازه عصر در حال استخراج و تحلیل است.",
-      },
-    ],
-  },
-  {
-    id: "FB-3850",
-    title: "پیشنهاد برگزاری دوره‌های آموزشی تخصصی مدیریت استرس در محیط کار",
-    category: "hr",
-    type: "suggestion",
-    description:
-      "برای بهبود سلامت روان کارکنان و ارتقای کیفیت روابط بین‌فردی، پیشنهاد می‌کنم دوره‌های کوتاه‌مدت یا وبینارهای روانشناختی با تمرکز بر مدیریت استرس و فرسودگی شغلی توسط دپارتمان سرمایه انسانی برگزار شود.",
-    attachmentName: "stress_management_course.pdf",
-    status: "submitted",
-    createdAt: "2026-07-08 11:45",
-    userEmployeeId: "PK-1024",
-    userName: "امیرحسین رضایی",
-    logs: [
-      {
-        status: "submitted",
-        date: "2026-07-08 11:45",
-        comment:
-          "پیشنهاد ثبت شده و آماده بررسی توسط دپارتمان سرمایه انسانی است.",
-      },
-    ],
-  },
-];
-
 const FeedbackSystem: React.FC = () => {
+  const { hasPermission } = useHasPermission();
   const { t, language, dir } = useLanguage();
   const isRtl = dir === "rtl";
+  const userLogin = useAppSelector(
+    (state) => state?.main?.userProfile?.userLogin,
+  );
 
-  // State
-  const [feedbackList, setFeedbackList] =
-    useState<FeedbackItem[]>(initialFeedback);
-  const [activeTab, setActiveTab] = useState<"submit" | "history">("submit");
+  const [feedbackList, setFeedbackList] = useState<FeedbackItem[]>([]);
+  const [categories, setCategories] = useState<any>([]);
+  const [loading, setLoading] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [activeTab, setActiveTab] = useState<
+    "submit" | "history" | "categories"
+  >("submit");
   const [role, setRole] = useState<"employee" | "manager">("employee");
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  // Form State
+  const fetchFeedback = async () => {
+    setLoading(true);
+    try {
+      const response = await getAllFeedback();
+      const { data } = response;
+      console.log(response);
+      if (response?.data?.length !== 0) {
+        setFeedbackList(data);
+      }
+    } catch (error) {
+      console.error("Error fetching feedback from database:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchCategories = async () => {
+    try {
+      const response = await getAllFeedbackCategories();
+      console.log(response);
+      if (response?.data?.length !== 0) {
+        setCategories(response?.data);
+      }
+    } catch (error) {
+      console.error("Error fetching categories from database:", error);
+    }
+  };
+
+  const handleGetAllFeedbackManager = async () => {
+    const response = await getAllFeedbackManager();
+    const { data } = response;
+    console.log("responseresponseresponseresponse", response);
+    if (response?.data?.length !== 0) {
+      setFeedbackList(data);
+    }
+  };
+
+  useEffect(() => {
+    fetchCategories();
+    fetchFeedback();
+  }, []);
+
+  useEffect(() => {
+    if (role === "manager") {
+      handleGetAllFeedbackManager();
+    }
+  }, [role]);
+
   const [title, setTitle] = useState("");
-  const [category, setCategory] = useState("hr");
+  const [category, setCategory] = useState([]);
+
   const [type, setType] = useState<"suggestion" | "critic">("suggestion");
   const [description, setDescription] = useState("");
   const [attachment, setAttachment] = useState<File | null>(null);
   const [dragActive, setDragActive] = useState(false);
   const [showSuccessToast, setShowSuccessToast] = useState(false);
 
-  // Admin/Manager Action State
+  const [newCatId, setNewCatId] = useState("");
+  const [newCatFa, setNewCatFa] = useState("");
+  const [newCatEn, setNewCatEn] = useState("");
+  const [catError, setCatError] = useState("");
+  const [catSuccess, setCatSuccess] = useState("");
+  const [idEditCategoryModal, setIdEditCategoryModal] = useState(null);
+
+  // useEffect(() => {
+  //   const activeCats = categories?.filter((c:any) => !c.isDeleted);
+  //   if (activeCats?.length > 0 && !activeCats?.some((c) => c.id === category)) {
+  //     setCategory(activeCats?[0].id);
+  //   }
+  // }, [categories]);
+
+  const handleAddCategory = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setCatError("");
+    setCatSuccess("");
+
+    if (
+      // !newCatId.trim() ||
+      !newCatFa.trim() ||
+      !newCatEn.trim()
+    ) {
+      setCatError(
+        isRtl ? "لطفاً تمامی فیلدها را پر کنید." : "Please fill all fields.",
+      );
+      return;
+    }
+    const postData = {
+      // id: cleanId,
+      fa: newCatFa.trim(),
+      en: newCatEn.trim(),
+    };
+    try {
+      const response = await createFeedbackCategories(postData);
+
+      if (!!response.data?.feedbackId) {
+        setCatSuccess(
+          isRtl
+            ? "دپارتمان/حوزه با موفقیت ایجاد/ویرایش شد."
+            : "Category created/updated successfully.",
+        );
+        setNewCatId("");
+        setNewCatFa("");
+        setNewCatEn("");
+        fetchCategories();
+      } else {
+        const errData = await response.json();
+        setCatError(
+          errData.error || (isRtl ? "خطایی رخ داد" : "Error occurred"),
+        );
+      }
+    } catch (err) {
+      console.error("Error adding category:", err);
+      setCatError(isRtl ? "خطا در برقراری ارتباط با سرور" : "Connection error");
+    }
+  };
+
+  // Category Edit and Confirmation states
+  const [editingCategory, setEditingCategory] = useState<{
+    id: string;
+    fa: string;
+    en: string;
+    is_deleted?: boolean;
+  } | null>(null);
+  const [showEditCategoryModal, setShowEditCategoryModal] = useState(false);
+  const [editCategoryFa, setEditCategoryFa] = useState("");
+  const [editCategoryEn, setEditCategoryEn] = useState("");
+  const [editCategoryError, setEditCategoryError] = useState("");
+
+  const [categoryToDelete, setCategoryToDelete] = useState<{
+    id: string;
+    fa: string;
+    en: string;
+  } | null>(null);
+  const [showCategoryDeleteDialog, setShowCategoryDeleteDialog] =
+    useState(false);
+
+  // Handle opening the edit category modal
+  const handleOpenEditCategoryModal = (cat: {
+    id: string;
+    fa: string;
+    en: string;
+    is_deleted?: boolean;
+  }) => {
+    console.log("cat", cat);
+    
+    setIdEditCategoryModal(cat?.id)
+    setEditingCategory(cat);
+    setEditCategoryFa(cat.fa);
+    setEditCategoryEn(cat.en);
+    setEditCategoryError("");
+    setShowEditCategoryModal(true);
+  };
+
+  const handleSaveEditCategory = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingCategory) return;
+    setEditCategoryError("");
+
+    if (!editCategoryFa.trim() || !editCategoryEn.trim()) {
+      setEditCategoryError(
+        isRtl ? "لطفاً تمامی فیلدها را پر کنید." : "Please fill all fields.",
+      );
+      return;
+    }
+    const postData = {
+      id: idEditCategoryModal,
+      fa: editCategoryFa.trim(),
+      en: editCategoryEn.trim(),
+    };
+    try {
+      const response = await updateFeedbackCategories(postData);
+      if (response?.data?.code === 0) {
+        setCatSuccess(
+          isRtl
+            ? "دپارتمان/حوزه با موفقیت ویرایش شد."
+            : "Category updated successfully.",
+        );
+        setShowEditCategoryModal(false);
+        setEditingCategory(null);
+        fetchCategories();
+      } else {
+        const errData = await response.json();
+        setEditCategoryError(
+          errData.error ||
+            (isRtl ? "خطا در ذخیره‌سازی تغییرات" : "Error updating category"),
+        );
+      }
+    } catch (err) {
+      console.error("Error saving category edit:", err);
+      setEditCategoryError(
+        isRtl ? "خطا در برقراری ارتباط با سرور" : "Connection error",
+      );
+    }
+  };
+
+  // Handle trigger logical deleting a category (show modal)
+  const handleTriggerDeleteCategory = (cat: {
+    id: string;
+    fa: string;
+    en: string;
+  }) => {
+    setCategoryToDelete(cat);
+    setShowCategoryDeleteDialog(true);
+  };
+
+  const handleConfirmDeleteCategory = async () => {
+    if (!categoryToDelete) return;
+    setCatError("");
+    setCatSuccess("");
+
+    try {
+      const response = await deleteFeedbackCategories(categoryToDelete.id);
+      if (response?.data?.code === 0) {
+        setCatSuccess(
+          isRtl
+            ? "دپارتمان با موفقیت به صورت منطقی حذف شد."
+            : "Category logically deleted successfully.",
+        );
+        fetchCategories();
+      } else {
+        const errData = await response.json();
+        setCatError(
+          errData.error ||
+            (isRtl ? "خطا در حذف دپارتمان" : "Error deleting category"),
+        );
+      }
+    } catch (err) {
+      console.error("Error deleting category:", err);
+      setCatError(isRtl ? "خطا در برقراری ارتباط با سرور" : "Connection error");
+    } finally {
+      setShowCategoryDeleteDialog(false);
+      setCategoryToDelete(null);
+    }
+  };
+
+  // Handle restore logically deleted category
+  const handleRestoreCategory = async (idToRestore: string) => {
+    setCatError("");
+    setCatSuccess("");
+
+    try {
+      const response = await restoreFeedbackCategories(idToRestore);
+      if (response?.data?.code === 0) {
+        setCatSuccess(
+          isRtl
+            ? "دپارتمان با موفقیت بازیابی شد."
+            : "Category restored successfully.",
+        );
+        fetchCategories();
+      } else {
+        const errData = await response.json();
+        setCatError(
+          errData.error ||
+            (isRtl ? "خطا در بازیابی دپارتمان" : "Error restoring category"),
+        );
+      }
+    } catch (err) {
+      console.error("Error restoring category:", err);
+      setCatError(isRtl ? "خطا در برقراری ارتباط با سرور" : "Connection error");
+    }
+  };
+
   const [selectedFeedback, setSelectedFeedback] = useState<FeedbackItem | null>(
     null,
   );
@@ -158,23 +355,168 @@ const FeedbackSystem: React.FC = () => {
     "submitted" | "under_review" | "approved" | "rejected"
   >("under_review");
 
-  // Filter State
+  // Logical Delete & Restore handlers
+  const [logicalDeleteTarget, setLogicalDeleteTarget] =
+    useState<FeedbackItem | null>(null);
+  const [showLogicalDeleteDialog, setShowLogicalDeleteDialog] = useState(false);
+
+  const handleLogicalDelete = async () => {
+    if (!logicalDeleteTarget) return;
+    try {
+      const response = await deleteFeedback(logicalDeleteTarget.id);
+      if (response?.data?.code === 0) {
+        fetchFeedback();
+      } else {
+        console.error("Failed to logically delete item");
+      }
+    } catch (err) {
+      console.error("Error logical deleting item:", err);
+    }
+    setShowLogicalDeleteDialog(false);
+    setLogicalDeleteTarget(null);
+  };
+
+  const handleRestoreFeedback = async (item: FeedbackItem) => {
+    try {
+      const response = await restoreFeedback(item?.id);
+      if (response?.data?.code === 0) {
+        fetchFeedback();
+      } else {
+        console.error("Failed to restore item");
+      }
+    } catch (err) {
+      console.error("Error restoring item:", err);
+    }
+  };
+
+  const [editingFeedback, setEditingFeedback] = useState<FeedbackItem | null>(
+    null,
+  );
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editTitle, setEditTitle] = useState("");
+  const [editCategory, setEditCategory] = useState(null);
+  const [editType, setEditType] = useState<"suggestion" | "critic">(
+    "suggestion",
+  );
+  const [editDescription, setEditDescription] = useState("");
+  const [editError, setEditError] = useState("");
+
+  const handleOpenEditModal = (item: any) => {
+    setEditingFeedback(item);
+    setEditTitle(item?.title);
+    setEditCategory(item?.category);
+    setEditType(item?.type);
+    setEditDescription(item?.description);
+    setEditError("");
+    setShowEditModal(true);
+  };
+
+  const handleSaveEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingFeedback) return;
+    setEditError("");
+
+    if (!editTitle.trim() || !editDescription.trim()) {
+      setEditError(
+        isRtl
+          ? "لطفاً تمامی فیلدهای الزامی را پر کنید."
+          : "Please fill all required fields.",
+      );
+      return;
+    }
+
+    const changedParts: string[] = [];
+    const changedPartsEn: string[] = [];
+
+    if (editTitle.trim() !== editingFeedback.title) {
+      changedParts.push(`عنوان به "${editTitle.trim()}"`);
+      changedPartsEn.push(`Title to "${editTitle.trim()}"`);
+    }
+    if (editCategory !== editingFeedback.category) {
+      const oldCat = getCategoryLabel(editingFeedback.category);
+      // const newCat = getCategoryLabel(editCategory);
+      // changedParts.push(`دپارتمان از "${oldCat}" به "${newCat}"`);
+      // changedPartsEn.push(`Category from "${oldCat}" to "${newCat}"`);
+    }
+    if (editType !== editingFeedback.type) {
+      const oldTypeLabel =
+        editingFeedback.type === "suggestion"
+          ? isRtl
+            ? "پیشنهاد"
+            : "Suggestion"
+          : isRtl
+            ? "انتقاد"
+            : "Critique";
+      const newTypeLabel =
+        editType === "suggestion"
+          ? isRtl
+            ? "پیشنهاد"
+            : "Suggestion"
+          : isRtl
+            ? "انتقاد"
+            : "Critique";
+      changedParts.push(`نوع از "${oldTypeLabel}" به "${newTypeLabel}"`);
+      changedPartsEn.push(`Type from "${oldTypeLabel}" to "${newTypeLabel}"`);
+    }
+    if (editDescription.trim() !== editingFeedback.description) {
+      changedParts.push("شرح کامل توضیحات");
+      changedPartsEn.push("description text");
+    }
+
+    if (changedParts.length === 0) {
+      setShowEditModal(false);
+      setEditingFeedback(null);
+      return;
+    }
+
+    const dateStr = new Date().toISOString().replace("T", " ").substring(0, 16);
+    const changelogMessage = isRtl
+      ? `ویرایش درخواست توسط همکار. تغییرات در: [${changedParts.join("، ")}]`
+      : `Edited by employee. Changes: [${changedPartsEn.join(", ")}]`;
+
+    const newLogs = [
+      {
+        status: editingFeedback.status,
+        comment: changelogMessage,
+        personalCode: userLogin?.personalCode,
+      },
+    ];
+
+    const postData = {
+      id: editingFeedback.id,
+      title: editTitle.trim(),
+      feedbackCategoryId: editCategory,
+      type: editType,
+      description: editDescription.trim(),
+      logs: newLogs,
+    };
+
+    try {
+      const res = await updateFeedback(postData);
+      console.log("resresres", res);
+      if (!!res?.data?.feedbackId) {
+        setShowEditModal(false);
+        setEditingFeedback(null);
+        fetchFeedback();
+      } else {
+        setEditError(isRtl ? "عدم ویرایش" : "Connection error");
+      }
+    } catch (err) {
+      console.error("Error editing feedback:", err);
+      setEditError(
+        isRtl ? "خطا در برقراری ارتباط با سرور" : "Connection error",
+      );
+    }
+  };
+
   const [filterCategory, setFilterCategory] = useState<string>("all");
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [filterType, setFilterType] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
 
-  const categories = [
-    { id: "hr", fa: "منابع انسانی و رفاهی", en: "HR & Welfare" },
-    {
-      id: "processes",
-      fa: "فرآیندها و سیستم‌های سازمانی",
-      en: "Processes & Org Systems",
-    },
-    { id: "facility", fa: "محیط کاری و ایمنی", en: "Workplace & Safety" },
-    { id: "it", fa: "فنی و فناوری اطلاعات", en: "IT & Technology" },
-    { id: "sales", fa: "فروش و امور مشتریان", en: "Sales & Customer Care" },
-  ];
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [role, activeTab, filterCategory, filterStatus, filterType, searchQuery]);
 
   const getCategoryLabel = (catId: string) => {
     const cat = categories.find((c) => c.id === catId);
@@ -182,11 +524,9 @@ const FeedbackSystem: React.FC = () => {
     return isRtl ? cat.fa : cat.en;
   };
 
-  // Helper to format any date or date string into Persian Shamsi format
   const formatPersianDate = (dateStr: string) => {
     try {
       if (!dateStr) return "";
-      // Replace space with T to make it standard ISO
       const isoStr = dateStr.trim().replace(" ", "T");
       const date = new Date(isoStr);
       if (isNaN(date.getTime())) {
@@ -205,7 +545,6 @@ const FeedbackSystem: React.FC = () => {
     }
   };
 
-  // Export to Excel/CSV function
   const handleExportExcel = () => {
     const headers = isRtl
       ? [
@@ -237,9 +576,9 @@ const FeedbackSystem: React.FC = () => {
           "History & Logs Timeline",
         ];
 
-    const rows = feedbackList.map((item) => {
+    const rows = feedbackList.map((item: any) => {
       const typeLabel =
-        item.type === "suggestion"
+        item?.type === "suggestion"
           ? isRtl
             ? "پیشنهاد"
             : "Suggestion"
@@ -247,18 +586,18 @@ const FeedbackSystem: React.FC = () => {
             ? "انتقاد"
             : "Critic";
 
-      const categoryLabel = getCategoryLabel(item.category);
+      const categoryLabel = item?.category?.fa;
 
       const statusLabel =
-        item.status === "submitted"
+        item?.status === "submitted"
           ? isRtl
             ? "ثبت اولیه"
             : "Submitted"
-          : item.status === "under_review"
+          : item?.status === "under_review"
             ? isRtl
               ? "در دست بررسی"
               : "Under Review"
-            : item.status === "approved"
+            : item?.status === "approved"
               ? isRtl
                 ? "تأیید شده"
                 : "Approved"
@@ -267,7 +606,7 @@ const FeedbackSystem: React.FC = () => {
                 : "Rejected";
 
       // Format logs timeline in a single string
-      const logsTimeline = item.logs
+      const logsTimeline = item?.logs
         .map((log, index) => {
           const logStatusLabel =
             log.status === "submitted"
@@ -290,24 +629,24 @@ const FeedbackSystem: React.FC = () => {
         })
         .join(" | ");
 
-      const clean = (text?: string) => {
-        if (!text) return "";
-        // Replace all double quotes with double-double quotes for CSV standard escaping
+      const clean = (value: unknown) => {
+        if (value === null || value === undefined) return "";
+        const text = String(value);
         return `"${text.replace(/"/g, '""')}"`;
       };
 
       return [
-        clean(item.id),
+        clean(item?.id),
         clean(typeLabel),
-        clean(item.title),
+        clean(item?.title),
         clean(categoryLabel),
-        clean(item.userName),
-        clean(item.userEmployeeId),
-        clean(item.description),
-        clean(item.attachmentName || (isRtl ? "ندارد" : "None")),
+        clean(item?.userName),
+        clean(item?.personalCode),
+        clean(item?.description),
+        clean(item?.attachmentName || (isRtl ? "ندارد" : "None")),
         clean(statusLabel),
-        clean(formatPersianDate(item.createdAt)),
-        clean(item.managerComment || ""),
+        clean(formatPersianDate(item?.createdAt)),
+        clean(item?.managerComment || ""),
         clean(logsTimeline),
       ];
     });
@@ -317,7 +656,6 @@ const FeedbackSystem: React.FC = () => {
       ...rows.map((row) => row.join(",")),
     ].join("\n");
 
-    // Add UTF-8 BOM so Excel opens Persian text with correct encoding
     const blob = new Blob(["\uFEFF" + csvContent], {
       type: "text/csv;charset=utf-8;",
     });
@@ -364,57 +702,57 @@ const FeedbackSystem: React.FC = () => {
     setAttachment(null);
   };
 
-  // Submit Feedback
-  const handleFormSubmit = (e: React.FormEvent) => {
+  const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title || !description) return;
+    const formData = new FormData();
+    if (attachment) {
+      formData.append("FormFiles", attachment);
+    }
+    formData.append("AttachmentType", "feedback");
+    const resAttachment = await addAttachment(formData);
+    console.log("category", category);
 
-    const dateStr = new Date().toISOString().replace("T", " ").substring(0, 16);
-
-    const newItem: FeedbackItem = {
-      id: `FB-${Math.floor(1000 + Math.random() * 9000)}`,
+    const postData: any = {
       title,
-      category,
+      feedbackCategoryId: category,
+      AttachmentId: resAttachment?.data?.result?.[0]?.attachmentId,
+      // category,
       type,
       description,
-      attachmentName: attachment ? attachment.name : undefined,
       status: "submitted",
-      createdAt: dateStr,
-      userEmployeeId: "PK-1024",
-      userName: "امیرحسین رضایی",
       logs: [
         {
+          personalCode: userLogin?.personalCode,
           status: "submitted",
-          date: dateStr,
           comment: isRtl
             ? "درخواست جدید با موفقیت ثبت گردید."
             : "New request successfully registered.",
         },
       ],
+      personalCode: userLogin?.personalCode,
     };
 
-    setFeedbackList([newItem, ...feedbackList]);
+    const resCompanyNews = await createFeedback(postData);
 
-    // Clear Form
+    setFeedbackList((prev) => [postData, ...prev]);
+
     setTitle("");
     setDescription("");
     setAttachment(null);
     setShowSuccessToast(true);
 
-    // Auto-dismiss toast and switch tab
     setTimeout(() => {
       setShowSuccessToast(false);
       setActiveTab("history");
     }, 2500);
   };
 
-  // Handle Manager Change Status
-  const handleUpdateStatus = (e: React.FormEvent) => {
+  const handleUpdateStatus = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedFeedback) return;
 
     const dateStr = new Date().toISOString().replace("T", " ").substring(0, 16);
-
     const statusLogsMap = {
       submitted: isRtl
         ? "بازگشت وضعیت به ثبت اوليه"
@@ -426,21 +764,23 @@ const FeedbackSystem: React.FC = () => {
       rejected: isRtl ? "درخواست یا پیشنهاد رد شد" : "Proposal Rejected",
     };
 
-    const updated = feedbackList.map((item) => {
-      if (item.id === selectedFeedback.id) {
-        const newLogs = [
-          ...item.logs,
-          {
-            status: newStatus,
-            date: dateStr,
-            comment: statusComment || statusLogsMap[newStatus],
-          },
-        ];
+    const newLogs = [
+      {
+        status: newStatus,
+        comment: statusComment || statusLogsMap[newStatus],
+        personalCode: userLogin?.personalCode,
+      },
+    ];
 
+    const managerComment =
+      statusComment || selectedFeedback.managerComment || "";
+
+    const updated: any = feedbackList.map((item) => {
+      if (item?.id === selectedFeedback.id) {
         return {
           ...item,
           status: newStatus,
-          managerComment: statusComment || item.managerComment,
+          managerComment: managerComment,
           logs: newLogs,
         };
       }
@@ -448,6 +788,25 @@ const FeedbackSystem: React.FC = () => {
     });
 
     setFeedbackList(updated);
+    const postData = {
+      id: selectedFeedback.id,
+      status: newStatus,
+      managerComment: managerComment,
+      logs: newLogs,
+    };
+
+    try {
+      const response = await updateStatusManager(postData);
+
+      if (response?.data?.code !== 0) {
+        console.error("Failed to update status in PostgreSQL database");
+      } else {
+        fetchFeedback();
+      }
+    } catch (err) {
+      console.error("Error updating feedback status in backend:", err);
+    }
+
     setSelectedFeedback(null);
     setStatusComment("");
   };
@@ -485,30 +844,32 @@ const FeedbackSystem: React.FC = () => {
   };
 
   const filteredList = feedbackList.filter((item) => {
-    // If role is employee, we only show items submitted by PK-1024
-    if (role === "employee" && item.userEmployeeId !== "PK-1024") {
-      return false;
-    }
+    console.log(typeof item?.category?.id, typeof filterCategory);
 
     const matchesCategory =
-      filterCategory === "all" || item.category === filterCategory;
+      filterCategory === "all" || item?.category?.id === Number(filterCategory);
     const matchesStatus =
-      filterStatus === "all" || item.status === filterStatus;
-    const matchesType = filterType === "all" || item.type === filterType;
+      filterStatus === "all" || item?.status === filterStatus;
+    const matchesType = filterType === "all" || item?.type === filterType;
 
     const query = searchQuery.trim().toLowerCase();
     const matchesSearch =
       !query ||
-      item.id.toLowerCase().includes(query) ||
-      item.title.toLowerCase().includes(query) ||
-      item.description.toLowerCase().includes(query) ||
-      item.userName.toLowerCase().includes(query) ||
-      item.userEmployeeId.toLowerCase().includes(query) ||
-      (item.managerComment &&
-        item.managerComment.toLowerCase().includes(query));
-
+      item?.title.toLowerCase().includes(query) ||
+      item?.description.toLowerCase().includes(query) ||
+      item?.userName.toLowerCase().includes(query) ||
+      item?.personalCode.toLowerCase().includes(query) ||
+      (item?.managerComment &&
+        item?.managerComment.toLowerCase().includes(query));
     return matchesCategory && matchesStatus && matchesType && matchesSearch;
   });
+
+  const ITEMS_PER_PAGE = 5;
+  const totalPages = Math.ceil(filteredList.length / ITEMS_PER_PAGE);
+  const paginatedList = filteredList.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE,
+  );
 
   return (
     <div className="space-y-6">
@@ -530,37 +891,38 @@ const FeedbackSystem: React.FC = () => {
           </p>
         </div>
 
-        {/* Role Switcher & Tab selector */}
         <div className="flex flex-wrap items-center gap-3">
-          {/* Role switcher toggle */}
           <div className="bg-bmw-surface p-1 rounded-xl border border-bmw-border flex gap-1 shadow-inner">
             <button
               onClick={() => {
                 setRole("employee");
                 setExpandedId(null);
+                if (activeTab === "categories") setActiveTab("submit");
               }}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${role === "employee" ? "bg-bmw-blue text-white shadow" : "text-bmw-textSec hover:text-bmw-text"}`}
             >
               <UserCheck size={14} />
               <span>{isRtl ? "نمای همکار" : "Employee View"}</span>
             </button>
-            <button
-              onClick={() => {
-                setRole("manager");
-                setExpandedId(null);
-                setActiveTab("history");
-              }}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${role === "manager" ? "bg-amber-600 text-white shadow" : "text-bmw-textSec hover:text-bmw-text"}`}
-            >
-              <ShieldAlert size={14} />
-              <span>{isRtl ? "نمای مدیر ارشد" : "Manager View"}</span>
-            </button>
+            {hasPermission("Feedback.Show") && (
+              <button
+                onClick={() => {
+                  setRole("manager");
+                  setExpandedId(null);
+                  setActiveTab("history");
+                }}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${role === "manager" ? "bg-amber-600 text-white shadow" : "text-bmw-textSec hover:text-bmw-text"}`}
+              >
+                <ShieldAlert size={14} />
+                <span>{isRtl ? "نمای مدیر ارشد" : "Manager View"}</span>
+              </button>
+            )}
           </div>
         </div>
       </div>
 
       {/* Main Layout Area */}
-      <div className="grid grid-cols-1 grid-cols-12 lg:grid-cols-12 gap-8 items-start">
+      <div className="grid grid-cols-12 gap-6 items-start">
         {/* Navigation & Info Sidebar */}
         <div className="lg:col-span-3 col-span-12 flex flex-col gap-4">
           <div className="bg-bmw-surface border border-bmw-border rounded-xl p-4 shadow-sm text-start">
@@ -598,17 +960,35 @@ const FeedbackSystem: React.FC = () => {
                   </span>
                 </div>
                 <span className="bg-bmw-base text-bmw-text border border-bmw-border px-2 py-0.5 rounded-md text-[10px]">
-                  {role === "employee"
+                  {feedbackList.length}
+                  {/* {role === "employee"
                     ? feedbackList.filter(
-                        (item) => item.userEmployeeId === "PK-1024",
+                        (item) => item?.userEmployeeId === "PK-1024",
                       ).length
-                    : feedbackList.length}
+                    : feedbackList.length} */}
                 </span>
               </button>
+              {hasPermission("Feedback.Show") && (
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("categories")}
+                  className={`flex items-center gap-2.5 w-full px-3.5 py-2.5 rounded-lg text-xs font-bold transition-all text-start cursor-pointer ${
+                    activeTab === "categories"
+                      ? "bg-amber-600 text-white shadow"
+                      : "text-bmw-textSec hover:bg-bmw-hover hover:text-bmw-text"
+                  }`}
+                >
+                  <Filter size={16} />
+                  <span>
+                    {isRtl
+                      ? "مدیریت دپارتمان‌ها و حوزه‌ها"
+                      : "Manage Departments/Areas"}
+                  </span>
+                </button>
+              )}
             </div>
           </div>
 
-          {/* Guide Card */}
           <div className="bg-bmw-surface/50 border border-bmw-border rounded-xl p-5 shadow-sm text-start">
             <h3 className="text-xs font-black text-bmw-text mb-2.5 flex items-center gap-2">
               <span>ℹ️</span>
@@ -656,9 +1036,7 @@ const FeedbackSystem: React.FC = () => {
                     : "Please fill the details below and select the relevant department."}
                 </p>
               </div>
-
               <form onSubmit={handleFormSubmit} className="space-y-5">
-                {/* Type selection */}
                 <div className="grid grid-cols-2 gap-4">
                   <button
                     type="button"
@@ -692,7 +1070,6 @@ const FeedbackSystem: React.FC = () => {
                   </button>
                 </div>
 
-                {/* Subject Title */}
                 <div>
                   <label className="block text-xs font-bold text-bmw-textSec mb-2 uppercase tracking-wider">
                     {isRtl ? "عنوان موضوع" : "Subject Title"}{" "}
@@ -712,7 +1089,6 @@ const FeedbackSystem: React.FC = () => {
                   />
                 </div>
 
-                {/* Category department selection */}
                 <div>
                   <label className="block text-xs font-bold text-bmw-textSec mb-2 uppercase tracking-wider">
                     {isRtl
@@ -720,16 +1096,25 @@ const FeedbackSystem: React.FC = () => {
                       : "Relevant Area / Department"}
                   </label>
                   <select
-                    value={category}
-                    onChange={(e) => setCategory(e.target.value)}
+                    value={category?.id}
+                    onChange={(e: any) => setCategory(e.target.value)}
                     className="w-full bg-bmw-base border border-bmw-border rounded-xl p-3.5 text-xs text-bmw-text focus:border-bmw-blue focus:outline-none appearance-none cursor-pointer"
                   >
-                    {categories.map((cat) => (
-                      <option key={cat.id} value={cat.id}>
-                        {isRtl ? cat.fa : cat.en}
-                      </option>
-                    ))}
+                    {categories
+                      ?.filter((c: any) => !c.isDeleted)
+                      ?.map((cat: any) => (
+                        <option key={cat.id} value={cat.id}>
+                          {isRtl ? cat.fa : cat.en}
+                        </option>
+                      ))}
                   </select>
+                  {/* <ComboBox
+                  keyId="id"
+                  keyValue="fa" 
+                  options={categories}
+                  value={category}
+                  onChange={setCategory}
+                  /> */}
                 </div>
 
                 {/* Detailed Description */}
@@ -858,165 +1243,348 @@ const FeedbackSystem: React.FC = () => {
                 </div>
               )}
             </div>
-          ) : (
-            /* Track Status & History Tab */
-            <div className="space-y-4">
-              {/* Search Control */}
-              <div className="bg-bmw-surface border border-bmw-border rounded-xl p-4 flex flex-col sm:flex-row gap-4 items-center justify-between text-start shadow-sm">
-                <div className="flex items-center gap-2">
-                  <Search size={16} className="text-bmw-blue shrink-0" />
-                  <span className="text-xs font-bold text-bmw-text">
+          ) : activeTab === "categories" ? (
+            <div className="space-y-6">
+              <div className="bg-bmw-surface border border-bmw-border rounded-2xl p-6 md:p-8 shadow-sm text-start">
+                <div className="border-b border-bmw-border pb-4 mb-6">
+                  <h2 className="text-lg font-extrabold text-bmw-text flex items-center gap-2">
+                    <span className="p-1.5 bg-amber-500/10 text-amber-500 rounded-lg">
+                      <Filter size={18} />
+                    </span>
+                    <span>
+                      {isRtl
+                        ? "افزودن دپارتمان یا حوزه جدید مرتبط"
+                        : "Add New Department or Relevant Area"}
+                    </span>
+                  </h2>
+                  <p className="text-xs text-bmw-textSec mt-1">
                     {isRtl
-                      ? "جستجو در پیشنهادات و انتقادات:"
-                      : "Search Proposals & Critiques:"}
-                  </span>
+                      ? "دپارتمان یا حوزه‌های جدید را برای استفاده در فرم‌های پیشنهاد همکاران ثبت کنید."
+                      : "Register new departments or operational areas to be selected by employees."}
+                  </p>
                 </div>
 
-                <div className="relative w-full sm:max-w-md">
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder={
-                      isRtl
-                        ? "بر اساس کد پیگیری، عنوان، متن پیشنهاد، نام همکار و..."
-                        : "By tracker ID, title, details, staff name..."
-                    }
-                    className={`w-full bg-bmw-base border border-bmw-border rounded-lg py-2 text-xs text-bmw-text focus:border-bmw-blue focus:outline-none transition-all placeholder:text-bmw-textSec/60 ${
-                      isRtl ? "pl-9 pr-3.5 text-right" : "pr-9 pl-3.5 text-left"
-                    }`}
-                  />
-                  {searchQuery ? (
+                <form onSubmit={handleAddCategory} className="space-y-5">
+                  {catError && (
+                    <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-xs text-red-500 font-medium">
+                      ⚠️ {catError}
+                    </div>
+                  )}
+                  {catSuccess && (
+                    <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-xs text-emerald-500 font-medium">
+                      ✅ {catSuccess}
+                    </div>
+                  )}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {/* <div>
+                      <label className="block text-xs font-bold text-bmw-textSec mb-2 uppercase tracking-wider">
+                        {isRtl
+                          ? "شناسه یکتا (انگلیسی/لاتین)"
+                          : "Unique ID (English)"}{" "}
+                        <span className="text-rose-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={newCatId}
+                        onChange={(e) => setNewCatId(e.target.value)}
+                        placeholder="e.g. finance"
+                        className="w-full bg-bmw-base border border-bmw-border rounded-xl p-3.5 text-xs text-bmw-text focus:border-bmw-blue focus:outline-none transition-colors"
+                      />
+                      <p className="text-[10px] text-bmw-textSec mt-2">
+                        {isRtl
+                          ? "فاصله‌ها به خط تیره (-) تبدیل می‌شوند."
+                          : "Spaces will be converted to hyphens (-)."}
+                      </p>
+                    </div> */}
+                    <div>
+                      <label className="block text-xs font-bold text-bmw-textSec mb-2 uppercase tracking-wider">
+                        {isRtl ? "عنوان فارسی حوزه" : "Persian Title"}{" "}
+                        <span className="text-rose-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={newCatFa}
+                        onChange={(e) => setNewCatFa(e.target.value)}
+                        placeholder="مثال: امور مالی و بودجه"
+                        className="w-full bg-bmw-base border border-bmw-border rounded-xl p-3.5 text-xs text-bmw-text focus:border-bmw-blue focus:outline-none transition-colors"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-bmw-textSec mb-2 uppercase tracking-wider">
+                        {isRtl ? "عنوان انگلیسی حوزه" : "English Title"}{" "}
+                        <span className="text-rose-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={newCatEn}
+                        onChange={(e) => setNewCatEn(e.target.value)}
+                        placeholder="e.g. Finance & Budget"
+                        className="w-full bg-bmw-base border border-bmw-border rounded-xl p-3.5 text-xs text-bmw-text focus:border-bmw-blue focus:outline-none transition-colors"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end pt-2">
                     <button
-                      type="button"
-                      onClick={() => setSearchQuery("")}
-                      className={`absolute top-1/2 -translate-y-1/2 p-1 text-bmw-textSec hover:text-bmw-text rounded-md transition-colors ${
-                        isRtl ? "left-2.5" : "right-2.5"
-                      }`}
+                      type="submit"
+                      className="px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold shadow-md transition-all cursor-pointer"
                     >
-                      <X size={14} />
+                      {isRtl
+                        ? "ثبت و ذخیره حوزه در دیتابیس"
+                        : "Save Area to Database"}
                     </button>
-                  ) : (
-                    <Search
-                      className={`absolute top-1/2 -translate-y-1/2 text-bmw-textSec/70 w-3.5 h-3.5 pointer-events-none ${
-                        isRtl ? "left-3" : "right-3"
+                  </div>
+                </form>
+              </div>
+
+              {/* Existing Categories List */}
+              <div className="bg-bmw-surface border border-bmw-border rounded-2xl p-6 md:p-8 shadow-sm text-start">
+                <h3 className="text-sm font-black text-bmw-text mb-4">
+                  {isRtl
+                    ? "لیست دپارتمان‌ها و حوزه‌های موجود در دیتابیس"
+                    : "Existing Departments / Areas in Database"}
+                </h3>
+
+                <div className="border border-bmw-border rounded-xl overflow-hidden">
+                  <table className="w-full text-xs text-start border-collapse">
+                    <thead>
+                      <tr className="bg-bmw-base text-bmw-textSec font-bold border-b border-bmw-border">
+                        <th className="p-3 text-start">
+                          کد
+                          {/* {isRtl ? "شناسه یکتا" : "Unique ID"} */}
+                        </th>
+                        <th className="p-3 text-start">
+                          {isRtl ? "نام فارسی دپارتمان" : "Persian Name"}
+                        </th>
+                        <th className="p-3 text-start">
+                          {isRtl ? "نام انگلیسی دپارتمان" : "English Name"}
+                        </th>
+                        <th className="p-3 text-center w-24">
+                          {isRtl ? "عملیات" : "Actions"}
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-bmw-border">
+                      {categories?.map((cat: any) => (
+                        <tr
+                          key={cat.id}
+                          className={`hover:bg-bmw-hover transition-colors text-bmw-text ${cat.isDeleted ? "opacity-60 bg-red-500/5" : ""}`}
+                        >
+                          <td className="p-3 font-mono text-[11px] flex items-center gap-1.5">
+                            {cat.id}
+                            {cat.isDeleted && (
+                              <span className="px-1.5 py-0.5 bg-red-500/10 text-red-500 border border-red-500/20 rounded text-[9px] font-bold">
+                                {isRtl ? "حذف منطقی شده" : "Logically Deleted"}
+                              </span>
+                            )}
+                          </td>
+                          <td
+                            className={`p-3 font-semibold ${cat.isDeleted ? "line-through text-bmw-textSec" : ""}`}
+                          >
+                            {cat.fa}
+                          </td>
+                          <td
+                            className={`p-3 text-bmw-textSec ${cat.isDeleted ? "line-through" : ""}`}
+                          >
+                            {cat.en}
+                          </td>
+                          <td className="p-3 text-center">
+                            <div className="flex items-center justify-center gap-2">
+                              {!cat.isDeleted ? (
+                                <>
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      handleOpenEditCategoryModal(cat)
+                                    }
+                                    className="px-2 py-1 text-[10px] font-bold text-amber-500 hover:bg-amber-500/10 rounded border border-amber-500/20 hover:border-amber-500/40 transition-colors cursor-pointer"
+                                  >
+                                    {isRtl ? "ویرایش" : "Edit"}
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      handleTriggerDeleteCategory(cat)
+                                    }
+                                    className="px-2 py-1 text-[10px] font-bold text-rose-500 hover:bg-rose-500/10 rounded border border-rose-500/20 hover:border-rose-500/40 transition-colors cursor-pointer"
+                                  >
+                                    {isRtl ? "حذف" : "Delete"}
+                                  </button>
+                                </>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() => handleRestoreCategory(cat.id)}
+                                  className="px-2 py-1 text-[10px] font-bold text-emerald-500 hover:bg-emerald-500/10 rounded border border-emerald-500/20 hover:border-emerald-500/40 transition-colors cursor-pointer"
+                                >
+                                  {isRtl ? "بازیابی" : "Restore"}
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-4 ">
+              <div className="bg-bmw-surface border border-bmw-border rounded-xl shadow-sm">
+                <div className=" border-b border-gray-200  p-4 flex-row lg:flex gap-4 items-center text-start">
+                  <div className="flex items-center gap-2">
+                    <Search size={16} className="text-bmw-blue shrink-0" />
+                    <span className="text-xs font-bold text-bmw-text">
+                      {isRtl
+                        ? "جستجو در پیشنهادات و انتقادات:"
+                        : "Search Proposals & Critiques:"}
+                    </span>
+                  </div>
+                  <div className="relative w-full sm:max-w-md">
+                    <input
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder={
+                        isRtl
+                          ? "بر اساس کد پیگیری، عنوان، متن پیشنهاد، نام همکار و..."
+                          : "By tracker ID, title, details, staff name..."
+                      }
+                      className={`w-full bg-bmw-base border border-bmw-border rounded-lg py-2 text-xs text-bmw-text focus:border-bmw-blue focus:outline-none transition-all placeholder:text-bmw-textSec/60 ${
+                        isRtl
+                          ? "pl-9 pr-3.5 text-right"
+                          : "pr-9 pl-3.5 text-left"
                       }`}
                     />
+                    {searchQuery ? (
+                      <button
+                        type="button"
+                        onClick={() => setSearchQuery("")}
+                        className={`absolute top-1/2 -translate-y-1/2 p-1 text-bmw-textSec hover:text-bmw-text rounded-md transition-colors ${
+                          isRtl ? "left-2.5" : "right-2.5"
+                        }`}
+                      >
+                        <X size={14} />
+                      </button>
+                    ) : (
+                      <Search
+                        className={`absolute top-1/2 -translate-y-1/2 text-bmw-textSec/70 w-3.5 h-3.5 pointer-events-none ${
+                          isRtl ? "left-3" : "right-3"
+                        }`}
+                      />
+                    )}
+                  </div>
+                </div>
+                {searchQuery && (
+                  <div className="flex m-4 items-center justify-between text-[11px] text-bmw-textSec px-1">
+                    <span>
+                      {isRtl
+                        ? `نتایج یافت شده: ${filteredList.length} مورد منطبق بر "${searchQuery}"`
+                        : `Found ${filteredList.length} items matching "${searchQuery}"`}
+                    </span>
+                    <button
+                      onClick={() => setSearchQuery("")}
+                      className="text-bmw-blue hover:underline font-bold text-[11px]"
+                    >
+                      {isRtl ? "حذف فیلتر متنی" : "Clear Search Query"}
+                    </button>
+                  </div>
+                )}
+                <div className="p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 text-start ">
+                  <div className="flex flex-wrap items-center gap-4">
+                    <div className="flex items-center gap-2">
+                      <Filter size={15} className="text-bmw-blue" />
+                      <span className="text-xs font-bold text-bmw-text">
+                        {isRtl
+                          ? "فیلتر کردن موارد تاریخچه:"
+                          : "Filter History Items:"}
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap gap-3">
+                      <div>
+                        <select
+                          value={filterCategory}
+                          onChange={(e) => setFilterCategory(e.target.value)}
+                          className="bg-bmw-base border border-bmw-border text-[11px] rounded-lg p-2 text-bmw-text focus:outline-none cursor-pointer"
+                        >
+                          <option value="all">
+                            {isRtl ? "همه حوزه‌ها" : "All Areas"}
+                          </option>
+                          {categories
+                            .filter((c) => !c.is_deleted)
+                            .map((cat) => (
+                              <option key={cat.id} value={cat.id}>
+                                {isRtl ? cat.fa : cat.en}
+                              </option>
+                            ))}
+                        </select>
+                      </div>
+
+                      <div>
+                        <select
+                          value={filterStatus}
+                          onChange={(e) => setFilterStatus(e.target.value)}
+                          className="bg-bmw-base border border-bmw-border text-[11px] rounded-lg p-2 text-bmw-text focus:outline-none cursor-pointer"
+                        >
+                          <option value="all">
+                            {isRtl ? "همه وضعیت‌ها" : "All Statuses"}
+                          </option>
+                          <option value="submitted">
+                            {isRtl ? "ثبت شده" : "Submitted"}
+                          </option>
+                          <option value="under_review">
+                            {isRtl ? "در دست بررسی" : "Under Review"}
+                          </option>
+                          <option value="approved">
+                            {isRtl ? "تأیید شده" : "Approved"}
+                          </option>
+                          <option value="rejected">
+                            {isRtl ? "رد شده" : "Rejected"}
+                          </option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <select
+                          value={filterType}
+                          onChange={(e) => setFilterType(e.target.value)}
+                          className="bg-bmw-base border border-bmw-border text-[11px] rounded-lg p-2 text-bmw-text focus:outline-none cursor-pointer"
+                        >
+                          <option value="all">
+                            {isRtl ? "همه انواع" : "All Types"}
+                          </option>
+                          <option value="suggestion">
+                            {isRtl ? "پیشنهاد" : "Suggestion"}
+                          </option>
+                          <option value="critic">
+                            {isRtl ? "انتقاد" : "Critique"}
+                          </option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                  {hasPermission("Feedback.Show") && (
+                    <button
+                      type="button"
+                      onClick={handleExportExcel}
+                      className="flex items-center gap-2 px-4.5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all shadow-md hover:-translate-y-0.5 active:translate-y-0 cursor-pointer shrink-0"
+                    >
+                      <Download size={14} />
+                      <span>
+                        {isRtl
+                          ? "خروجی اکسل (با جزئیات)"
+                          : "Export Excel (Detailed)"}
+                      </span>
+                    </button>
                   )}
                 </div>
               </div>
 
-              {searchQuery && (
-                <div className="flex items-center justify-between text-[11px] text-bmw-textSec px-1">
-                  <span>
-                    {isRtl
-                      ? `نتایج یافت شده: ${filteredList.length} مورد منطبق بر "${searchQuery}"`
-                      : `Found ${filteredList.length} items matching "${searchQuery}"`}
-                  </span>
-                  <button
-                    onClick={() => setSearchQuery("")}
-                    className="text-bmw-blue hover:underline font-bold text-[11px]"
-                  >
-                    {isRtl ? "حذف فیلتر متنی" : "Clear Search Query"}
-                  </button>
-                </div>
-              )}
-
-              {/* Filter controls */}
-              <div className="bg-bmw-surface border border-bmw-border rounded-xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 text-start shadow-sm">
-                <div className="flex flex-wrap items-center gap-4">
-                  <div className="flex items-center gap-2">
-                    <Filter size={15} className="text-bmw-blue" />
-                    <span className="text-xs font-bold text-bmw-text">
-                      {isRtl
-                        ? "فیلتر کردن موارد تاریخچه:"
-                        : "Filter History Items:"}
-                    </span>
-                  </div>
-
-                  <div className="flex flex-wrap gap-3">
-                    {/* Category Filter */}
-                    <div>
-                      <select
-                        value={filterCategory}
-                        onChange={(e) => setFilterCategory(e.target.value)}
-                        className="bg-bmw-base border border-bmw-border text-[11px] rounded-lg p-2 text-bmw-text focus:outline-none cursor-pointer"
-                      >
-                        <option value="all">
-                          {isRtl ? "همه حوزه‌ها" : "All Areas"}
-                        </option>
-                        {categories.map((cat) => (
-                          <option key={cat.id} value={cat.id}>
-                            {isRtl ? cat.fa : cat.en}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    {/* Status Filter */}
-                    <div>
-                      <select
-                        value={filterStatus}
-                        onChange={(e) => setFilterStatus(e.target.value)}
-                        className="bg-bmw-base border border-bmw-border text-[11px] rounded-lg p-2 text-bmw-text focus:outline-none cursor-pointer"
-                      >
-                        <option value="all">
-                          {isRtl ? "همه وضعیت‌ها" : "All Statuses"}
-                        </option>
-                        <option value="submitted">
-                          {isRtl ? "ثبت شده" : "Submitted"}
-                        </option>
-                        <option value="under_review">
-                          {isRtl ? "در دست بررسی" : "Under Review"}
-                        </option>
-                        <option value="approved">
-                          {isRtl ? "تأیید شده" : "Approved"}
-                        </option>
-                        <option value="rejected">
-                          {isRtl ? "رد شده" : "Rejected"}
-                        </option>
-                      </select>
-                    </div>
-
-                    {/* Type Filter */}
-                    <div>
-                      <select
-                        value={filterType}
-                        onChange={(e) => setFilterType(e.target.value)}
-                        className="bg-bmw-base border border-bmw-border text-[11px] rounded-lg p-2 text-bmw-text focus:outline-none cursor-pointer"
-                      >
-                        <option value="all">
-                          {isRtl ? "همه انواع" : "All Types"}
-                        </option>
-                        <option value="suggestion">
-                          {isRtl ? "پیشنهاد" : "Suggestion"}
-                        </option>
-                        <option value="critic">
-                          {isRtl ? "انتقاد" : "Critique"}
-                        </option>
-                      </select>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Manager Export Button */}
-                {role === "manager" && (
-                  <button
-                    type="button"
-                    onClick={handleExportExcel}
-                    className="flex items-center gap-2 px-4.5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all shadow-md hover:-translate-y-0.5 active:translate-y-0 cursor-pointer shrink-0"
-                  >
-                    <Download size={14} />
-                    <span>
-                      {isRtl
-                        ? "خروجی اکسل (با جزئیات)"
-                        : "Export Excel (Detailed)"}
-                    </span>
-                  </button>
-                )}
-              </div>
-
-              {/* No items found state */}
               {filteredList.length === 0 && (
                 <div className="bg-bmw-surface border border-bmw-border rounded-xl p-8 text-center flex flex-col items-center justify-center gap-2">
                   <span className="text-3xl">📭</span>
@@ -1033,35 +1601,41 @@ const FeedbackSystem: React.FC = () => {
                 </div>
               )}
 
-              {/* Feedback list */}
-              {filteredList.map((item) => {
-                const isExpanded = expandedId === item.id;
+              {paginatedList.map((item: any) => {
+                const isExpanded = expandedId === item?.id;
+                console.log("item", item);
+
                 return (
                   <div
-                    key={item.id}
-                    className="bg-bmw-surface border border-bmw-border hover:border-bmw-blue/20 rounded-xl overflow-hidden transition-all shadow-sm"
+                    key={item?.id}
+                    className={`rounded-xl overflow-hidden transition-all shadow-sm relative ${
+                      item?.isDeleted
+                        ? "border-2 border-dashed border-rose-500/40 bg-rose-500/5 hover:bg-rose-500/10"
+                        : "bg-bmw-surface border border-bmw-border hover:border-bmw-blue/20"
+                    }`}
                   >
-                    {/* Item Header Banner */}
                     <div
-                      onClick={() => setExpandedId(isExpanded ? null : item.id)}
+                      onClick={() =>
+                        setExpandedId(isExpanded ? null : item?.id)
+                      }
                       className="p-4 md:p-5 flex items-center justify-between gap-4 cursor-pointer hover:bg-bmw-hover transition-colors text-start"
                     >
                       <div className="flex-1 min-w-0">
                         <div className="flex flex-wrap items-center gap-2 mb-1.5">
                           <span className="text-[10px] font-mono text-bmw-textSec font-bold tracking-wider">
-                            {item.id}
+                            {item?.id}
                           </span>
                           <span className="text-[10px] bg-bmw-base border border-bmw-border text-bmw-text px-2 py-0.5 rounded-md font-medium">
-                            {getCategoryLabel(item.category)}
+                            {item?.category?.fa}
                           </span>
                           <span
                             className={`text-[10px] font-extrabold px-2 py-0.5 rounded-md ${
-                              item.type === "suggestion"
+                              item?.type === "suggestion"
                                 ? "bg-blue-500/10 text-blue-500 border border-blue-500/20"
                                 : "bg-amber-600/10 text-amber-500 border border-amber-600/20"
                             }`}
                           >
-                            {item.type === "suggestion"
+                            {item?.type === "suggestion"
                               ? isRtl
                                 ? "پیشنهاد"
                                 : "Suggestion"
@@ -1069,20 +1643,25 @@ const FeedbackSystem: React.FC = () => {
                                 ? "انتقاد سازنده"
                                 : "Critique"}
                           </span>
+                          {item?.isDeleted && (
+                            <span className="text-[10px] bg-rose-600/20 text-rose-400 border border-rose-500/30 px-2 py-0.5 rounded-md font-extrabold">
+                              {isRtl ? "حذف منطقی شده" : "Logically Deleted"}
+                            </span>
+                          )}
                         </div>
                         <h3 className="text-sm font-extrabold text-bmw-text truncate leading-snug">
-                          {item.title}
+                          {item?.title}
                         </h3>
                         <div className="flex items-center gap-1.5 text-[10px] text-bmw-textSec mt-1">
                           <Calendar size={11} />
-                          <span>{formatPersianDate(item.createdAt)}</span>
+                          <span>{formatPersianDate(item?.createdAt)}</span>
                           {role === "manager" && (
                             <>
                               <span className="mx-1">•</span>
                               <span>
                                 {isRtl
-                                  ? `توسط: ${item.userName} (${item.userEmployeeId})`
-                                  : `By: ${item.userName} (${item.userEmployeeId})`}
+                                  ? `توسط: ${item?.userName} (${item?.personalCode})`
+                                  : `By: ${item?.userName} (${item?.personalCode})`}
                               </span>
                             </>
                           )}
@@ -1090,7 +1669,7 @@ const FeedbackSystem: React.FC = () => {
                       </div>
 
                       <div className="flex items-center gap-3 shrink-0 select-none">
-                        {getStatusBadge(item.status)}
+                        {getStatusBadge(item?.status)}
                         <div>
                           {isExpanded ? (
                             <ChevronUp size={16} className="text-bmw-textSec" />
@@ -1104,10 +1683,8 @@ const FeedbackSystem: React.FC = () => {
                       </div>
                     </div>
 
-                    {/* Expandable details area */}
                     {isExpanded && (
                       <div className="px-5 pb-5 pt-2 border-t border-bmw-border bg-bmw-base/20 text-start space-y-4">
-                        {/* Summary / Detailed text */}
                         <div className="space-y-1.5">
                           <h4 className="text-[11px] font-bold text-amber-500 uppercase tracking-wider">
                             {isRtl
@@ -1115,16 +1692,15 @@ const FeedbackSystem: React.FC = () => {
                               : "Complete Description:"}
                           </h4>
                           <p className="text-xs text-bmw-text leading-relaxed whitespace-pre-line font-medium">
-                            {item.description}
+                            {item?.description}
                           </p>
                         </div>
 
-                        {/* File Attachment */}
-                        {item.attachmentName && (
+                        {/* {item?.attachment && (
                           <div className="inline-flex items-center gap-2.5 px-3 py-1.5 bg-bmw-surface border border-bmw-border rounded-lg text-xs">
                             <FileText size={14} className="text-bmw-blue" />
                             <span className="font-bold text-bmw-text text-[11px]">
-                              {item.attachmentName}
+                              {item?.attachmentName}
                             </span>
                             <span className="text-[10px] text-bmw-textSec">
                               (PDF / 1.2 MB)
@@ -1133,10 +1709,9 @@ const FeedbackSystem: React.FC = () => {
                               ✓ {isRtl ? "پیوست شد" : "Attached"}
                             </span>
                           </div>
-                        )}
+                        )} */}
 
-                        {/* Manager Comment Section */}
-                        {item.managerComment && (
+                        {item?.managerComment && (
                           <div className="p-4 bg-bmw-surface border border-bmw-border rounded-xl space-y-2 relative overflow-hidden">
                             <div className="absolute top-0 right-0 h-1 w-20 bg-amber-500" />
                             <div className="flex items-center gap-1.5 text-xs text-amber-500 font-bold">
@@ -1148,7 +1723,7 @@ const FeedbackSystem: React.FC = () => {
                               </span>
                             </div>
                             <p className="text-xs text-bmw-text leading-relaxed leading-relaxed whitespace-pre-line font-medium">
-                              {item.managerComment}
+                              {item?.managerComment}
                             </p>
                           </div>
                         )}
@@ -1165,8 +1740,8 @@ const FeedbackSystem: React.FC = () => {
                           </h4>
 
                           <div className="relative border-r border-bmw-border/80 mr-2.5 rtl:mr-2.5 ltr:ml-2.5 ltr:border-l space-y-4 pt-1">
-                            {item.logs.map((log, lIdx) => {
-                              const isLast = lIdx === item.logs.length - 1;
+                            {item?.logs?.map((log, lIdx) => {
+                              const isLast = lIdx === item?.logs?.length - 1;
                               const statusStyles = {
                                 submitted:
                                   "bg-blue-500 border-blue-500/20 text-blue-500",
@@ -1198,7 +1773,6 @@ const FeedbackSystem: React.FC = () => {
                                   key={lIdx}
                                   className="relative pr-6 rtl:pr-6 ltr:pl-6 pb-1"
                                 >
-                                  {/* Timeline marker icon/dot */}
                                   <span
                                     className={`absolute right-[-6.5px] top-1 rtl:right-[-6.5px] ltr:left-[-6.5px] flex h-3.5 w-3.5 items-center justify-center rounded-full bg-bmw-surface border-2 ${
                                       isLast
@@ -1212,7 +1786,7 @@ const FeedbackSystem: React.FC = () => {
                                   </span>
 
                                   <div className="bg-bmw-base/50 border border-bmw-border rounded-lg p-3">
-                                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 mb-1 text-xs">
+                                    <div className="flex sm:flex-row sm:items-start justify-between gap-1.5 mb-1 text-xs">
                                       <span className="font-extrabold text-bmw-text">
                                         {isRtl
                                           ? faStateName[log.status]
@@ -1234,32 +1808,141 @@ const FeedbackSystem: React.FC = () => {
                           </div>
                         </div>
 
-                        {/* Manager Admin Action Trigger Button */}
-                        {role === "manager" && (
-                          <div className="pt-4 border-t border-bmw-border/50 flex justify-end">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setSelectedFeedback(item);
-                                setNewStatus(item.status);
-                                setStatusComment(item.managerComment || "");
-                              }}
-                              className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs rounded-lg shadow-md transition-all flex items-center gap-1.5 cursor-pointer"
-                            >
-                              <ShieldAlert size={13} />
-                              <span>
-                                {isRtl
-                                  ? "بررسی و تغییر وضعیت درخواست"
-                                  : "Review & Adjust Status"}
-                              </span>
-                            </button>
-                          </div>
-                        )}
+                        {/* Actions Footer */}
+                        <div className="pt-4 border-t border-bmw-border/50 flex flex-wrap items-center justify-end gap-2.5">
+                          {/* Employee Edit Button */}
+                          {role === "employee" &&
+                            item?.status === "submitted" && (
+                              <button
+                                type="button"
+                                onClick={() => handleOpenEditModal(item)}
+                                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-lg shadow-md transition-all flex items-center gap-1.5 cursor-pointer"
+                              >
+                                <Edit3 size={13} />
+                                <span>
+                                  {isRtl
+                                    ? "ویرایش جزئیات درخواست"
+                                    : "Edit Submission Details"}
+                                </span>
+                              </button>
+                            )}
+
+                          {/* Manager Buttons */}
+                          {role === "manager" && (
+                            <>
+                              {item?.isDeleted ? (
+                                <button
+                                  type="button"
+                                  onClick={() => handleRestoreFeedback(item)}
+                                  className="px-4 py-2 bg-emerald-600/20 hover:bg-emerald-600 text-emerald-500 hover:text-white border border-emerald-500/30 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-sm"
+                                >
+                                  <RotateCcw size={13} />
+                                  <span>
+                                    {isRtl
+                                      ? "برگشت از حذف منطقی (بازگردانی)"
+                                      : "Restore Proposal"}
+                                  </span>
+                                </button>
+                              ) : (
+                                <>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setLogicalDeleteTarget(item);
+                                      setShowLogicalDeleteDialog(true);
+                                    }}
+                                    className="px-4 py-2 bg-rose-600/10 hover:bg-rose-600 text-rose-500 hover:text-white border border-rose-500/20 hover:border-rose-500 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+                                  >
+                                    <Trash2 size={13} />
+                                    <span>
+                                      {isRtl ? "حذف منطقی" : "Logical Delete"}
+                                    </span>
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setSelectedFeedback(item);
+                                      setNewStatus(item?.status);
+                                      setStatusComment(
+                                        item?.managerComment || "",
+                                      );
+                                    }}
+                                    className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs rounded-lg shadow-md transition-all flex items-center gap-1.5 cursor-pointer"
+                                  >
+                                    <ShieldAlert size={13} />
+                                    <span>
+                                      {isRtl
+                                        ? "بررسی و تغییر وضعیت درخواست"
+                                        : "Review & Adjust Status"}
+                                    </span>
+                                  </button>
+                                </>
+                              )}
+                            </>
+                          )}
+                        </div>
                       </div>
                     )}
                   </div>
                 );
               })}
+
+              {/* Pagination Controls */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-between border border-bmw-border bg-bmw-surface rounded-xl p-4 mt-2 shadow-sm text-xs">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.max(prev - 1, 1))
+                    }
+                    disabled={currentPage === 1}
+                    className="px-3 py-1.5 rounded-lg border border-bmw-border bg-bmw-base text-bmw-text hover:bg-bmw-hover disabled:opacity-50 transition-colors flex items-center gap-1.5 font-bold cursor-pointer disabled:cursor-not-allowed"
+                  >
+                    {isRtl ? (
+                      <ChevronRight size={14} />
+                    ) : (
+                      <ChevronLeft size={14} />
+                    )}
+                    <span>{isRtl ? "قبلی" : "Previous"}</span>
+                  </button>
+
+                  <div className="flex items-center gap-1.5">
+                    {Array.from({ length: totalPages }, (_, idx) => {
+                      const pageNum = idx + 1;
+                      return (
+                        <button
+                          key={pageNum}
+                          type="button"
+                          onClick={() => setCurrentPage(pageNum)}
+                          className={`w-8 h-8 rounded-lg flex items-center justify-center font-extrabold border transition-colors cursor-pointer ${
+                            currentPage === pageNum
+                              ? "bg-bmw-blue border-bmw-blue text-white shadow shadow-blue-500/20"
+                              : "border-bmw-border bg-bmw-base text-bmw-text hover:bg-bmw-hover"
+                          }`}
+                        >
+                          {pageNum.toLocaleString(isRtl ? "fa-IR" : "en-US")}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                    }
+                    disabled={currentPage === totalPages}
+                    className="px-3 py-1.5 rounded-lg border border-bmw-border bg-bmw-base text-bmw-text hover:bg-bmw-hover disabled:opacity-50 transition-colors flex items-center gap-1.5 font-bold cursor-pointer disabled:cursor-not-allowed"
+                  >
+                    <span>{isRtl ? "بعدی" : "Next"}</span>
+                    {isRtl ? (
+                      <ChevronLeft size={14} />
+                    ) : (
+                      <ChevronRight size={14} />
+                    )}
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -1418,6 +2101,406 @@ const FeedbackSystem: React.FC = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Logical Delete Dialog */}
+      {showLogicalDeleteDialog && logicalDeleteTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            onClick={() => {
+              setShowLogicalDeleteDialog(false);
+              setLogicalDeleteTarget(null);
+            }}
+            className="absolute inset-0 bg-black/75 backdrop-blur-sm"
+          />
+          <div
+            className="relative w-full max-w-md bg-bmw-surface border border-bmw-border rounded-xl shadow-2xl overflow-hidden flex flex-col text-start"
+            dir={isRtl ? "rtl" : "ltr"}
+          >
+            <div className="flex items-center gap-3 border-b border-bmw-border p-4 bg-rose-500/10 text-rose-500">
+              <div className="p-2 bg-rose-500/20 text-rose-400 rounded-lg">
+                <Trash2 size={18} />
+              </div>
+              <div>
+                <h3 className="text-sm font-black">
+                  {isRtl
+                    ? "تأیید حذف منطقی طرح یا انتقاد"
+                    : "Confirm Logical Delete"}
+                </h3>
+                <p className="text-[10px] text-rose-400/80 mt-0.5">
+                  ID: {logicalDeleteTarget.id}
+                </p>
+              </div>
+            </div>
+
+            <div className="p-5 space-y-3">
+              <p className="text-xs text-bmw-text font-bold">
+                {logicalDeleteTarget.title}
+              </p>
+              <p className="text-xs text-bmw-textSec leading-relaxed">
+                {isRtl
+                  ? "آیا از حذف منطقی این پیشنهاد/انتقاد اطمینان دارید؟ با این کار درخواست در لیست همکاران نمایش داده نخواهد شد اما همچنان در لیست مدیران با رنگ متمایز وجود دارد."
+                  : "Are you sure you want to logically delete this suggestion/critique? This will hide it from the employees list, but managers will still be able to see and restore it."}
+              </p>
+            </div>
+
+            {/* Actions */}
+            <div className="flex justify-end gap-3 p-4 bg-bmw-base/50 border-t border-bmw-border">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowLogicalDeleteDialog(false);
+                  setLogicalDeleteTarget(null);
+                }}
+                className="px-4 py-2 bg-bmw-hover text-bmw-text border border-bmw-border rounded-lg text-xs font-bold transition-colors cursor-pointer"
+              >
+                {isRtl ? "انصراف" : "Cancel"}
+              </button>
+              <button
+                type="button"
+                onClick={handleLogicalDelete}
+                className="px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-bold shadow-md transition-all cursor-pointer"
+              >
+                {isRtl ? "تأیید حذف منطقی" : "Confirm Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Employee Edit Modal */}
+      {showEditModal && editingFeedback && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            onClick={() => {
+              setShowEditModal(false);
+              setEditingFeedback(null);
+            }}
+            className="absolute inset-0 bg-black/75 backdrop-blur-sm"
+          />
+          <div
+            className="relative w-full max-w-xl bg-bmw-surface border border-bmw-border rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] text-start"
+            dir={isRtl ? "rtl" : "ltr"}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-bmw-border p-4 bg-bmw-base/50">
+              <div className="flex items-center gap-2">
+                <div className="p-2 bg-blue-600/10 text-blue-500 rounded-lg">
+                  <Edit3 size={18} />
+                </div>
+                <div>
+                  <h3 className="text-sm font-black text-bmw-text">
+                    {isRtl
+                      ? "ویرایش و اصلاح جزئیات درخواست ثبت‌شده"
+                      : "Edit Registered Feedback Details"}
+                  </h3>
+                  <p className="text-[10px] text-bmw-textSec mt-0.5">
+                    ID: {editingFeedback.id} •{" "}
+                    {isRtl
+                      ? "ثبت تغییرات در بخش روند تغییرات"
+                      : "Changes logged automatically"}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => {
+                  setShowEditModal(false);
+                  setEditingFeedback(null);
+                }}
+                className="p-1 rounded-md text-bmw-textSec hover:bg-bmw-hover hover:text-bmw-text transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form
+              onSubmit={handleSaveEdit}
+              className="p-5 overflow-y-auto space-y-4"
+            >
+              {editError && (
+                <div className="p-3 bg-rose-500/10 border border-rose-500/20 rounded-lg text-rose-500 text-xs font-bold">
+                  {editError}
+                </div>
+              )}
+
+              {/* Title */}
+              <div className="space-y-1.5">
+                <label className="block text-xs font-bold text-bmw-text uppercase tracking-wider">
+                  {isRtl
+                    ? "عنوان موضوع پیشنهادی یا انتقاد"
+                    : "Suggested Title / Topic"}{" "}
+                  <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={editTitle}
+                  onChange={(e) => setEditTitle(e.target.value)}
+                  className="w-full bg-bmw-base border border-bmw-border rounded-xl p-3 text-xs text-bmw-text focus:border-bmw-blue focus:outline-none transition-colors font-bold"
+                />
+              </div>
+
+              {/* Category & Type in grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Type selection */}
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-bold text-bmw-text uppercase tracking-wider">
+                    {isRtl ? "نوع درخواست" : "Request Type"}
+                  </label>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setEditType("suggestion")}
+                      className={`flex-1 py-2 rounded-lg text-xs font-bold border transition-all ${
+                        editType === "suggestion"
+                          ? "bg-blue-500/10 border-blue-500 text-blue-500"
+                          : "bg-bmw-base border-bmw-border text-bmw-textSec"
+                      }`}
+                    >
+                      {isRtl ? "پیشنهاد" : "Suggestion"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEditType("critic")}
+                      className={`flex-1 py-2 rounded-lg text-xs font-bold border transition-all ${
+                        editType === "critic"
+                          ? "bg-amber-600/10 border-amber-600 text-amber-500"
+                          : "bg-bmw-base border-bmw-border text-bmw-textSec"
+                      }`}
+                    >
+                      {isRtl ? "انتقاد سازنده" : "Critique"}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Category Selection */}
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-bold text-bmw-text uppercase tracking-wider">
+                    {isRtl ? "حوزه یا دپارتمان مرتبط" : "Related Department"}
+                  </label>
+                  <select
+                    value={editCategory}
+                    onChange={(e) => setEditCategory(e.target.value)}
+                    className="w-full bg-bmw-base border border-bmw-border rounded-xl p-2.5 text-xs text-bmw-text focus:border-bmw-blue focus:outline-none transition-colors"
+                  >
+                    {categories
+                      .filter((c) => !c.is_deleted)
+                      .map((cat) => (
+                        <option key={cat.id} value={cat.id}>
+                          {isRtl ? cat.fa : cat.en}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Description */}
+              <div className="space-y-1.5">
+                <label className="block text-xs font-bold text-bmw-text uppercase tracking-wider">
+                  {isRtl
+                    ? "شرح کامل ایده یا انتقاد"
+                    : "Full Description Details"}{" "}
+                  <span className="text-rose-500">*</span>
+                </label>
+                <textarea
+                  rows={5}
+                  value={editDescription}
+                  onChange={(e) => setEditDescription(e.target.value)}
+                  className="w-full bg-bmw-base border border-bmw-border rounded-xl p-3 text-xs text-bmw-text focus:border-bmw-blue focus:outline-none transition-colors resize-none leading-relaxed"
+                />
+              </div>
+
+              <div className="flex justify-end gap-3 pt-3 border-t border-bmw-border">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowEditModal(false);
+                    setEditingFeedback(null);
+                  }}
+                  className="px-4 py-2 bg-bmw-hover text-bmw-text border border-bmw-border rounded-lg text-xs font-bold transition-colors cursor-pointer"
+                >
+                  {isRtl ? "انصراف" : "Cancel"}
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold shadow-md transition-all cursor-pointer"
+                >
+                  {isRtl ? "ذخیره تغییرات و درج لاگ" : "Save Changes & Log"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+      {/* Category Edit Modal */}
+      {showEditCategoryModal && editingCategory && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            onClick={() => {
+              setShowEditCategoryModal(false);
+              setEditingCategory(null);
+            }}
+            className="absolute inset-0 bg-black/75 backdrop-blur-sm"
+          />
+          <div
+            className="relative w-full max-w-md bg-bmw-surface border border-bmw-border rounded-xl shadow-2xl overflow-hidden flex flex-col text-start animate-fade-in z-50"
+            dir={isRtl ? "rtl" : "ltr"}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-bmw-border p-4 bg-bmw-base/50">
+              <div className="flex items-center gap-2">
+                <div className="p-2 bg-amber-600/10 text-amber-500 rounded-lg">
+                  <Edit3 size={18} />
+                </div>
+                <div>
+                  <h3 className="text-sm font-black text-bmw-text">
+                    {isRtl
+                      ? "ویرایش اطلاعات دپارتمان / حوزه"
+                      : "Edit Department / Area Details"}
+                  </h3>
+                  <p className="text-[10px] text-bmw-textSec mt-0.5">
+                    ID: {editingCategory.id}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => {
+                  setShowEditCategoryModal(false);
+                  setEditingCategory(null);
+                }}
+                className="p-1 rounded-md text-bmw-textSec hover:bg-bmw-hover hover:text-bmw-text transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveEditCategory} className="p-5 space-y-4">
+              {editCategoryError && (
+                <div className="p-3 bg-rose-500/10 border border-rose-500/20 rounded-lg text-rose-500 text-xs font-bold">
+                  ⚠️ {editCategoryError}
+                </div>
+              )}
+
+              {/* Unique ID Display (Read Only) */}
+              {/* <div className="space-y-1.5">
+                <label className="block text-xs font-bold text-bmw-textSec uppercase tracking-wider">
+                  {isRtl
+                    ? "شناسه یکتا (غیرقابل ویرایش)"
+                    : "Unique ID (Read-only)"}
+                </label>
+                <input
+                  type="text"
+                  disabled
+                  value={editingCategory.id}
+                  className="w-full bg-bmw-base/50 border border-bmw-border rounded-xl p-3 text-xs text-bmw-textSec focus:outline-none font-mono cursor-not-allowed"
+                />
+              </div> */}
+
+              {/* Persian Title */}
+              <div className="space-y-1.5">
+                <label className="block text-xs font-bold text-bmw-text uppercase tracking-wider">
+                  {isRtl ? "عنوان فارسی حوزه" : "Persian Title"}{" "}
+                  <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={editCategoryFa}
+                  onChange={(e) => setEditCategoryFa(e.target.value)}
+                  className="w-full bg-bmw-base border border-bmw-border rounded-xl p-3 text-xs text-bmw-text focus:border-bmw-blue focus:outline-none transition-colors font-semibold"
+                />
+              </div>
+
+              {/* English Title */}
+              <div className="space-y-1.5">
+                <label className="block text-xs font-bold text-bmw-text uppercase tracking-wider">
+                  {isRtl ? "عنوان انگلیسی حوزه" : "English Title"}{" "}
+                  <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={editCategoryEn}
+                  onChange={(e) => setEditCategoryEn(e.target.value)}
+                  className="w-full bg-bmw-base border border-bmw-border rounded-xl p-3 text-xs text-bmw-text focus:border-bmw-blue focus:outline-none transition-colors font-semibold"
+                />
+              </div>
+
+              {/* Actions */}
+              <div className="flex justify-end gap-3 pt-3 border-t border-bmw-border">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowEditCategoryModal(false);
+                    setEditingCategory(null);
+                  }}
+                  className="px-4 py-2 bg-bmw-hover text-bmw-text border border-bmw-border rounded-lg text-xs font-bold transition-colors cursor-pointer"
+                >
+                  {isRtl ? "انصراف" : "Cancel"}
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-bold shadow-md transition-all cursor-pointer"
+                >
+                  {isRtl ? "ذخیره تغییرات" : "Save Changes"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {showCategoryDeleteDialog && categoryToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            onClick={() => {
+              setShowCategoryDeleteDialog(false);
+              setCategoryToDelete(null);
+            }}
+            className="absolute inset-0 bg-black/75 backdrop-blur-sm"
+          />
+          <div
+            className="relative w-full max-w-sm bg-bmw-surface border border-bmw-border rounded-xl shadow-2xl p-6 text-start animate-fade-in z-50"
+            dir={isRtl ? "rtl" : "ltr"}
+          >
+            <div className="flex items-start gap-3.5 mb-4">
+              <div className="p-2.5 bg-rose-500/10 text-rose-500 rounded-xl shrink-0">
+                <AlertTriangle size={20} />
+              </div>
+              <div>
+                <h3 className="text-sm font-black text-bmw-text leading-6">
+                  {isRtl
+                    ? "تأیید حذف دپارتمان / حوزه"
+                    : "Confirm Department / Area Deletion"}
+                </h3>
+                <p className="text-xs text-bmw-textSec mt-1 leading-relaxed">
+                  {isRtl
+                    ? `آیا از حذف دپارتمان «${categoryToDelete.fa}» اطمینان دارید؟ حذف این دپارتمان به صورت منطقی (Logical) انجام می‌شود تا اطلاعات تاریخی حفظ گردد.`
+                    : `Are you sure you want to delete the department "${categoryToDelete.en}"? Deletion is logical, retaining historical data.`}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 pt-3 border-t border-bmw-border/50">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowCategoryDeleteDialog(false);
+                  setCategoryToDelete(null);
+                }}
+                className="px-4 py-2 bg-bmw-hover text-bmw-text border border-bmw-border rounded-lg text-xs font-bold transition-colors cursor-pointer"
+              >
+                {isRtl ? "انصراف" : "Cancel"}
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDeleteCategory}
+                className="px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-bold shadow-md transition-all cursor-pointer"
+              >
+                {isRtl ? "تأیید حذف" : "Confirm Delete"}
+              </button>
+            </div>
           </div>
         </div>
       )}

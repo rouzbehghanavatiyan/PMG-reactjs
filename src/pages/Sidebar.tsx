@@ -21,6 +21,7 @@ import {
 import { useLanguage } from "../contexts/LanguageContext";
 import ThemeAndLang from "../common/ThemeAndLang";
 import { useAppSelector } from "../features/store";
+import { useHasPermission } from "../hooks/usePermissions";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -31,7 +32,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
   const navigate = useNavigate();
   const { t, language, setLanguage, dir } = useLanguage();
   const user = useAppSelector((state) => state);
-
+    const { hasPermission } = useHasPermission();
   const handleLogout = () => {
     navigate("/");
   };
@@ -40,34 +41,39 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
     setLanguage(language === "en" ? "fa" : "en");
   };
 
-  const navItems = [
-    { icon: LayoutDashboard, label: "dashboard", path: "/dashboard" },
-    { icon: User, label: "profile", path: "/profile" },
-    {
-      icon: Building,
-      label: "introductionOrganization",
-      path: "/introductionOrganization",
-    },
-    { icon: CreditCard, label: "payslips", path: "/payslips" },
-    {
-      icon: CalendarDays,
-      label: "calendar",
-      path: "/calendar",
-      disabled: true,
-    },
-    { icon: LayoutGrid, label: "erp_title", path: "/erp" },
-    { icon: MessageSquare, label: "chat_pdf", path: "/chatWithPDF" },
-    {
-      icon: Network,
-      label: "knowledge_graph",
-      path: "/smartKnowledgeGraph",
-    },
-    { icon: FileText, label: "documents", path: "/documents", disabled: true },
-    { icon: Utensils, label: "food_order", path: "/food", disabled: true },
-    { icon: ClipboardList, label: "surveys", path: "/surveys" },
-    { icon: Ticket, label: "support", path: "/support", disabled: true },
-    { icon: Lightbulb, label: "suggestions_feedback", path: "/feedbackSystem" },
-  ];
+const navItems = [
+  { icon: LayoutDashboard, label: "dashboard", path: "/dashboard" },
+  { icon: User, label: "profile", path: "/profile" },
+  {
+    icon: Building,
+    label: "introductionOrganization",
+    path: "/introductionOrganization",
+  },
+  { icon: CreditCard, label: "payslips", path: "/payslips" },
+  {
+    icon: CalendarDays,
+    label: "calendar",
+    path: "/calendar",
+    disabled: true,
+  },
+  { icon: LayoutGrid, label: "erp_title", path: "/erp" },
+  { icon: MessageSquare, label: "chat_pdf", path: "/chatWithPDF" },
+
+  ...(hasPermission("SmartAi.Read")
+    ? [
+        {
+          icon: Network,
+          label: "knowledge_graph",
+          path: "/smartKnowledgeGraph",
+        },
+      ]
+    : []),
+  { icon: FileText, label: "documents", path: "/documents", disabled: true },
+  { icon: Utensils, label: "food_order", path: "/food", disabled: true },
+  { icon: ClipboardList, label: "surveys", path: "/surveys" },
+  { icon: Ticket, label: "support", path: "/support", disabled: true },
+  { icon: Lightbulb, label: "suggestions_feedback", path: "/feedbackSystem" },
+];
 
   const hiddenTransform =
     dir === "rtl" ? "translate-x-full" : "-translate-x-full";

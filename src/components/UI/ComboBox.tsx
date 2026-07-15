@@ -49,6 +49,7 @@ export default function ComboBox({
         </label>
       )}
       <Select
+      className="text-gray-500"
         isRtl
         options={mappedOptions}
         value={mappedValue}
