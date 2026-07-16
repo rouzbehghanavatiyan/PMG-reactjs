@@ -59,7 +59,7 @@ const navItems = [
   { icon: LayoutGrid, label: "erp_title", path: "/erp" },
   { icon: MessageSquare, label: "chat_pdf", path: "/chatWithPDF" },
 
-  ...(hasPermission("SmartAi.Read")
+  ...(hasPermission("chatSmart.read")
     ? [
         {
           icon: Network,

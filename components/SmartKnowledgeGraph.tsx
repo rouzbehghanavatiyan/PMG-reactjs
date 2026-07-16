@@ -2000,7 +2000,6 @@ export const SmartKnowledgeGraph: React.FC = () => {
           </p>
         </div>
 
-        {/* Tab Selector */}
         <div className="flex bg-bmw-surface p-1 rounded-lg border border-bmw-border self-start">
           <button
             onClick={() => setActiveTab("chat")}
@@ -2013,7 +2012,7 @@ export const SmartKnowledgeGraph: React.FC = () => {
             <MessageSquare size={14} />
             {isRtl ? "مکالمه روابط سازمانی" : "Graph Workspace"}
           </button>
-          {hasPermission("ChatSmart.Read") && (
+          {hasPermission("chatSmart.read") && (
             <button
               onClick={() => setActiveTab("admin")}
               className={`flex items-center gap-2 px-4 py-2 text-xs font-medium rounded-md transition-all ${
