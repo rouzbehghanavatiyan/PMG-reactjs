@@ -235,7 +235,7 @@ const translations: Record<Language, Record<string, any>> = {
     back_to_news: "Back to News",
   },
   fa: {
-    suggestions_feedback: "نظام پیشنهادات و انتقادات",
+    suggestions_feedback: "نظام پیشنهادها و انتقادات",
     chat_pdf: "مکالمه با اسناد سازمانی",
     knowledge_graph: "شبکه دانش هوشمند",
     introductionOrganization: "معرفی سازمان",

@@ -229,8 +229,8 @@ const FeedbackSystem: React.FC = () => {
     is_deleted?: boolean;
   }) => {
     console.log("cat", cat);
-    
-    setIdEditCategoryModal(cat?.id)
+
+    setIdEditCategoryModal(cat?.id);
     setEditingCategory(cat);
     setEditCategoryFa(cat.fa);
     setEditCategoryEn(cat.en);
@@ -881,7 +881,7 @@ const FeedbackSystem: React.FC = () => {
               <Lightbulb size={24} className="animate-pulse" />
             </div>
             {isRtl
-              ? "نظام پیشنهادات و انتقادات همکاران"
+              ? "نظام پیشنهادها و انتقادات همکاران"
               : "Suggestions & Feedback System"}
           </h1>
           <p className="text-bmw-textSec text-sm mt-2 font-medium">
@@ -1012,7 +1012,7 @@ const FeedbackSystem: React.FC = () => {
               </li>
               <li>
                 {isRtl
-                  ? "وضعیت‌های پیشنهادات شما لحظه به لحظه از دپارتمان مربوطه قابل پیگیری است."
+                  ? "وضعیت‌های پیشنهادها شما لحظه به لحظه از دپارتمان مربوطه قابل پیگیری است."
                   : "Track the review pipeline and manager actions directly in real time."}
               </li>
             </ul>
@@ -1052,7 +1052,7 @@ const FeedbackSystem: React.FC = () => {
                       {isRtl ? "پیشنهاد و نوآوری" : "Suggestion & Innovation"}
                     </span>
                   </button>
-                  <button
+                  {/* <button
                     type="button"
                     onClick={() => setType("critic")}
                     className={`flex flex-col items-center justify-center p-4 rounded-xl border transition-all text-center gap-1.5 cursor-pointer ${
@@ -1060,6 +1060,25 @@ const FeedbackSystem: React.FC = () => {
                         ? "bg-amber-600/10 border-amber-600 text-amber-500"
                         : "bg-bmw-base border-bmw-border text-bmw-textSec hover:border-bmw-text/30"
                     }`}
+                  >
+                    <AlertCircle size={20} />
+                    <span className="text-xs font-bold">
+                      {isRtl
+                        ? "انتقاد سازنده و بهبود"
+                        : "Constructive Criticism"}
+                    </span>
+                  </button> */}
+                  <button
+                    type="button"
+                    disabled
+                    onClick={() => setType("critic")}
+                    className={`flex flex-col items-center justify-center p-4 rounded-xl border transition-all text-center gap-1.5
+    disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none
+    ${
+      type === "critic"
+        ? "bg-amber-600/10 border-amber-600 text-amber-500"
+        : "bg-bmw-base border-bmw-border text-bmw-textSec hover:border-bmw-text/30"
+    }`}
                   >
                     <AlertCircle size={20} />
                     <span className="text-xs font-bold">
@@ -1441,7 +1460,7 @@ const FeedbackSystem: React.FC = () => {
                     <Search size={16} className="text-bmw-blue shrink-0" />
                     <span className="text-xs font-bold text-bmw-text">
                       {isRtl
-                        ? "جستجو در پیشنهادات و انتقادات:"
+                        ? "جستجو در پیشنهادها و انتقادات:"
                         : "Search Proposals & Critiques:"}
                     </span>
                   </div>
@@ -2260,7 +2279,7 @@ const FeedbackSystem: React.FC = () => {
                     >
                       {isRtl ? "پیشنهاد" : "Suggestion"}
                     </button>
-                    <button
+                    {/* <button
                       type="button"
                       onClick={() => setEditType("critic")}
                       className={`flex-1 py-2 rounded-lg text-xs font-bold border transition-all ${
@@ -2268,6 +2287,20 @@ const FeedbackSystem: React.FC = () => {
                           ? "bg-amber-600/10 border-amber-600 text-amber-500"
                           : "bg-bmw-base border-bmw-border text-bmw-textSec"
                       }`}
+                    >
+                      {isRtl ? "انتقاد سازنده" : "Critique"}
+                    </button> */}
+                    <button
+                      type="button"
+                      disabled
+                      onClick={() => setEditType("critic")}
+                      className={`flex-1 py-2 rounded-lg text-xs font-bold border transition-all
+    disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none
+    ${
+      editType === "critic"
+        ? "bg-amber-600/10 border-amber-600 text-amber-500"
+        : "bg-bmw-base border-bmw-border text-bmw-textSec"
+    }`}
                     >
                       {isRtl ? "انتقاد سازنده" : "Critique"}
                     </button>

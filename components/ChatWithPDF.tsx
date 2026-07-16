@@ -551,15 +551,13 @@ const ChatWithPDF: React.FC = () => {
     }
   };
 
-  // Fetch all chat sessions for this user
   const fetchSessions = async (shouldSelectDefault = false) => {
-    try {
+    try {      
       const res = await fetch(`${baseURL}/api/rag/chat/sessions?userId=${userLogin?.personalCode}`);
       if (res.ok) {
         const data = await res.json();
         setSessions(data.sessions || []);
         
-        // If shouldSelectDefault is true and there's an active session, load it
         if (shouldSelectDefault && data.sessions && data.sessions.length > 0 && !activeSessionId) {
           handleSelectSession(data.sessions[0].id);
         }
@@ -569,14 +567,12 @@ const ChatWithPDF: React.FC = () => {
     }
   };
 
-  // Initialize data on load
   useEffect(() => {
     fetchRagDocs();
     fetchSessions(false);
     handleNewChat();
-  }, []);
+  }, [userLogin]);
 
-  // Set default intro message
   const setDefaultIntro = () => {
     setMessages([
       {
