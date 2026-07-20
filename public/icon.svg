@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
+      <stop offset="0%" stop-color="#1e293b" />
+      <stop offset="100%" stop-color="#0f172a" />
+    </radialGradient>
+    <linearGradient id="silver" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f1f5f9" />
+      <stop offset="50%" stop-color="#94a3b8" />
+      <stop offset="100%" stop-color="#475569" />
+    </linearGradient>
+    <linearGradient id="blue-glow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3b82f6" />
+      <stop offset="100%" stop-color="#1d4ed8" />
+    </linearGradient>
+  </defs>
+  <!-- Background -->
+  <rect width="512" height="512" rx="112" fill="url(#bg)" />
+  
+  <!-- Outer metallic ring -->
+  <circle cx="256" cy="256" r="180" fill="none" stroke="url(#silver)" stroke-width="12" opacity="0.9" />
+  <circle cx="256" cy="256" r="160" fill="none" stroke="#3b82f6" stroke-width="2" opacity="0.4" />
+
+  <!-- Inner stylized crest / motor emblem for Persia Khodro / BMW feel -->
+  <g transform="translate(256, 256)">
+    <!-- Center blue quadrants -->
+    <path d="M 0,0 L 0,-140 A 140,140 0 0,1 140,0 Z" fill="url(#blue-glow)" />
+    <path d="M 0,0 L 0,140 A 140,140 0 0,1 -140,0 Z" fill="url(#blue-glow)" />
+    
+    <!-- Center white/silver quadrants -->
+    <path d="M 0,0 L 140,0 A 140,140 0 0,1 0,140 Z" fill="url(#silver)" />
+    <path d="M 0,0 L -140,0 A 140,140 0 0,1 0,-140 Z" fill="url(#silver)" />
+
+    <!-- Sleek premium P symbol overlay -->
+    <path d="M -40,-60 L 10,-60 A 40,40 0 0,1 10,20 L -40,20 L -40,70" fill="none" stroke="#0f172a" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" />
+    <path d="M -40,-60 L 10,-60 A 40,40 0 0,1 10,20 L -40,20 L -40,70" fill="none" stroke="#ffffff" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" opacity="0.9" />
+  </g>
+</svg>

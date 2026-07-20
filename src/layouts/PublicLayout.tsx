@@ -9,10 +9,11 @@ import {
   RsetNotifMessage,
   RsetUserProfile,
 } from "../features/slices/mainSlice";
-import { getUserProfile, sendNotifUser } from "../services/dotNet";
+import { getUserProfile, subscribePushNotification } from "../services/dotNet";
 import { asyncWrapper } from "../utils/asyncWrapper";
 import { useToast } from "../hooks/useToast";
 import * as signalR from "@microsoft/signalr";
+import { subscribeUserToPush } from "../utils/pushNotification";
 const baseURL = import.meta.env.VITE_API_URL;
 
 const PublicLayout: React.FC = () => {
@@ -21,7 +22,6 @@ const PublicLayout: React.FC = () => {
     null,
   );
   const connectionStarted = useRef(false);
-
   const { dir } = useLanguage();
   const token = localStorage.getItem("token");
   const dispatch = useDispatch();
@@ -43,43 +43,44 @@ const PublicLayout: React.FC = () => {
     }
   }, toast);
 
-  // const handlePushPermission = useCallback(async () => {
-  //   if (!token) return;
-  //   if (!("Notification" in window)) return;
-  //   if (!("serviceWorker" in navigator)) return;
-  //   if (!("PushManager" in window)) return;
+  const handlePushPermission = useCallback(async () => {
+    if (!token) return;
+    if (!("Notification" in window)) return;
+    if (!("serviceWorker" in navigator)) return;
+    if (!("PushManager" in window)) return;
 
-  //   if (Notification.permission === "granted") {
-  //     const subscription: any = await subscribeUserToPush();
-  //     const postData = {
-  //       personalCode: "11907",
-  //       endpoint: subscription?.endpoint,
-  //       p256dh: subscription?.toJSON().keys?.p256dh,
-  //       auth: subscription?.toJSON()?.keys?.auth,
-  //     };
-  //     if (subscription) {
-  //       await subscribePushNotification(postData);
-  //     }
-  //     return;
-  //   }
+    if (Notification.permission === "granted") {
+      const subscription: any = await subscribeUserToPush();
+      const postData = {
+        personalCode: "11907",
+        endpoint: subscription?.endpoint,
+        p256dh: subscription?.toJSON().keys?.p256dh,
+        auth: subscription?.toJSON()?.keys?.auth,
+      };
+      console.log(postData);
 
-  //   if (Notification.permission === "default") {
-  //     const permission = await Notification.requestPermission();
+      if (subscription) {
+        await subscribePushNotification(postData);
+      }
+      return;
+    }
+    if (Notification.permission === "default") {
+      const permission = await Notification.requestPermission();
 
-  //     if (permission === "granted") {
-  //       const subscription: any = await subscribeUserToPush();
-  //       const postData = {
-  //         personalCode: "11907",
-  //         endpoint: subscription?.endpoint,
-  //         p256dh: subscription?.toJSON().keys?.p256dh,
-  //         auth: subscription?.toJSON()?.keys?.auth,
-  //       };
-  //       if (subscription) {
-  //         await subscribePushNotification(postData);
-  //       }
-  //     }
-  //   }
-  // }, [token]);
+      if (permission === "granted") {
+        const subscription: any = await subscribeUserToPush();
+        const postData = {
+          personalCode: "11907",
+          endpoint: subscription?.endpoint,
+          p256dh: subscription?.toJSON().keys?.p256dh,
+          auth: subscription?.toJSON()?.keys?.auth,
+        };
+        if (subscription) {
+          await subscribePushNotification(postData);
+        }
+      }
+    }
+  }, [token]);
 
   useEffect(() => {
     handleRefreshUser();
@@ -141,9 +142,9 @@ const PublicLayout: React.FC = () => {
     };
   }, [token]);
 
-  // useEffect(() => {
-  //   handlePushPermission();
-  // }, [handlePushPermission]);
+  useEffect(() => {
+    handlePushPermission();
+  }, []);
 
   return (
     <div className="flex min-h-screen bg-bmw-base transition-colors duration-300">

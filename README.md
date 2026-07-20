@@ -4,5 +4,3 @@
 
 **Git Naderloo:**
  git checkout pmgNextjs/main -- components/ChatWithPDF.tsx components/SmartKnowledgeGraph.tsx
-
-

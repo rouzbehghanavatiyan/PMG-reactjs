@@ -1,0 +1,19 @@
+{
+  "short_name": "Persia Khodro",
+  "name": "Persia Khodro Employee App",
+  "description": "Premium employee organization app for Persia Khodro with BMW-style aesthetics, document management, and HR services.",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#0a0a0a",
+  "theme_color": "#0f172a",
+  "display": "standalone",
+  "display_override": ["fullscreen", "standalone", "minimal-ui"],
+  "orientation": "portrait"
+}

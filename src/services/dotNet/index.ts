@@ -97,8 +97,6 @@ export const createFeedbackCategories = (postData: any) => {
   return api.post("/api/feedback/createFeedbackCategories", postData);
 };
 
-
-
 export const deleteFeedback = (id: any) => {
   return api.delete(`/api/feedback/deleteFeedback/${id}`);
 };
@@ -123,8 +121,6 @@ export const updateFeedbackCategories = (postData: any) => {
   return api.put("/api/feedback/updateFeedbackCategories", postData);
 };
 
-
-
 export const restoreFeedback = (id: any) => {
   return api.put(`/api/feedback/restoreFeedback/${id}`);
 };
@@ -143,4 +139,8 @@ export const getNotifAll = async (userId: number) => {
 
 export const isReadNotif = async (postData: any) => {
   return await api.put(`/api/notif/isReadNotif`, postData);
+};
+
+export const sendNotifToAll = (postData: any) => {
+  return api.post("/api/notif/sendNotifToAll", postData);
 };
