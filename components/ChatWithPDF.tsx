@@ -727,7 +727,6 @@ const ChatWithPDF: React.FC = () => {
       if (res.ok) {
         setMessages(prev => {
           const updated = [...prev];
-          // Update last user message with actual database ID
           if (updated.length > 0 && updated[updated.length - 1].role === 'user') {
             updated[updated.length - 1] = {
               ...updated[updated.length - 1],
@@ -743,9 +742,10 @@ const ChatWithPDF: React.FC = () => {
           }];
         });
         setLastDiagnostics(data.searchDiagnostics);
-        // Refresh sessions list to pull updated/newly created session details
         fetchSessions();
       } else {
+        console.log("Hello Errrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrror",data);
+        
         setMessages(prev => [...prev, {
           role: 'model',
           text: data.error || (isRtl ? 'با عرض پوزش خطایی رخ داد.' : 'An error occurred.')
@@ -1002,14 +1002,13 @@ const ChatWithPDF: React.FC = () => {
           >
             {isRtl ? 'مدیریت اسناد' : 'Document Manager'}
           </button>
-          )}
+        )}
         </div>
       </div>
 
       {activeTab === 'chat' && (
         <div className="grid grid-cols-12 lg:grid-cols-12 gap-6 items-start">
           
-          {/* Sidebar (History & Past Sessions) */}
           <div className={`${isSidebarOpen || isDesktop ? 'flex' : 'hidden lg:flex'} lg:col-span-4 col-span-12 bg-bmw-surface border border-bmw-border rounded-xl p-4 flex-col h-[350px] lg:h-[650px] overflow-hidden shadow-sm`}>
             <div className="flex justify-between items-center mb-4 pb-3 border-b border-bmw-border">
               <span className="text-xs font-bold text-bmw-text uppercase tracking-wider flex items-center gap-1.5">
@@ -1025,7 +1024,6 @@ const ChatWithPDF: React.FC = () => {
               </button>
             </div>
 
-            {/* Session List */}
             <div className="flex-1 overflow-y-auto space-y-1.5 custom-scrollbar pr-1">
               {sessions.length === 0 ? (
                 <p className="text-xs text-bmw-textSec italic text-center py-8">
@@ -1062,10 +1060,8 @@ const ChatWithPDF: React.FC = () => {
             </div>
           </div>
 
-          {/* Main Chat Interface */}
           <div className="lg:col-span-8 col-span-12 bg-bmw-surface border border-bmw-border rounded-xl flex flex-col h-[500px] sm:h-[600px] lg:h-[650px] overflow-hidden shadow-sm relative">
             
-            {/* Mobile-only header to toggle history/sidebar */}
             <div className="lg:hidden h-14 border-b border-bmw-border px-4 flex items-center justify-between bg-bmw-hover/50 shrink-0 select-none">
               <button
                 onClick={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -1080,7 +1076,6 @@ const ChatWithPDF: React.FC = () => {
               </div>
             </div>
             
-            {/* Top Selector Panel: Select PDF context */}
             <div className="bg-bmw-hover border-b border-bmw-border p-3 md:p-4 flex flex-col gap-2.5 transition-all">
               <div 
                 onClick={() => setIsDocSelectorExpanded(!isDocSelectorExpanded)}
@@ -1120,7 +1115,6 @@ const ChatWithPDF: React.FC = () => {
 
                   {ragDocs.length > 0 && (
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-bmw-surface/50 border border-bmw-border/50 rounded-xl p-2.5">
-                      {/* Local Document search */}
                       <div className="relative flex-1">
                         <input
                           type="text"
@@ -1140,7 +1134,6 @@ const ChatWithPDF: React.FC = () => {
                         )}
                       </div>
                       
-                      {/* Select/Deselect actions */}
                       <div className="flex items-center gap-2 shrink-0">
                         <button
                           type="button"
@@ -2113,8 +2106,6 @@ const ChatWithPDF: React.FC = () => {
                       </div>
                     </div>
                   </div>
-
-                  {/* Chunks List */}
                   {(() => {
                     const filteredChunks = editChunks.filter(c => 
                       c.content.toLowerCase().includes(chunkSearch.toLowerCase())

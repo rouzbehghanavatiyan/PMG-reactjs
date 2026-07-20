@@ -112,8 +112,6 @@ const PublicLayout: React.FC = () => {
       .withAutomaticReconnect()
       .build();
 
-    console.log("laaaaaaaaaaaaaaaa", newConnection);
-
     newConnection.on("ReceiveMessage", (user: string, message: string) => {
       console.log("ReceiveMessage:", user, message);
       dispatch(

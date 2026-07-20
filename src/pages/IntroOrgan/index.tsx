@@ -103,7 +103,7 @@ const IntroOrgan: React.FC = () => {
           </div>
         </div>
       </div>
-      <div className="bg-bmw-surface border border-bmw-border rounded-lg p-6 shadow-sm space-y-4 flex flex-col justify-between h-full">
+      <div className="bg-bmw-surface border border-bmw-border rounded-lg p-0 lg:p-6 shadow-sm  space-y-4 flex flex-col justify-between h-full">
         <div className="flex items-center gap-3 border-b border-bmw-border pb-3">
           <Award className="text-yellow-500" size={24} />
           <h2 className="text-xl font-extrabold text-bmw-text">افتخارات ما</h2>
