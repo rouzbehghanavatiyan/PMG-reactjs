@@ -9,10 +9,15 @@ type Props = {
   onSelect: (dayKey: string, type: MealType) => void;
 };
 
-const WeeklyMenuGrid: React.FC<Props> = ({ weeklyMenu, selections, t, onSelect }) => {
+const WeeklyMenuGrid: React.FC<Props> = ({
+  weeklyMenu,
+  selections,
+  t,
+  onSelect,
+}) => {
   return (
     <div className="bg-bmw-surface rounded-2xl">
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 p-5">
         {weeklyMenu.map((day) => (
           <DayMenuCard
             key={day.dayKey}

@@ -12,7 +12,6 @@ dotenv.config();
 const app = express();
 app.use(express.json({ limit: '200mb' }));
 
-// Enable CORS for all origins, methods, and headers
 app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');

@@ -49,6 +49,8 @@ const FoodOrder: React.FC = () => {
 
   const handleSendNotifToAll = async () => {
     try {
+      console.log("HElow notif");
+      
       const postData = {
         personalCode: userLogin?.personalCode,
         title: "Helllllllllllllllll",
@@ -60,11 +62,12 @@ const FoodOrder: React.FC = () => {
       console.error("Failed to send notification:", error);
     }
   };
+  console.log(userLogin?.personalCode);
 
   useEffect(() => {
     if (!userLogin?.personalCode) return;
     handleSendNotifToAll();
-  }, [userLogin]);
+  }, [userLogin?.personalCode]);
 
   return (
     <div className="space-y-8">
@@ -104,3 +107,48 @@ const FoodOrder: React.FC = () => {
 };
 
 export default FoodOrder;
+
+// const isFocused = useIsFocused();
+// const [isDragging, setIsDragging] = useState(false);
+
+// const shouldPlay = isPlaying && isFocused && !isDragging && !isManuallyPaused;
+
+//  const panResponder = useRef(
+//     PanResponder.create({
+//       onStartShouldSetPanResponder: () => true,
+//       onMoveShouldSetPanResponder: () => true,
+//       onPanResponderGrant: (e) => {
+//         setIsDragging(true);
+//         seek(e.nativeEvent.locationX);
+//       },
+//       onPanResponderMove: (e) => {
+//         seek(e.nativeEvent.locationX);
+//       },
+//       onPanResponderRelease: () => {
+//         videoRef.current?.seek(positionRef.current);
+//         setIsDragging(false);
+//       },
+//       onPanResponderTerminate: () => {
+//         videoRef.current?.seek(positionRef.current);
+//         setIsDragging(false);
+//       },
+//     }),
+//   ).current;
+
+// <Video
+//       key={uri}
+//       ref={videoRef}
+//       source={{ uri }}
+//       style={styles.video}
+//       resizeMode="cover" // پر کردن کامل صفحه، دقیقاً مثل ریلز اینستاگرام
+//       repeat
+//       muted={isMuted}
+//       rate={isSlowMotion ? SLOW_MOTION_RATE : 1} // اسلوموشن هنگام نگه‌داشتن انگشت
+//       paused={!shouldPlay}
+//       onLoad={handleLoad}
+//       onProgress={handleProgress}
+//       onBuffer={handleBuffer}
+//       progressUpdateInterval={250}
+//       playInBackground={false}
+//       playWhenInactive={false}
+//     />

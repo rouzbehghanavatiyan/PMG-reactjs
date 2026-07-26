@@ -115,7 +115,7 @@ export const categories: PortalCategory[] = [
       {
         title: "کنترل موجودی",
         href: "http://172.16.10.22/",
-        icon: "ti text-bmw-blue  ti-stack-2font-mono font22",
+        icon: " text-bmw-blue font-mono font22 ti ti-stack-2",
       },
       {
         title: "مدیریت قیمت‌گذاری کالا",
@@ -375,7 +375,7 @@ export const categories: PortalCategory[] = [
       {
         title: "مهندسی محصول",
         href: "http://192.168.123.14:5001",
-        icon: "ti text-bmw-blue  ti-stack-2font-mono font22",
+        icon: " text-bmw-blue font-mono font22 ti ti-stack-2",
       },
       {
         title: "نگهداری و تعمیرات (نت)",

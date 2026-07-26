@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { ShieldCheck, ArrowRight, Globe } from "lucide-react";
+import { ShieldCheck, ArrowRight } from "lucide-react";
 import { useLanguage } from "../../contexts/LanguageContext";
 import CustomInput from "../../components/UI/CustomInput";
 import { useForm } from "react-hook-form";

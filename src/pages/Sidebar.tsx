@@ -17,6 +17,7 @@ import {
   MessageSquare,
   Network,
   Lightbulb,
+  Users,
 } from "lucide-react";
 import { useLanguage } from "../contexts/LanguageContext";
 import ThemeAndLang from "../common/ThemeAndLang";
@@ -44,6 +45,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
   const navItems = [
     { icon: LayoutDashboard, label: "dashboard", path: "/dashboard" },
     { icon: User, label: "profile", path: "/profile" },
+    { icon: Users, label: "users_management", path: "/userManagement" },
     {
       icon: Building,
       label: "introductionOrganization",
@@ -58,7 +60,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
     },
     { icon: LayoutGrid, label: "erp_title", path: "/erp" },
     { icon: MessageSquare, label: "chat_pdf", path: "/chatWithPDF" },
-
     ...(hasPermission("chatSmart.read")
       ? [
           {
@@ -98,7 +99,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
     ${isOpen ? "translate-x-0" : dir === "rtl" ? "translate-x-full" : "-translate-x-full"}
   `}
       >
-        <div className="h-20 flex items-center justify-between px-6 border-b border-bmw-border">
+        <div className="h-20 flex items-center justify-between py-2 px-6 border-b border-bmw-border">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-900 to-bmw-blue flex items-center justify-center border border-white/20">
               <span className="text-white font-bold text-xs">PMG</span>
@@ -107,7 +108,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
               PERSIA<span className="font-light">KHODRO</span>
             </span>
           </div>
-          <button className="lg:hidden text-bmw-textSec hover:text-bmw-text">
+          {/* <button className="lg:hidden text-bmw-textSec hover:text-bmw-text">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="24"
@@ -124,7 +125,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
               <path d="M18 6 6 18"></path>
               <path d="m6 6 12 12"></path>
             </svg>
-          </button>
+          </button> */}
         </div>
         <div className="flex flex-col h-full">
           {/* <div className="bg-gray-100 mt-4 py-2 flex items-center justify-center gap-2 ">

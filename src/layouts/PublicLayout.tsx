@@ -57,7 +57,6 @@ const PublicLayout: React.FC = () => {
         p256dh: subscription?.toJSON().keys?.p256dh,
         auth: subscription?.toJSON()?.keys?.auth,
       };
-      console.log(postData);
 
       if (subscription) {
         await subscribePushNotification(postData);

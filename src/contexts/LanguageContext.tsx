@@ -16,6 +16,7 @@ const translations: Record<Language, Record<string, any>> = {
     dashboard: "Dashboard",
     introductionOrganization: "IntroductionOrganization",
     profile: "Profile",
+    users_management: "User Directory & Quotas",
     payslips: "Payslips",
     suggestions_feedback: "Suggestions & Feedback",
     chat_pdf: "Chat with PDF",
@@ -388,6 +389,7 @@ const translations: Record<Language, Record<string, any>> = {
       progress: "در حال بررسی",
       closed: "بسته شده",
     },
+    users_management: "مدیریت کاربران",
     // Surveys (Phase 4)
     surveys_title: "نظرسنجی و بازخورد",
     surveys_sub:

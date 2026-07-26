@@ -37,8 +37,6 @@ export const deletePoll = (id: any) => {
   return api.delete(`/api/poll/deletePoll/${id}`);
 };
 
-
-
 export const updatePolls = (postData: any) => {
   return api.put(`/api/poll/updatePolls/${postData?.id}`, postData);
 };
@@ -137,10 +135,18 @@ export const getNotifAll = async (userId: number) => {
   return await api.get(`/api/notif/getNotifAll/${userId}`);
 };
 
+export const getAllUsers = async () => {
+  return await api.get(`api/users/getAllUsers`);
+};
+
 export const isReadNotif = async (postData: any) => {
   return await api.put(`/api/notif/isReadNotif`, postData);
 };
 
 export const sendNotifToAll = (postData: any) => {
   return api.post("/api/notif/sendNotifToAll", postData);
+};
+
+export const updatedLimitUsedPhotoAi = async (postData: any) => {
+  return await api.put(`/api/users/updatedLimitUsedPhotoAi`, postData);
 };

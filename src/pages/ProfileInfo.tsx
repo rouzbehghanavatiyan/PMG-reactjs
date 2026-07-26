@@ -7,11 +7,12 @@ import {
   Shield,
   Calendar,
   Plus,
+  Edit2,
 } from "lucide-react";
 import { useLanguage } from "../contexts/LanguageContext";
 import { useAppDispatch, useAppSelector } from "../features/store";
 import CustomImage from "../components/UI/CustomImage";
-import BackPMG from "../assets/profilecover.png";
+import BackPMG from "../assets/images/1024x192بنر پروفایل (3).jpg";
 import Button from "../components/UI/Button";
 import { useHasPermission } from "../hooks/usePermissions";
 import { asyncWrapper } from "../utils/asyncWrapper";
@@ -23,11 +24,10 @@ import {
 } from "../features/slices/mainSlice";
 import { jwtDecode } from "jwt-decode";
 
-const Profile: React.FC = () => {
+const ProfileInfo: React.FC = () => {
   const { t, dir, language } = useLanguage();
   const user = useAppSelector((state) => state);
   const token = localStorage.getItem("token");
-
   const firstName = user?.main?.userProfile?.userLogin?.firstName;
   const lastName = user?.main?.userProfile?.userLogin?.lastName;
   const department = user?.main?.userProfile?.userLogin?.department;
@@ -78,7 +78,7 @@ const Profile: React.FC = () => {
 
   return (
     <div className="max-w-5xl mx-auto space-y-8">
-      <div className="relative mb-16">
+      {/* <div className="relative mb-16">
         <div className="h-48 w-full bg-gradient-to-r from-gray-900 to-bmw-border rounded-xl overflow-hidden relative">
           <img
             src={BackPMG}
@@ -88,7 +88,6 @@ const Profile: React.FC = () => {
           <div className="absolute inset-0 bg-gradient-to-t from-bmw-base to-transparent"></div>
         </div>
         <div className={`absolute -bottom-12 right-8 flex items-end gap-6`}>
-          <CustomImage size={120} />
           <div className="mb-2">
             <h1 className="text-3xl font-bold text-bmw-text">
               {firstName} {lastName}
@@ -96,12 +95,12 @@ const Profile: React.FC = () => {
             <p className="text-bmw-blue font-medium">{department}</p>
           </div>
         </div>
-        {/* <button
+        <button
           className={`absolute bottom-4 ${dir === "rtl" ? "left-4" : "right-4"} bg-bmw-blue text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 hover:bg-blue-600 transition-colors shadow-lg shadow-black/20`}
         >
           <Edit2 size={16} /> {t("edit_profile")}
-        </button> */}
-      </div>
+        </button> 
+      </div> */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         <div className="space-y-6">
           <div className="bg-bmw-surface border border-bmw-border rounded-lg p-6 shadow-sm">
@@ -305,4 +304,4 @@ const Profile: React.FC = () => {
   );
 };
 
-export default Profile;
+export default ProfileInfo;

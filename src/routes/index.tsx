@@ -1,7 +1,6 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import Login from "../pages/Login";
 import Dashboard from "../pages/Dashboard";
-import Profile from "../pages/Profile";
 import Payslips from "../pages/Pay/Payslips";
 import Documents from "../pages/Documents";
 import FoodOrder from "../pages/FoodOrder/FoodOrder";
@@ -19,7 +18,8 @@ import IntroOrgan from "../pages/IntroOrgan";
 import ChatWithPDF from "../../components/ChatWithPDF";
 import FeedbackSystem from "../../components/FeedbackSystem";
 import SmartKnowledgeGraph from "../../components/SmartKnowledgeGraph";
-
+import Profile from "../../components/Profile";
+import UsersManagement from "../../components/UsersManagement";
 
 export const RoutesApp: React.FC = () => {
   return (
@@ -40,6 +40,8 @@ export const RoutesApp: React.FC = () => {
             <Route path="/introductionOrganization" element={<IntroOrgan />} />
             <Route path="/chatWithPDF" element={<ChatWithPDF />} />
             <Route path="/feedbackSystem" element={<FeedbackSystem />} />
+            <Route path="/userManagement" element={<UsersManagement />} />
+            
             <Route
               path="/smartKnowledgeGraph"
               element={<SmartKnowledgeGraph />}

@@ -46,7 +46,9 @@ const Surveys: React.FC = () => {
   const [showAddPolls, setShowAddPolls] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showDeletePoll, setShowDeletePoll] = useState(false);
-  const userLogin = useAppSelector((state) => state?.main?.userProfile?.userLogin);
+  const userLogin = useAppSelector(
+    (state) => state?.main?.userProfile?.userLogin,
+  );
   const { control, handleSubmit, setValue } = useForm<any>();
   const { hasPermission } = useHasPermission();
   const { call } = useApi({ loading, setLoading });
@@ -183,7 +185,7 @@ const Surveys: React.FC = () => {
           variant="success"
         />
       )}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {/* <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredPolls?.map((survey: any) => {
           return (
             survey?.isActive && (
@@ -285,7 +287,114 @@ const Surveys: React.FC = () => {
             <p>نظرسنجی تکمیل شده ای وجود ندارد</p>
           </div>
         )}
+      </div> */}
+      <div className="grid grid-cols-1 gap-4 sm:gap-5 md:grid-cols-2 lg:grid-cols-3 lg:gap-6">
+        {filteredPolls?.map((survey: any) => {
+          return (
+            survey?.isActive && (
+              <div
+                key={survey.id}
+                className="group flex h-full flex-col overflow-hidden rounded-xl border border-bmw-border bg-bmw-surface shadow-sm transition-all hover:border-bmw-blue/50"
+              >
+                <div className="flex-1 p-4 sm:p-5 md:p-6">
+                  <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <div className="rounded border border-bmw-border bg-bmw-base px-2 py-1 text-xs font-mono text-bmw-textSec">
+                        {survey.questions?.length} {t("questions_count")}
+                      </div>
+
+                      {activeTab === "history" ? (
+                        <div className="flex items-center gap-1 rounded bg-green-900/10 px-2 py-1 text-xs font-bold text-green-500">
+                          <CheckCircle size={12} /> {t("completed")}
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-1 rounded bg-yellow-900/10 px-2 py-1 text-xs font-bold text-yellow-500">
+                          <Trophy size={12} /> {survey.score} {t("points")}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-2 sm:justify-end">
+                      {hasPermission("Poll.Delete") && (
+                        <Button
+                          size="sm"
+                          type="button"
+                          variant="outline-danger"
+                          onClick={() => handleDeletePoll(survey)}
+                          className="whitespace-nowrap rounded border px-2 py-1 text-red-500 hover:text-red-600"
+                          label="حذف"
+                          leftIcon={<Trash size={14} />}
+                        />
+                      )}
+
+                      {hasPermission("Poll.Edit") && (
+                        <Button
+                          size="sm"
+                          type="button"
+                          variant="outline-orange"
+                          label="ویرایش"
+                          leftIcon={<Pencil size={14} />}
+                          onClick={() => {
+                            setEditingPoll(survey);
+                            setShowAddPolls(true);
+                          }}
+                        />
+                      )}
+                    </div>
+                  </div>
+
+                  <h3 className="mb-2 line-clamp-2 text-lg font-bold text-bmw-text transition-colors group-hover:text-bmw-blue sm:text-xl">
+                    {survey.title}
+                  </h3>
+
+                  <p className="mb-4 line-clamp-3 text-sm leading-6 text-bmw-textSec">
+                    {survey.description}
+                  </p>
+
+                  <div className="flex flex-col gap-2 text-xs text-bmw-textSec sm:flex-row sm:flex-wrap sm:items-center sm:gap-4">
+                    <div className="flex items-center gap-1">
+                      <Clock size={14} /> {survey.timeLeft} {t("minutes")}
+                    </div>
+
+                    <div className="break-words">
+                      Deadline:{" "}
+                      <span className="font-medium text-bmw-text">
+                        {StringHelpers.toPersianFullDateTime(survey.expireTime)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="border-t border-bmw-border bg-bmw-base/50 p-3 sm:p-4">
+                  {activeTab === "active" ? (
+                    <button
+                      onClick={() => handleStartSurvey(survey)}
+                      className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-bmw-blue py-2.5 text-sm font-medium text-white shadow-lg shadow-blue-900/20 transition-all hover:bg-blue-600"
+                    >
+                      {t("start_survey")}
+                      <ArrowRight size={16} className="rtl:rotate-180" />
+                    </button>
+                  ) : (
+                    <button className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-gray-200 py-2.5 text-sm font-medium text-bmw-textSec transition-all">
+                      تکمیل شد
+                    </button>
+                  )}
+                </div>
+              </div>
+            )
+          );
+        })}
+
+        {filteredPolls.length === 0 && (
+          <div className="col-span-full flex flex-col items-center justify-center py-12 text-center text-bmw-textSec opacity-60">
+            <ClipboardList size={48} className="mb-4" />
+            <p className="text-sm sm:text-base">
+              نظرسنجی تکمیل شده ای وجود ندارد
+            </p>
+          </div>
+        )}
       </div>
+
       <AddPollsModal
         control={control}
         handleSubmit={handleSubmit}
