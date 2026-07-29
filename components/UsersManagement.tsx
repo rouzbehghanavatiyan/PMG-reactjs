@@ -15,12 +15,14 @@ import {
   Filter,
   UserX,
   AlertCircle,
+  Download,
 } from "lucide-react";
 import { useLanguage } from "../src/contexts/LanguageContext";
 import { ToastContainer } from "./Toast";
 import { getAllUsers, updatedLimitUsedPhotoAi } from "../src/services/dotNet";
 import CustomImage from "../src/components/UI/CustomImage";
 import { useAppSelector } from "../src/features/store";
+import StringHelpers from "../src/utils/stringHelpers";
 
 interface UserItem {
   user_id: string;
@@ -46,10 +48,78 @@ const UsersManagement: React.FC = () => {
   >("all");
   const [isAdmin, setIsAdmin] = useState<boolean>(true);
   const [updatingUserId, setUpdatingUserId] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const itemsPerPage = 9;
   const [toasts, setToasts] = useState<any[]>([]);
   const user = useAppSelector((state) => state);
-  const firstName = user?.main?.userProfile?.userLogin?.firstName;
   const personalCode = user?.main?.userProfile?.userLogin?.personalCode;
+
+  const formatCardDateTime = (dateStr?: string, lang: "fa" | "en" = "en") => {
+    if (!dateStr) return "";
+    try {
+      const date = new Date(dateStr);
+      if (lang === "fa") {
+        return new Intl.DateTimeFormat("fa-IR", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+        }).format(date);
+      } else {
+        return new Intl.DateTimeFormat("en-US", {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+        }).format(date);
+      }
+    } catch (e) {
+      return dateStr;
+    }
+  };
+
+  const handleDownloadImage = async (user: any) => {
+    const imagePath =
+      user?.profileAttachment &&
+      StringHelpers.getImage(user?.profileAttachment);
+    if (!imagePath) {
+      addToast("error", "تصویر یافت نشد", "این کاربر عکسی برای دانلود ندارد.");
+      return;
+    }
+
+    const originalName = user?.profileAttachment?.fileName ?? "";
+    const extension = originalName.match(/\.[^.]+$/)?.[0] ?? ".jpg";
+
+    try {
+      const response = await fetch(imagePath);
+      const blob = await response.blob();
+      const blobUrl = URL.createObjectURL(blob);
+
+      const link = document.createElement("a");
+      link.href = blobUrl;
+      link.download = `${user?.personalCode}${extension}`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+    } catch (err) {
+      console.error(err);
+      addToast("error", "خطا", "دانلود تصویر انجام نشد.");
+    }
+  };
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, filterStatus]);
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
 
   const addToast = (
     type: "success" | "error" | "info" | "warning",
@@ -86,10 +156,6 @@ const UsersManagement: React.FC = () => {
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    fetchUsers();
-  }, []);
 
   const handleToggleQuota = async (user: any, newStatus: number) => {
     const postData = {
@@ -168,6 +234,10 @@ const UsersManagement: React.FC = () => {
 
   const totalAllowed = users.filter((u) => !u?.aiPhotoUsed).length;
   const totalDisabled = users.filter((u) => u?.aiPhotoUsed).length;
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filteredUsers.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
 
   return (
     <div className="space-y-6 pb-12">
@@ -195,9 +265,8 @@ const UsersManagement: React.FC = () => {
                   : "Browse Persia Khodro team members, monitor 1-time AI Passport Photo quotas, and enable/disable request allowances."}
               </p>
             </div>
-
-            <div className="flex items-center gap-3 shrink-0">
-              <button
+            {/*<div className="flex items-center gap-3 shrink-0">
+               <button
                 onClick={() => {
                   setIsAdmin(!isAdmin);
                   addToast(
@@ -239,11 +308,11 @@ const UsersManagement: React.FC = () => {
                   className={`w-4 h-4 ${loading ? "animate-spin" : ""}`}
                 />
               </button>
-            </div>
+            </div> */}
           </div>
 
           <div className="grid grid-cols-12 sm:grid-cols-3 gap-4 mt-6 pt-6 border-t border-bmw-border/60">
-            <div className="bg-bmw-hover/60 col-span-4 border border-bmw-border rounded-xl p-4 flex items-center gap-4">
+            <div className="bg-bmw-hover/60 col-span-12 lg:col-span-4 border border-bmw-border rounded-xl p-4 flex items-center gap-4">
               <div className="w-10 h-10 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center border border-blue-500/20">
                 <Users className="w-5 h-5" />
               </div>
@@ -257,14 +326,14 @@ const UsersManagement: React.FC = () => {
               </div>
             </div>
 
-            <div className="bg-bmw-hover/60 col-span-4 border border-bmw-border rounded-xl p-4 flex items-center gap-4">
+            <div className="bg-bmw-hover/60 col-span-12 lg:col-span-4 border border-bmw-border rounded-xl p-4 flex items-center gap-4">
               <div className="w-10 h-10 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center border border-emerald-500/20">
                 <CheckCircle2 className="w-5 h-5" />
               </div>
               <div>
                 <div className="text-xs text-bmw-textSec">
                   {language === "fa"
-                    ? "مجاز به ساخت تصویر (مقدار ۰)"
+                    ? "مجاز به ساخت تصویر"
                     : "Allowed Quotas (0)"}
                 </div>
                 <div className="text-xl font-extrabold text-emerald-400 mt-0.5">
@@ -273,14 +342,14 @@ const UsersManagement: React.FC = () => {
               </div>
             </div>
 
-            <div className="bg-bmw-hover/60 border col-span-4 border-bmw-border rounded-xl p-4 flex items-center gap-4">
+            <div className="bg-bmw-hover/60 border col-span-12 lg:col-span-4 border-bmw-border rounded-xl p-4 flex items-center gap-4">
               <div className="w-10 h-10 rounded-lg bg-rose-500/10 text-rose-400 flex items-center justify-center border border-rose-500/20">
                 <XCircle className="w-5 h-5" />
               </div>
               <div>
                 <div className="text-xs text-bmw-textSec">
                   {language === "fa"
-                    ? "تکمیل‌شده / غیرفعال (مقدار ۱)"
+                    ? "تکمیل‌شده / غیرفعال"
                     : "Used/Disabled Quotas (1)"}
                 </div>
                 <div className="text-xl font-extrabold text-rose-400 mt-0.5">
@@ -320,9 +389,7 @@ const UsersManagement: React.FC = () => {
               }`}
             >
               <Filter className="w-3.5 h-3.5" />
-              {language === "fa"
-                ? `همه کاربران (${users?.length})`
-                : `All Users (${users?.length})`}
+              {language === "fa" ? `همه کاربران` : `All Users `}
             </button>
 
             <button
@@ -334,7 +401,7 @@ const UsersManagement: React.FC = () => {
               }`}
             >
               <UserCheck className="w-3.5 h-3.5 text-emerald-400" />
-              {language === "fa" ? `مجاز (۰)` : `Allowed (0)`}
+              {language === "fa" ? `مجاز` : `Allowed (0)`}
             </button>
 
             <button
@@ -346,7 +413,7 @@ const UsersManagement: React.FC = () => {
               }`}
             >
               <UserX className="w-3.5 h-3.5 text-rose-400" />
-              {language === "fa" ? `غیرفعال (۱)` : `Disabled (1)`}
+              {language === "fa" ? `غیرفعال` : `Disabled (1)`}
             </button>
           </div>
         </div>
@@ -375,70 +442,84 @@ const UsersManagement: React.FC = () => {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredUsers?.map((user: any) => {
-            console.log(user);
-
-            const isAllowed = !user.aiPhotoUsed;
-            const isUpdatingThisUser = updatingUserId === user.user_id;
-
-            return (
-              <div
-                key={user?.id}
-                className="bg-bmw-surface border border-bmw-border rounded-xl p-5 shadow-sm hover:shadow-md transition-all space-y-4 flex flex-col justify-between"
-              >
-                {/* User Info Header */}
-                <div className="space-y-3">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-center gap-3">
-                      <CustomImage src={user?.avatar} size={55} />
-                      {/* <img
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {currentItems.map((user: any) => {
+              const isAllowed = !user.aiPhotoUsed;
+              const isUpdatingThisUser = updatingUserId === user.id;
+              console.log("avatar", user);
+              const fixImage =
+                user?.profileAttachment &&
+                StringHelpers.getImage(user?.profileAttachment);
+              return (
+                <div
+                  key={user?.id}
+                  className="bg-bmw-surface border border-bmw-border rounded-xl p-5 shadow-sm hover:shadow-md transition-all space-y-4 flex flex-col justify-between"
+                >
+                  <div className="space-y-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-center gap-3">
+                        <CustomImage src={fixImage} size={55} />
+                        {/* <img
                         src={}
                         alt={user?.name}
                         className="w-12 h-12 rounded-full object-cover border-2 border-bmw-blue/40 shadow-sm shrink-0"
                       /> */}
-                      <div className="space-y-0.5 min-w-0">
-                        <h3 className="text-sm font-bold text-bmw-text truncate">
-                          {user?.name}
-                        </h3>
-                        <div className="text-[11px] text-bmw-textSec flex items-center gap-1 truncate">
-                          <span className="truncate flex items-center">
-                            {user?.email}
-                          </span>
-                          <Mail className="w-3 h-3 flex items-center justify-center mb-1 text-bmw-blue shrink-0" />
+                        <div className="space-y-0.5 min-w-0">
+                          <h3 className="text-sm font-bold text-bmw-text truncate">
+                            {user?.firstName} {user?.lastName}
+                          </h3>
+                          <div className="text-[11px] text-bmw-textSec flex items-center gap-1 truncate">
+                            <span className="truncate flex items-center">
+                              {user?.email}
+                            </span>
+                            <Mail className="w-3 h-3 flex items-center justify-center mb-1 text-bmw-blue shrink-0" />
+                          </div>
                         </div>
                       </div>
+
+                      <span className="px-2 py-0.5 rounded bg-bmw-hover text-[10px] font-mono font-bold text-bmw-textSec border border-bmw-border/60 shrink-0">
+                        {user?.personalCode}
+                      </span>
                     </div>
 
-                    <span className="px-2 py-0.5 rounded bg-bmw-hover text-[10px] font-mono font-bold text-bmw-textSec border border-bmw-border/60 shrink-0">
-                      {user?.personalCode}
-                    </span>
+                    {/* Department & Role */}
+                    <div className="grid grid-cols-2 gap-2 text-[11px] pt-1">
+                      <div className="bg-bmw-hover/50 p-2 rounded-lg border border-bmw-border/40">
+                        <span className="text-bmw-textSec block text-[10px]">
+                          {language === "fa" ? "واحد سازمانی:" : "Department:"}
+                        </span>
+                        <span className="font-semibold text-bmw-text truncate block">
+                          {user?.department}
+                        </span>
+                      </div>
+
+                      <div className="bg-bmw-hover/50 p-2 rounded-lg border border-bmw-border/40">
+                        <span className="text-bmw-textSec block text-[10px]">
+                          {user?.organizationalUnit}
+                        </span>
+                        <span className="font-semibold text-bmw-text truncate block">
+                          {user?.role}
+                        </span>
+                      </div>
+                    </div>
                   </div>
-
-                  {/* Department & Role */}
-                  <div className="grid grid-cols-2 gap-2 text-[11px] pt-1">
-                    <div className="bg-bmw-hover/50 p-2 rounded-lg border border-bmw-border/40">
-                      <span className="text-bmw-textSec block text-[10px]">
-                        {language === "fa" ? "واحد سازمانی:" : "Department:"}
+                  <div className="pt-2">
+                    <button
+                      type="button"
+                      onClick={() => handleDownloadImage(user)}
+                      className="w-full py-2.5 cursor-pointer px-3 rounded-xl bg-bmw-blue/10 hover:bg-bmw-blue/20 text-bmw-blue border border-bmw-blue/30 hover:border-bmw-blue/50 text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-sm"
+                    >
+                      <Download className="w-4 h-4 shrink-0" />
+                      <span>
+                        {language === "fa"
+                          ? "دانلود تصویر پرسنل"
+                          : "Download Photo"}
                       </span>
-                      <span className="font-semibold text-bmw-text truncate block">
-                        {user?.department}
-                      </span>
-                    </div>
-
-                    <div className="bg-bmw-hover/50 p-2 rounded-lg border border-bmw-border/40">
-                      <span className="text-bmw-textSec block text-[10px]">
-                        {user?.organizationalUnit}
-                      </span>
-                      <span className="font-semibold text-bmw-text truncate block">
-                        {user?.role}
-                      </span>
-                    </div>
+                    </button>
                   </div>
-                </div>
-
-                <div className="pt-3 border-t border-bmw-border space-y-3">
-                  {/* <div className="flex items-center justify-between">
+                  <div className="pt-3 border-t border-bmw-border space-y-3">
+                    {/* <div className="flex items-center justify-between">
                     <span className="text-xs font-bold text-bmw-text flex items-center gap-1.5">
                       <Sparkles className="w-3.5 h-3.5 text-bmw-blue" />
                       {language === "fa"
@@ -466,65 +547,116 @@ const UsersManagement: React.FC = () => {
                     </span>
                   </div> */}
 
-                  <div className="space-y-1.5">
-                    <div className="flex items-center justify-between text-[10px] text-bmw-textSec">
-                      <span>
-                        {language === "fa"
-                          ? "مدیریت وضعیت توسط ادمین:"
-                          : "Admin Quota Enforcement:"}
-                      </span>
-                      {!isAdmin && (
-                        <span className="text-amber-500/80 font-medium flex items-center gap-1">
-                          <Lock className="w-3 h-3" />
-                          {language === "fa" ? "فقط ادمین" : "Admin Only"}
-                        </span>
-                      )}
-                    </div>
-
-                    {isAdmin ? (
-                      <div className="grid grid-cols-2 gap-2">
-                        <button
-                          type="button"
-                          disabled={isUpdatingThisUser}
-                          onClick={() => handleToggleQuota(user, 0)}
-                          className={`py-1.5 cursor-pointer px-2 rounded-lg border text-xs font-bold transition-all flex items-center justify-center gap-1 ${
-                            isAllowed
-                              ? "bg-emerald-500/20 border-emerald-500/50 text-emerald-400 shadow-sm"
-                              : "bg-bmw-hover border-bmw-border text-bmw-textSec hover:text-bmw-text"
-                          }`}
-                        >
-                          <CheckCircle2 className="w-3.5 h-3.5" />
-                          {language === "fa" ? "فعال (۰)" : "Enable (0)"}
-                        </button>
-                        <button
-                          type="button"
-                          disabled={isUpdatingThisUser}
-                          onClick={() => handleToggleQuota(user, 1)}
-                          className={`py-1.5 cursor-pointer px-2 rounded-lg border text-xs font-bold transition-all flex items-center justify-center gap-1 ${
-                            !isAllowed
-                              ? "bg-rose-500/20 border-rose-500/50 text-rose-400 shadow-sm"
-                              : "bg-bmw-hover border-bmw-border text-bmw-textSec hover:text-bmw-text"
-                          }`}
-                        >
-                          <XCircle className="w-3.5 h-3.5" />
-                          {language === "fa" ? "غیرفعال (۱)" : "Disable (1)"}
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="bg-bmw-hover/40 border border-bmw-border/60 rounded-lg p-2 text-[11px] text-bmw-textSec flex items-center gap-1.5">
-                        <Lock className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                    <div className="space-y-1.5">
+                      <div className="flex items-center justify-between text-[10px] text-bmw-textSec">
                         <span>
                           {language === "fa"
-                            ? "تغییر این فیلد نیازمند دسترسی ادمین است."
-                            : "Changing this quota requires Admin rights."}
+                            ? "مدیریت وضعیت توسط ادمین:"
+                            : "Admin Quota Enforcement:"}
                         </span>
+                        {!isAdmin && (
+                          <span className="text-amber-500/80 font-medium flex items-center gap-1">
+                            <Lock className="w-3 h-3" />
+                            {language === "fa" ? "فقط ادمین" : "Admin Only"}
+                          </span>
+                        )}
                       </div>
-                    )}
+
+                      {isAdmin ? (
+                        <div className="grid grid-cols-2 gap-2">
+                          <button
+                            type="button"
+                            disabled={isUpdatingThisUser}
+                            onClick={() => handleToggleQuota(user, 0)}
+                            className={`py-1.5 cursor-pointer px-2 rounded-lg border text-xs font-bold transition-all flex items-center justify-center gap-1 ${
+                              isAllowed
+                                ? "bg-emerald-500/20 border-emerald-500/50 text-emerald-400 shadow-sm"
+                                : "bg-bmw-hover border-bmw-border text-bmw-textSec hover:text-bmw-text"
+                            }`}
+                          >
+                            <CheckCircle2 className="w-3.5 h-3.5" />
+                            {language === "fa" ? "فعال" : "Enable (0)"}
+                          </button>
+                          <button
+                            type="button"
+                            disabled={isUpdatingThisUser}
+                            onClick={() => handleToggleQuota(user, 1)}
+                            className={`py-1.5 cursor-pointer px-2 rounded-lg border text-xs font-bold transition-all flex items-center justify-center gap-1 ${
+                              !isAllowed
+                                ? "bg-rose-500/20 border-rose-500/50 text-rose-400 shadow-sm"
+                                : "bg-bmw-hover border-bmw-border text-bmw-textSec hover:text-bmw-text"
+                            }`}
+                          >
+                            <XCircle className="w-3.5 h-3.5" />
+                            {language === "fa" ? "غیرفعال" : "Disable (1)"}
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="bg-bmw-hover/40 border border-bmw-border/60 rounded-lg p-2 text-[11px] text-bmw-textSec flex items-center gap-1.5">
+                          <Lock className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                          <span>
+                            {language === "fa"
+                              ? "تغییر این فیلد نیازمند دسترسی ادمین است."
+                              : "Changing this quota requires Admin rights."}
+                          </span>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-2 pt-6 border-t border-bmw-border/40 mt-6 animate-fade-in">
+              <button
+                type="button"
+                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all ${
+                  currentPage === 1
+                    ? "bg-bmw-surface/30 border-bmw-border/30 text-bmw-textSec/30 cursor-not-allowed opacity-55"
+                    : "bg-bmw-surface border-bmw-border text-bmw-textSec hover:text-bmw-text hover:bg-bmw-hover"
+                }`}
+              >
+                {language === "fa" ? "قبلی" : "Previous"}
+              </button>
+
+              {Array.from({ length: totalPages }, (_, idx) => idx + 1).map(
+                (pageNum) => (
+                  <button
+                    type="button"
+                    key={pageNum}
+                    onClick={() => setCurrentPage(pageNum)}
+                    className={`w-8 h-8 rounded-lg text-xs font-bold border transition-all ${
+                      currentPage === pageNum
+                        ? "bg-bmw-blue border-bmw-blue text-white shadow-md"
+                        : "bg-bmw-surface border-bmw-border text-bmw-textSec hover:text-bmw-text hover:bg-bmw-hover"
+                    }`}
+                  >
+                    {language === "fa"
+                      ? pageNum.toLocaleString("fa-IR")
+                      : pageNum}
+                  </button>
+                ),
+              )}
+
+              <button
+                type="button"
+                onClick={() =>
+                  setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                }
+                disabled={currentPage === totalPages}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all ${
+                  currentPage === totalPages
+                    ? "bg-bmw-surface/30 border-bmw-border/30 text-bmw-textSec/30 cursor-not-allowed opacity-55"
+                    : "bg-bmw-surface border-bmw-border text-bmw-textSec hover:text-bmw-text hover:bg-bmw-hover"
+                }`}
+              >
+                {language === "fa" ? "بعدی" : "Next"}
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>

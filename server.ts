@@ -9,9 +9,22 @@ import pdfParse from 'pdf-parse/lib/pdf-parse.js';
 
 dotenv.config();
 
+process.on('uncaughtException', (err: any) => {
+    console.error('Uncaught Exception caught:', err);
+    if (err && err.code === 'EPIPE') {
+        console.warn('Ignoring EPIPE write error on Socket.');
+        return;
+    }
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+});
+
 const app = express();
 app.use(express.json({ limit: '200mb' }));
 
+// Enable CORS for all origins, methods, and headers
 app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
@@ -744,6 +757,9 @@ async function initDatabase() {
         await pool.query(`
             ALTER TABLE rag_documents ADD COLUMN IF NOT EXISTS doc_section VARCHAR(100) DEFAULT 'بخش عمومی';
         `);
+        await pool.query(`
+            ALTER TABLE rag_documents ADD COLUMN IF NOT EXISTS max_questions_limit INTEGER DEFAULT 0;
+        `);
 
         await pool.query(`
             CREATE TABLE IF NOT EXISTS rag_document_chunks (
@@ -796,6 +812,17 @@ async function initDatabase() {
                 error_experienced TEXT,
                 action_taken VARCHAR(255)
             );
+        `);
+
+        // Create user_profiles table for persistent avatar storage and AI passport photo quota management
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS user_profiles (
+                user_id VARCHAR(100) PRIMARY KEY,
+                avatar_url TEXT,
+                ai_passport_photo_used INT DEFAULT 0,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+            ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS ai_passport_photo_used INT DEFAULT 0;
         `);
 
         // Create Graph RAG tables
@@ -911,7 +938,68 @@ async function initDatabase() {
             ON CONFLICT (key) DO NOTHING;
         `);
 
-        console.log("[Database] RAG database tables and settings initialized successfully.");
+        // Create feedback_items table for Suggestions & Feedback System (نظام پیشنهادات و انتقادات)
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS feedback_items (
+                id VARCHAR(50) PRIMARY KEY,
+                title VARCHAR(255) NOT NULL,
+                category VARCHAR(100) NOT NULL,
+                type VARCHAR(50) NOT NULL,
+                description TEXT NOT NULL,
+                attachment_name VARCHAR(255),
+                status VARCHAR(50) NOT NULL,
+                created_at VARCHAR(100) NOT NULL,
+                user_employee_id VARCHAR(50) NOT NULL,
+                user_name VARCHAR(100) NOT NULL,
+                manager_comment TEXT,
+                logs JSONB NOT NULL
+            );
+        `);
+
+        // Add column is_deleted to feedback_items if it doesn't exist
+        await pool.query(`
+            ALTER TABLE feedback_items 
+            ADD COLUMN IF NOT EXISTS is_deleted BOOLEAN DEFAULT FALSE;
+        `);
+
+        // Create feedback_categories table
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS feedback_categories (
+                id VARCHAR(50) PRIMARY KEY,
+                fa VARCHAR(255) NOT NULL,
+                en VARCHAR(255) NOT NULL
+            );
+        `);
+
+        // Add is_deleted column to feedback_categories
+        await pool.query(`
+            ALTER TABLE feedback_categories 
+            ADD COLUMN IF NOT EXISTS is_deleted BOOLEAN DEFAULT FALSE;
+        `);
+
+        // Seed default categories
+        await pool.query(`
+            INSERT INTO feedback_categories (id, fa, en)
+            VALUES 
+            ('hr', 'منابع انسانی و رفاهی', 'HR & Welfare'),
+            ('processes', 'فرآیندها و سیستم‌های سازمانی', 'Processes & Org Systems'),
+            ('facility', 'محیط کاری و ایمنی', 'Workplace & Safety'),
+            ('it', 'فنی و فناوری اطلاعات', 'IT & Technology'),
+            ('sales', 'فروش و امور مشتریان', 'Sales & Customer Care')
+            ON CONFLICT (id) DO NOTHING;
+        `);
+
+        // Seed default feedback items if not present
+        await pool.query(`
+            INSERT INTO feedback_items (id, title, category, type, description, attachment_name, status, created_at, user_employee_id, user_name, manager_comment, logs)
+            VALUES 
+            ('FB-4029', 'پیشنهاد نصب ایستگاه شارژ خودروهای برقی در پارکینگ همکاران', 'facility', 'suggestion', 'با توجه به افزایش روزافزون استفاده همکاران از خودروهای برقی و پلاگین‌هیبرید پرشیا خودرو، پیشنهاد می‌گردد ۲ ایستگاه شارژ AC در پارکینگ همکاران نصب شود تا بتوان در طول ساعات کاری خودروها را شارژ نمود.', 'electric_charging_plan.pdf', 'approved', '2026-07-01 09:30', 'PK-1024', 'امیرحسین رضایی', 'طرح بسیار عالی و همسو با سیاست‌های سبز پرشیا خودرو است. بودجه تأمین تجهیزات تصویب شد و نصب ایستگاه‌ها تا انتهای ماه آینده توسط واحد پشتیبانی انجام خواهد شد.', '[{"status": "submitted", "date": "2026-07-01 09:30", "comment": "پیشنهاد با موفقیت در سامانه ثبت شد."}, {"status": "under_review", "date": "2026-07-03 14:15", "comment": "طرح جهت بررسی فنی و تخصیص بودجه به مدیریت پشتیبانی و مهندسی ارجاع گردید."}, {"status": "approved", "date": "2026-07-05 11:00", "comment": "طرح مورد تأیید نهایی قرار گرفت."}]'::jsonb),
+            ('FB-3981', 'انتقاد از کندی سیستم تحویل کار در ساعات شلوغی تعمیرگاه مرکزی', 'processes', 'critic', 'در زمان بازه ساعت ۱۶ الی ۱۸ عصر به دلیل کمبود نیرو در بخش پذیرش و ثبت خروج، همکاران و مشتریان زمان زیادی را معطل می‌شوند. پیشنهاد می‌کنم چینش شیفت‌های کارکنان در این ساعات بازنگری شود.', NULL, 'under_review', '2026-07-04 15:20', 'PK-1288', 'سارا کریمی', 'بررسی توزیع بار کاری تعمیرگاه مرکزی در ساعات مذکور آغاز شده است.', '[{"status": "submitted", "date": "2026-07-04 15:20", "comment": "انتقاد ثبت و به واحد بهبود فرآیندها ارجاع شد."}, {"status": "under_review", "date": "2026-07-06 10:00", "comment": "گزارش تردد مشتریان در بازه عصر در حال استخراج و تحلیل است."}]'::jsonb),
+            ('FB-3850', 'پیشنهاد برگزاری دوره‌های آموزشی تخصصی مدیریت استرس در محیط کار', 'hr', 'suggestion', 'برای بهبود سلامت روان کارکنان و ارتقای کیفیت روابط بین‌فردی، پیشنهاد می‌کنم دوره‌های کوتاه‌مدت یا وبینارهای روانشناختی با تمرکز بر مدیریت استرس و فرسودگی شغلی توسط دپارتمان سرمایه انسانی برگزار شود.', 'stress_management_course.pdf', 'submitted', '2026-07-08 11:45', 'PK-1024', 'امیرحسین رضایی', NULL, '[{"status": "submitted", "date": "2026-07-08 11:45", "comment": "پیشنهاد ثبت شده و آماده بررسی توسط دپارتمان سرمایه انسانی است."}]'::jsonb)
+            ON CONFLICT (id) DO NOTHING;
+        `);
+
+        console.log("[Database] RAG database tables, settings and feedback system initialized successfully.");
     } catch (err: any) {
         console.error("[Database] Initialization failed:", err.message);
     }
@@ -1116,7 +1204,14 @@ app.post('/api/rag/upload', async (req, res) => {
     res.setHeader('X-Accel-Buffering', 'no');
 
     const sendEvent = (obj: any) => {
-        res.write(`data: ${JSON.stringify(obj)}\n\n`);
+        if (res.destroyed || req.destroyed) {
+            return;
+        }
+        try {
+            res.write(`data: ${JSON.stringify(obj)}\n\n`);
+        } catch (e: any) {
+            console.warn('[RAG Upload SSE] Failed to write event to response stream:', e.message);
+        }
     };
 
     try {
@@ -1164,6 +1259,10 @@ app.post('/api/rag/upload', async (req, res) => {
 
         // Insert chunks
         for (let i = 0; i < chunks.length; i++) {
+            if (req.destroyed || res.destroyed) {
+                console.log('[RAG Upload] Connection lost/aborted during loop. Aborting database inserts.');
+                break;
+            }
             const chunkText = chunks[i];
             const embedding = await getGeminiEmbedding(chunkText);
             const insertResult = await pool.query(
@@ -1283,7 +1382,7 @@ app.get('/api/rag/documents/:id/details', async (req, res) => {
 app.post('/api/rag/documents/:id/update-chunks', async (req, res) => {
     const { id } = req.params;
     const docId = Number(id);
-    const { title, docYear, docSection, chunks } = req.body;
+    const { title, docYear, docSection, maxQuestionsLimit, chunks } = req.body;
     if (!Array.isArray(chunks)) {
         return res.status(400).json({ error: 'chunks must be an array' });
     }
@@ -1293,10 +1392,16 @@ app.post('/api/rag/documents/:id/update-chunks', async (req, res) => {
         await client.query('BEGIN');
 
         // Update document metadata if provided
-        if (title || docYear || docSection) {
+        if (title || docYear || docSection || maxQuestionsLimit !== undefined) {
             await client.query(
-                "UPDATE rag_documents SET title = COALESCE($1, title), doc_year = COALESCE($2, doc_year), doc_section = COALESCE($3, doc_section) WHERE id = $4",
-                [title || null, docYear ? Number(docYear) : null, docSection || null, docId]
+                "UPDATE rag_documents SET title = COALESCE($1, title), doc_year = COALESCE($2, doc_year), doc_section = COALESCE($3, doc_section), max_questions_limit = COALESCE($4, max_questions_limit) WHERE id = $5",
+                [
+                    title || null,
+                    docYear ? Number(docYear) : null,
+                    docSection || null,
+                    maxQuestionsLimit !== undefined ? Number(maxQuestionsLimit) : null,
+                    docId
+                ]
             );
         }
 
@@ -1472,6 +1577,50 @@ app.post('/api/rag/chat', async (req, res) => {
     const lastMsg = messages[messages.length - 1];
     const userQuery = lastMsg.content || lastMsg.text || '';
     const activeUserId = userId || 'behzad-naderloo';
+
+    // Check maximum questions limit per document in the last 24 hours
+    if (documentIds && Array.isArray(documentIds) && documentIds.length > 0) {
+        try {
+            for (const docId of documentIds) {
+                const docIdNum = Number(docId);
+                if (isNaN(docIdNum)) continue;
+
+                // 1. Get document details (limit and title)
+                const docRes = await pool.query(
+                    "SELECT title, max_questions_limit FROM rag_documents WHERE id = $1 AND is_deleted = FALSE",
+                    [docIdNum]
+                );
+
+                if (docRes.rowCount > 0) {
+                    const doc = docRes.rows[0];
+                    const limit = doc.max_questions_limit || 0;
+                    if (limit > 0) {
+                        // 2. Count questions asked by this user for this document in the last 24 hours
+                        const countRes = await pool.query(`
+                            SELECT COUNT(*)::int as q_count
+                            FROM user_pdf_chat_messages m
+                            JOIN user_pdf_chats c ON m.chat_id = c.id
+                            WHERE c.user_id = $1
+                              AND m.role = 'user'
+                              AND m.created_at >= NOW() - INTERVAL '24 hours'
+                              AND (c.active_document_ids @> $2::jsonb OR c.active_document_ids @> $3::jsonb)
+                        `, [activeUserId, JSON.stringify([docIdNum]), JSON.stringify([String(docIdNum)])]);
+
+                        const askedCount = countRes.rows[0]?.q_count || 0;
+                        if (askedCount >= limit) {
+                            const isPersian = appLanguage === 'fa' || /[\u0600-\u06FF]/.test(userQuery);
+                            const errorMsg = isPersian
+                                ? `شما به سقف مجاز (${limit} سوال در ۲۴ ساعت) برای سند «${doc.title}» رسیده‌اید.`
+                                : `You have reached the maximum allowed limit of ${limit} questions per 24 hours for the document "${doc.title}".`;
+                            return res.status(429).json({ error: errorMsg });
+                        }
+                    }
+                }
+            }
+        } catch (err: any) {
+            console.error('[RAG Chat Limit Check Error]', err);
+        }
+    }
 
     let userMsgId: number | undefined;
     let modelMsgId: number | undefined;
@@ -1921,7 +2070,14 @@ app.post('/api/graph/upload', async (req, res) => {
     res.setHeader('X-Accel-Buffering', 'no');
 
     const sendEvent = (obj: any) => {
-        res.write(`data: ${JSON.stringify(obj)}\n\n`);
+        if (res.destroyed || req.destroyed) {
+            return;
+        }
+        try {
+            res.write(`data: ${JSON.stringify(obj)}\n\n`);
+        } catch (e: any) {
+            console.warn('[Graph Upload SSE] Failed to write event to response stream:', e.message);
+        }
     };
 
     try {
@@ -1986,6 +2142,10 @@ Do not include any pre-text, post-text, markdown block, or backticks. Only retur
 
         // Process each section
         for (let i = 0; i < chunks.length; i++) {
+            if (req.destroyed || res.destroyed) {
+                console.log('[Graph Upload] Connection lost/aborted during loop. Aborting extraction.');
+                break;
+            }
             const chunkText = chunks[i];
             sendEvent({
                 event: 'chunk_processing',
@@ -2109,6 +2269,10 @@ JSON Output:`;
 
             const chunksPerSection = Math.ceil(chunks.length / sections.length);
             for (let sIdx = 0; sIdx < sections.length; sIdx++) {
+                if (req.destroyed || res.destroyed) {
+                    console.log('[Graph Upload] Connection lost/aborted during structural mapping.');
+                    break;
+                }
                 const secName = sections[sIdx].trim();
                 if (!secName) continue;
 
@@ -3313,6 +3477,603 @@ ${formattedGraphContext}`;
     } catch (err: any) {
         console.error('[Graph Chat Error]', err);
         res.status(500).json({ error: err.message || 'Error occurred during Graph RAG chat execution.' });
+    }
+});
+
+// Suggestions & Feedback System API Endpoints (نظام پیشنهادات و انتقادات)
+app.get('/api/feedback', async (req, res) => {
+    const { role, userEmployeeId } = req.query;
+    try {
+        let result;
+        if (role === 'employee' && userEmployeeId) {
+            result = await pool.query(
+                'SELECT * FROM feedback_items WHERE user_employee_id = $1 AND (is_deleted = FALSE OR is_deleted IS NULL) ORDER BY created_at DESC',
+                [userEmployeeId]
+            );
+        } else {
+            result = await pool.query('SELECT * FROM feedback_items ORDER BY created_at DESC');
+        }
+        const items = result.rows.map(row => ({
+            id: row.id,
+            title: row.title,
+            category: row.category,
+            type: row.type,
+            description: row.description,
+            attachmentName: row.attachment_name,
+            status: row.status,
+            createdAt: row.created_at,
+            userEmployeeId: row.user_employee_id,
+            userName: row.user_name,
+            managerComment: row.manager_comment,
+            logs: typeof row.logs === 'string' ? JSON.parse(row.logs) : row.logs,
+            isDeleted: row.is_deleted || false
+        }));
+        res.json(items);
+    } catch (err: any) {
+        console.error('[GET /api/feedback Error]', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.post('/api/feedback', async (req, res) => {
+    const { id, title, category, type, description, attachmentName, status, createdAt, userEmployeeId, userName, logs } = req.body;
+    try {
+        await pool.query(
+            `INSERT INTO feedback_items (id, title, category, type, description, attachment_name, status, created_at, user_employee_id, user_name, logs, is_deleted) 
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, FALSE)`,
+            [id, title, category, type, description, attachmentName, status, createdAt, userEmployeeId, userName, JSON.stringify(logs)]
+        );
+        res.status(201).json({ success: true });
+    } catch (err: any) {
+        console.error('[POST /api/feedback Error]', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.put('/api/feedback/:id/status', async (req, res) => {
+    const { id } = req.params;
+    const { status, managerComment, logs } = req.body;
+    try {
+        await pool.query(
+            `UPDATE feedback_items 
+             SET status = $1, manager_comment = $2, logs = $3 
+             WHERE id = $4`,
+            [status, managerComment, JSON.stringify(logs), id]
+        );
+        res.json({ success: true });
+    } catch (err: any) {
+        console.error('[PUT /api/feedback/:id/status Error]', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.put('/api/feedback/:id/delete', async (req, res) => {
+    const { id } = req.params;
+    try {
+        await pool.query(
+            `UPDATE feedback_items SET is_deleted = TRUE WHERE id = $1`,
+            [id]
+        );
+        res.json({ success: true });
+    } catch (err: any) {
+        console.error('[PUT /api/feedback/:id/delete Error]', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.put('/api/feedback/:id/restore', async (req, res) => {
+    const { id } = req.params;
+    try {
+        await pool.query(
+            `UPDATE feedback_items SET is_deleted = FALSE WHERE id = $1`,
+            [id]
+        );
+        res.json({ success: true });
+    } catch (err: any) {
+        console.error('[PUT /api/feedback/:id/restore Error]', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.put('/api/feedback/:id/edit', async (req, res) => {
+    const { id } = req.params;
+    const { title, category, type, description, logs } = req.body;
+    try {
+        await pool.query(
+            `UPDATE feedback_items 
+             SET title = $1, category = $2, type = $3, description = $4, logs = $5 
+             WHERE id = $6`,
+            [title, category, type, description, JSON.stringify(logs), id]
+        );
+        res.json({ success: true });
+    } catch (err: any) {
+        console.error('[PUT /api/feedback/:id/edit Error]', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// GET /api/feedback/categories
+app.get('/api/feedback/categories', async (req, res) => {
+    try {
+        const result = await pool.query('SELECT * FROM feedback_categories ORDER BY fa ASC');
+        res.json(result.rows);
+    } catch (err: any) {
+        console.error('[GET /api/feedback/categories Error]', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// POST /api/feedback/categories
+app.post('/api/feedback/categories', async (req, res) => {
+    const { id, fa, en } = req.body;
+    if (!id || !fa || !en) {
+        return res.status(400).json({ error: 'Missing required fields: id, fa, en' });
+    }
+    try {
+        await pool.query(
+            `INSERT INTO feedback_categories (id, fa, en, is_deleted) 
+             VALUES ($1, $2, $3, FALSE)
+             ON CONFLICT (id) DO UPDATE SET fa = EXCLUDED.fa, en = EXCLUDED.en, is_deleted = FALSE`,
+            [id, fa, en]
+        );
+        res.status(201).json({ success: true });
+    } catch (err: any) {
+        console.error('[POST /api/feedback/categories Error]', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// PUT /api/feedback/categories/:id
+app.put('/api/feedback/categories/:id', async (req, res) => {
+    const { id } = req.params;
+    const { fa, en } = req.body;
+    if (!fa || !en) {
+        return res.status(400).json({ error: 'Missing required fields: fa, en' });
+    }
+    try {
+        await pool.query(
+            'UPDATE feedback_categories SET fa = $1, en = $2 WHERE id = $3',
+            [fa.trim(), en.trim(), id]
+        );
+        res.json({ success: true });
+    } catch (err: any) {
+        console.error('[PUT /api/feedback/categories Error]', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// PUT /api/feedback/categories/:id/restore
+app.put('/api/feedback/categories/:id/restore', async (req, res) => {
+    const { id } = req.params;
+    try {
+        await pool.query('UPDATE feedback_categories SET is_deleted = FALSE WHERE id = $1', [id]);
+        res.json({ success: true });
+    } catch (err: any) {
+        console.error('[PUT /api/feedback/categories/restore Error]', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// DELETE /api/feedback/categories/:id
+app.delete('/api/feedback/categories/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+        await pool.query('UPDATE feedback_categories SET is_deleted = TRUE WHERE id = $1', [id]);
+        res.json({ success: true });
+    } catch (err: any) {
+        console.error('[DELETE /api/feedback/categories Error]', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Helper function to mark AI passport photo quota as used
+async function markAiPhotoUsed(userId: string) {
+    try {
+        await pool.query(`
+            INSERT INTO user_profiles (user_id, ai_passport_photo_used, updated_at)
+            VALUES ($1, 1, CURRENT_TIMESTAMP)
+            ON CONFLICT (user_id) 
+            DO UPDATE SET ai_passport_photo_used = 1, updated_at = CURRENT_TIMESTAMP;
+        `, [userId]);
+        console.log(`[Database] Automatically marked ai_passport_photo_used = 1 for user: ${userId}`);
+    } catch (err) {
+        console.error('[Database Error] Failed to mark ai_passport_photo_used:', err);
+    }
+}
+
+// POST /api/images/edits
+app.post('/api/images/edits', async (req, res) => {
+    const { image, mask, prompt, model, userId = 'default_user' } = req.body;
+    if (!image || !prompt) {
+        return res.status(400).json({ error: 'Image and prompt are required.' });
+    }
+
+    try {
+        const quotaCheck = await pool.query(
+            "SELECT ai_passport_photo_used FROM user_profiles WHERE user_id = $1",
+            [userId]
+        );
+
+        if (quotaCheck.rows.length > 0 && quotaCheck.rows[0].ai_passport_photo_used === 1) {
+            console.log(`[Image Edit API] Blocked: User ${userId} has already used their 1-time quota for AI passport photo generation.`);
+            return res.status(403).json({
+                error: 'سقف مجاز ساخت تصویر پرسنلی هوشمند برای شما به پایان رسیده است (محدودیت ۱ بار). امکان درخواست جدید وجود ندارد.',
+                code: 'QUOTA_EXCEEDED'
+            });
+        }
+
+        const selectedModel = model || 'gemini-3.1-flash-image';
+        const apiKey = getAvalAiApiKey(false);
+        if (!apiKey) {
+            return res.status(500).json({ error: 'AvalAI API key is not configured.' });
+        }
+
+        const isGeminiImageModel = ['gemini-3-pro-image', 'gemini-3.1-flash-image', 'gemini-3.1-flash-lite-image'].includes(selectedModel);
+
+        if (isGeminiImageModel) {
+            console.log(`[Image Edit API] Preparing Gemini Multi-Modal request for model: ${selectedModel}`);
+            
+            const messages: any[] = [];
+            const content: any[] = [];
+
+            // Add text prompt with rich biometric instruction if a mask is present
+            let textPrompt = prompt;
+            if (mask) {
+                textPrompt = `${prompt}\n\nNote: You are provided with two images. The first image is the original face photo. The second image is a custom biometric mask where transparent/black areas represent preserved regions (the original face/identity), and white/opaque areas represent regions where you must edit/replace with the correct passport background and formal clothing. Please seamlessly blend these two and generate the final official biometric passport photo.`;
+            }
+
+            content.push({
+                type: 'text',
+                text: textPrompt
+            });
+
+            // Add original image
+            content.push({
+                type: 'image_url',
+                image_url: {
+                    url: image
+                }
+            });
+
+            // Add mask if present
+            if (mask) {
+                content.push({
+                    type: 'image_url',
+                    image_url: {
+                        url: mask
+                    }
+                });
+            }
+
+            messages.push({
+                role: 'user',
+                content: content
+            });
+
+            const imageConfig: any = {
+                aspectRatio: '3:4'
+            };
+
+            if (selectedModel === 'gemini-3-pro-image' || selectedModel === 'gemini-3.1-flash-image') {
+                imageConfig.imageSize = '2K';
+            } else {
+                imageConfig.imageSize = '1K';
+            }
+
+            const requestBody = {
+                model: selectedModel,
+                messages: messages,
+                modalities: ['image', 'text'],
+                generationConfig: {
+                    imageConfig: imageConfig
+                }
+            };
+
+            console.log(`[Image Edit API] Sending POST request to https://api.avalai.ir/v1/chat/completions`);
+
+            const response = await fetch('https://api.avalai.ir/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${apiKey}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(requestBody)
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('[Image Edit API Gemini Error Response]', errorText);
+                let parsedErr;
+                try {
+                    parsedErr = JSON.parse(errorText);
+                } catch (e) {}
+                const errMsg = parsedErr?.error?.message || errorText || 'Failed to edit image using Gemini';
+                return res.status(response.status).json({ error: errMsg });
+            }
+
+            const data = await response.json();
+            console.log('[Image Edit API Success] Received Gemini chat completions response');
+
+            let returnedUrl: string | null = null;
+            const imagesList = data?.choices?.[0]?.message?.images;
+            if (imagesList && imagesList.length > 0) {
+                returnedUrl = imagesList[0]?.image_url?.url;
+            }
+
+            // Fallback to searching the text content for a URL if needed
+            if (!returnedUrl && data?.choices?.[0]?.message?.content) {
+                const match = data.choices[0].message.content.match(/(https:\/\/api\.avalai\.ir\/[^\s)"]+)/);
+                if (match) {
+                    returnedUrl = match[1];
+                }
+            }
+
+            if (returnedUrl) {
+                // Automatically mark quota as used in database
+                await markAiPhotoUsed(userId);
+
+                console.log('[Image Edit API] Converting Gemini image URL to Base64 to bypass CORS:', returnedUrl);
+                try {
+                    const imgResponse = await fetch(returnedUrl);
+                    if (imgResponse.ok) {
+                        const imgBuffer = await imgResponse.arrayBuffer();
+                        const base64String = Buffer.from(imgBuffer).toString('base64');
+                        return res.json({
+                            data: [
+                                {
+                                    url: returnedUrl,
+                                    b64_json: base64String
+                                }
+                            ]
+                        });
+                    } else {
+                        console.error('[Image Edit API] Failed to fetch image from output URL:', imgResponse.status, imgResponse.statusText);
+                        return res.json({
+                            data: [
+                                {
+                                    url: returnedUrl
+                                }
+                            ]
+                        });
+                    }
+                } catch (fetchErr) {
+                    console.error('[Image Edit API] Error fetching/converting image URL:', fetchErr);
+                    return res.json({
+                        data: [
+                            {
+                                url: returnedUrl
+                            }
+                        ]
+                    });
+                }
+            } else {
+                return res.status(500).json({ error: 'No image was generated by the Gemini model. Raw Response: ' + JSON.stringify(data) });
+            }
+
+        } else {
+            // Standard edit/inpainting with imagen-3.0-generate-001
+            const base64Data = image.replace(/^data:image\/\w+;base64,/, "");
+            const buffer = Buffer.from(base64Data, 'base64');
+            const blob = new Blob([buffer], { type: 'image/jpeg' });
+
+            const formData = new FormData();
+            formData.append('model', 'imagen-3.0-generate-001');
+            formData.append('image', blob, 'input_image.jpg');
+            formData.append('prompt', prompt);
+            formData.append('n', '1');
+
+            if (mask) {
+                console.log('[Image Edit API] Appending mask to the request');
+                const maskBase64 = mask.replace(/^data:image\/\w+;base64,/, "");
+                const maskBuffer = Buffer.from(maskBase64, 'base64');
+                const maskBlob = new Blob([maskBuffer], { type: 'image/png' });
+                formData.append('mask', maskBlob, 'mask_image.png');
+            }
+
+            console.log('[Image Edit API] Sending request to api.avalai.ir with model: imagen-3.0-generate-001');
+
+            const response = await fetch('https://api.avalai.ir/v1/images/edits', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${apiKey}`
+                },
+                body: formData
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('[Image Edit API Error Response]', errorText);
+                let parsedErr;
+                try {
+                    parsedErr = JSON.parse(errorText);
+                } catch (e) {}
+                const errMsg = parsedErr?.error?.message || errorText || 'Failed to edit image';
+                return res.status(response.status).json({ error: errMsg });
+            }
+
+            const data = await response.json();
+            console.log('[Image Edit API Success] Received response from api.avalai.ir');
+
+            if (data?.data?.[0]) {
+                const imgItem = data.data[0];
+                if (imgItem.url && !imgItem.b64_json) {
+                    console.log('[Image Edit API] Converting image URL to Base64 to bypass CORS and iframe restrictions:', imgItem.url);
+                    try {
+                        const imgResponse = await fetch(imgItem.url);
+                        if (imgResponse.ok) {
+                            const imgBuffer = await imgResponse.arrayBuffer();
+                            const base64String = Buffer.from(imgBuffer).toString('base64');
+                            imgItem.b64_json = base64String;
+                            console.log('[Image Edit API] Image successfully converted to Base64 (length:', base64String.length, ')');
+                        } else {
+                            console.error('[Image Edit API] Failed to fetch image from output URL:', imgResponse.status, imgResponse.statusText);
+                        }
+                    } catch (fetchErr) {
+                        console.error('[Image Edit API] Error fetching/converting image URL on backend:', fetchErr);
+                    }
+                }
+                // Automatically mark quota as used in database
+                await markAiPhotoUsed(userId);
+            }
+
+            res.json(data);
+        }
+
+    } catch (err: any) {
+        console.error('[POST /api/images/edits Error]', err);
+        res.status(500).json({ error: err.message || 'Internal server error during image editing.' });
+    }
+});
+
+// GET /api/users
+app.get('/api/users', async (req, res) => {
+    try {
+        const result = await pool.query("SELECT * FROM user_profiles");
+        const profileMap = new Map();
+        result.rows.forEach(r => profileMap.set(r.user_id, r));
+
+        // Default list of Persia Khodro employees / users
+        const defaultUsers = [
+            {
+                user_id: 'default_user',
+                name_fa: 'بهزاد رضایی',
+                name_en: 'Behzad Rezai',
+                email: 'b.rezai@persiakhodro.ir',
+                role_fa: 'مدیر ارشد فروش',
+                role_en: 'Senior Sales Manager',
+                department_fa: 'معاونت فروش',
+                department_en: 'Sales Division',
+                code: 'PK-40291',
+                avatar_url: profileMap.get('default_user')?.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250',
+                ai_passport_photo_used: profileMap.get('default_user')?.ai_passport_photo_used ?? 0,
+                created_at: profileMap.get('default_user')?.updated_at || '2026-07-20T08:15:30Z',
+            },
+            {
+                user_id: 'sara_ahmadi',
+                name_fa: 'سارا احمدی',
+                name_en: 'Sara Ahmadi',
+                email: 's.ahmadi@persiakhodro.ir',
+                role_fa: 'سرپرست منابع انسانی',
+                role_en: 'HR Supervisor',
+                department_fa: 'سرمایه انسانی',
+                department_en: 'Human Capital',
+                code: 'PK-38102',
+                avatar_url: profileMap.get('sara_ahmadi')?.avatar_url || 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=250',
+                ai_passport_photo_used: profileMap.get('sara_ahmadi')?.ai_passport_photo_used ?? 1,
+                created_at: profileMap.get('sara_ahmadi')?.updated_at || '2026-07-22T11:40:12Z',
+            },
+            {
+                user_id: 'ali_mohammadi',
+                name_fa: 'علی محمدی',
+                name_en: 'Ali Mohammadi',
+                email: 'a.mohammadi@persiakhodro.ir',
+                role_fa: 'کارشناس ارشد IT و شبکه',
+                role_en: 'Senior IT Specialist',
+                department_fa: 'فناوری اطلاعات',
+                department_en: 'IT & Infrastructure',
+                code: 'PK-41209',
+                avatar_url: profileMap.get('ali_mohammadi')?.avatar_url || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=250',
+                ai_passport_photo_used: profileMap.get('ali_mohammadi')?.ai_passport_photo_used ?? 0,
+                created_at: profileMap.get('ali_mohammadi')?.updated_at || '2026-07-24T14:50:44Z',
+            },
+            {
+                user_id: 'maryam_ghasemi',
+                name_fa: 'مریم قاسمی',
+                name_en: 'Maryam Ghasemi',
+                email: 'm.ghasemi@persiakhodro.ir',
+                role_fa: 'مدیر بازاریابی و برند',
+                role_en: 'Marketing Manager',
+                department_fa: 'بازاریابی و ارتباطات',
+                department_en: 'Marketing & PR',
+                code: 'PK-39088',
+                avatar_url: profileMap.get('maryam_ghasemi')?.avatar_url || 'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&q=80&w=250',
+                ai_passport_photo_used: profileMap.get('maryam_ghasemi')?.ai_passport_photo_used ?? 0,
+                created_at: profileMap.get('maryam_ghasemi')?.updated_at || '2026-07-25T09:22:15Z',
+            },
+            {
+                user_id: 'reza_moradi',
+                name_fa: 'رضا مرادی',
+                name_en: 'Reza Moradi',
+                email: 'r.moradi@persiakhodro.ir',
+                role_fa: 'مهندس ارشد خدمات پس از فروش',
+                role_en: 'After-Sales Engineer',
+                department_fa: 'خدمات پس از فروش',
+                department_en: 'After-Sales Services',
+                code: 'PK-42310',
+                avatar_url: profileMap.get('reza_moradi')?.avatar_url || 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=250',
+                ai_passport_photo_used: profileMap.get('reza_moradi')?.ai_passport_photo_used ?? 1,
+                created_at: profileMap.get('reza_moradi')?.updated_at || '2026-07-25T10:05:00Z',
+            }
+        ];
+
+        res.json({ success: true, users: defaultUsers });
+    } catch (err: any) {
+        console.error('[GET /api/users Error]', err);
+        res.status(500).json({ error: err.message || 'Error fetching users list.' });
+    }
+});
+
+// GET /api/user/profile/:userId
+app.get('/api/user/profile/:userId', async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const result = await pool.query("SELECT * FROM user_profiles WHERE user_id = $1", [userId]);
+        if (result.rows.length > 0) {
+            res.json({ success: true, profile: result.rows[0] });
+        } else {
+            res.json({ success: true, profile: { user_id: userId, avatar_url: null, ai_passport_photo_used: 0 } });
+        }
+    } catch (err: any) {
+        console.error('[GET /api/user/profile Error]', err);
+        res.status(500).json({ error: err.message || 'Error fetching user profile.' });
+    }
+});
+
+// POST /api/user/profile/ai-photo-limit (Admin setting to enable/disable AI photo creation for user)
+app.post('/api/user/profile/ai-photo-limit', async (req, res) => {
+    try {
+        const { userId = 'default_user', used } = req.body;
+        const limitValue = (used === 1 || used === '1') ? 1 : 0;
+
+        await pool.query(`
+            INSERT INTO user_profiles (user_id, ai_passport_photo_used, updated_at)
+            VALUES ($1, $2, CURRENT_TIMESTAMP)
+            ON CONFLICT (user_id) 
+            DO UPDATE SET ai_passport_photo_used = $2, updated_at = CURRENT_TIMESTAMP;
+        `, [userId, limitValue]);
+
+        console.log(`[Database] Admin updated ai_passport_photo_used = ${limitValue} for user: ${userId}`);
+        res.json({ 
+            success: true, 
+            ai_passport_photo_used: limitValue,
+            message: limitValue === 1 ? 'ساخت تصویر پرسنلی غیرفعال شد.' : 'ساخت تصویر پرسنلی برای کاربر فعال گردید.' 
+        });
+    } catch (err: any) {
+        console.error('[POST /api/user/profile/ai-photo-limit Error]', err);
+        res.status(500).json({ error: err.message || 'Error updating AI photo limit.' });
+    }
+});
+
+// POST /api/user/profile/avatar
+app.post('/api/user/profile/avatar', async (req, res) => {
+    try {
+        const { userId = 'default_user', avatarUrl } = req.body;
+        if (!avatarUrl) {
+            return res.status(400).json({ error: 'avatarUrl is required.' });
+        }
+
+        await pool.query(`
+            INSERT INTO user_profiles (user_id, avatar_url, updated_at)
+            VALUES ($1, $2, CURRENT_TIMESTAMP)
+            ON CONFLICT (user_id) 
+            DO UPDATE SET avatar_url = $2, updated_at = CURRENT_TIMESTAMP;
+        `, [userId, avatarUrl]);
+
+        console.log(`[Database] Avatar updated in Postgres DB for user: ${userId}`);
+        res.json({ success: true, message: 'Profile picture saved successfully in PostgreSQL DB.' });
+    } catch (err: any) {
+        console.error('[POST /api/user/profile/avatar Error]', err);
+        res.status(500).json({ error: err.message || 'Error saving profile picture to PostgreSQL DB.' });
     }
 });
 

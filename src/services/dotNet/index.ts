@@ -3,6 +3,10 @@ import api from "../axios";
 export const usersLogin = async (postData: any) => {
   return await api.post("/api/users/login", postData);
 };
+
+export const updatedProfilePhoto = (postData: any) => {
+  return api.put(`/api/users/updatedProfilePhoto`, postData);
+};
 export const verifyLoginCode = async (postData: any) => {
   return await api.post("/api/users/verifyLoginCode", postData);
 };

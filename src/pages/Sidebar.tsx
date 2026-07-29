@@ -45,7 +45,15 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
   const navItems = [
     { icon: LayoutDashboard, label: "dashboard", path: "/dashboard" },
     { icon: User, label: "profile", path: "/profile" },
-    { icon: Users, label: "users_management", path: "/userManagement" },
+    ...(hasPermission("chatSmart.read")
+      ? [
+          {
+            icon: Users,
+            label: "users_management",
+            path: "/userManagement",
+          },
+        ]
+      : []),
     {
       icon: Building,
       label: "introductionOrganization",

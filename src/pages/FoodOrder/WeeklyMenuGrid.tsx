@@ -6,7 +6,7 @@ type Props = {
   weeklyMenu: DailyMenu[];
   selections: Record<string, MealType>;
   t: (key: string) => string;
-  onSelect: (dayKey: string, type: MealType) => void;
+  onSelect?: (dayKey: string, type: MealType) => void; 
 };
 
 const WeeklyMenuGrid: React.FC<Props> = ({
@@ -22,7 +22,7 @@ const WeeklyMenuGrid: React.FC<Props> = ({
           <DayMenuCard
             key={day.dayKey}
             day={day}
-            selected={selections[day.dayKey]}
+            selected={selections[day.dayKey] || "None"}
             t={t}
             onSelect={onSelect}
           />

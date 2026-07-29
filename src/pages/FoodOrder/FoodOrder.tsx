@@ -9,9 +9,11 @@ import PollSection from "./PollSection";
 import { Check } from "lucide-react";
 import { sendNotifToAll } from "../../services/dotNet";
 import { useAppSelector } from "../../features/store";
+import FoodOrderHistory from "./FoodOrderHistory";
 
 const FoodOrder: React.FC = () => {
   const { t } = useLanguage();
+  const [activeTab, setActiveTab] = useState<"current" | "history">("current");
   const [selections, setSelections] = useState<Record<string, MealType>>({
     sat: "None",
     sun: "None",
@@ -22,9 +24,11 @@ const FoodOrder: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [answers, setAnswers] = useState<Record<string, number>>({});
+  
   const userLogin = useAppSelector(
     (state) => state?.main?.userProfile?.userLogin,
   );
+
   const handleSelect = (day: string, type: MealType) => {
     setSelections((prev) => ({ ...prev, [day]: type }));
     setSuccess(false);
@@ -49,8 +53,7 @@ const FoodOrder: React.FC = () => {
 
   const handleSendNotifToAll = async () => {
     try {
-      console.log("HElow notif");
-      
+      console.log("Hellow notif");
       const postData = {
         personalCode: userLogin?.personalCode,
         title: "Helllllllllllllllll",
@@ -62,7 +65,6 @@ const FoodOrder: React.FC = () => {
       console.error("Failed to send notification:", error);
     }
   };
-  console.log(userLogin?.personalCode);
 
   useEffect(() => {
     if (!userLogin?.personalCode) return;
@@ -71,35 +73,48 @@ const FoodOrder: React.FC = () => {
 
   return (
     <div className="space-y-8">
-      <FoodHeader t={t} />
-      {success && (
-        <div className="bg-green-900/20 border border-green-800 text-green-500 p-4 rounded-lg flex items-center gap-3 animate-pulse shadow-sm">
-          <Check size={20} />
-          {t("order_success")}
-        </div>
-      )}
-      <div className="bg-bmw-surface rounded-2xl shadow-lg">
-        <WeeklyMenuGrid
-          weeklyMenu={weeklyMenu}
-          selections={selections}
-          t={t}
-          onSelect={handleSelect}
-        />
-        <SummaryBar
-          selections={selections}
-          t={t}
-          isSubmitting={isSubmitting}
-          onSubmit={handleSubmit}
-        />
-      </div>
-      <PollSection
-        poll={poll}
-        answers={answers}
-        t={t}
-        onSubmit={handleAnswerQuestionUser}
-        onAnswer={handleAnswer}
-        isFormComplete={isFormComplete}
+      <FoodHeader 
+        t={t} 
+        activeTab={activeTab} 
+        setActiveTab={setActiveTab} 
       />
+
+      {activeTab === "current" ? (
+        <>
+          {success && (
+            <div className="bg-green-900/20 border border-green-800 text-green-500 p-4 rounded-lg flex items-center gap-3 animate-pulse shadow-sm">
+              <Check size={20} />
+              {t("order_success")}
+            </div>
+          )}
+          
+          <div className="bg-bmw-surface rounded-2xl shadow-lg">
+            <WeeklyMenuGrid
+              weeklyMenu={weeklyMenu}
+              selections={selections}
+              t={t}
+              onSelect={handleSelect}
+            />
+            <SummaryBar
+              selections={selections}
+              t={t}
+              isSubmitting={isSubmitting}
+              onSubmit={handleSubmit}
+            />
+          </div>
+
+          <PollSection
+            poll={poll}
+            answers={answers}
+            t={t}
+            onSubmit={handleAnswerQuestionUser}
+            onAnswer={handleAnswer}
+            isFormComplete={isFormComplete}
+          />
+        </>
+      ) : (
+        <FoodOrderHistory />
+      )}
 
       <div className="h-20 lg:hidden"></div>
     </div>
@@ -107,48 +122,3 @@ const FoodOrder: React.FC = () => {
 };
 
 export default FoodOrder;
-
-// const isFocused = useIsFocused();
-// const [isDragging, setIsDragging] = useState(false);
-
-// const shouldPlay = isPlaying && isFocused && !isDragging && !isManuallyPaused;
-
-//  const panResponder = useRef(
-//     PanResponder.create({
-//       onStartShouldSetPanResponder: () => true,
-//       onMoveShouldSetPanResponder: () => true,
-//       onPanResponderGrant: (e) => {
-//         setIsDragging(true);
-//         seek(e.nativeEvent.locationX);
-//       },
-//       onPanResponderMove: (e) => {
-//         seek(e.nativeEvent.locationX);
-//       },
-//       onPanResponderRelease: () => {
-//         videoRef.current?.seek(positionRef.current);
-//         setIsDragging(false);
-//       },
-//       onPanResponderTerminate: () => {
-//         videoRef.current?.seek(positionRef.current);
-//         setIsDragging(false);
-//       },
-//     }),
-//   ).current;
-
-// <Video
-//       key={uri}
-//       ref={videoRef}
-//       source={{ uri }}
-//       style={styles.video}
-//       resizeMode="cover" // پر کردن کامل صفحه، دقیقاً مثل ریلز اینستاگرام
-//       repeat
-//       muted={isMuted}
-//       rate={isSlowMotion ? SLOW_MOTION_RATE : 1} // اسلوموشن هنگام نگه‌داشتن انگشت
-//       paused={!shouldPlay}
-//       onLoad={handleLoad}
-//       onProgress={handleProgress}
-//       onBuffer={handleBuffer}
-//       progressUpdateInterval={250}
-//       playInBackground={false}
-//       playWhenInactive={false}
-//     />

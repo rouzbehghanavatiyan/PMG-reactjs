@@ -13,18 +13,122 @@ import {
   Eye,
   Lock,
   XCircle,
+  ChevronDown,
 } from "lucide-react";
 import { useLanguage } from "../src/contexts/LanguageContext";
 import { ToastContainer } from "./Toast";
 import ProfileInfo from "../src/pages/ProfileInfo";
 import { useAppDispatch, useAppSelector } from "../src/features/store";
 import {
+  addAttachment,
   getUserProfile,
   updatedLimitUsedPhotoAi,
+  updatedProfilePhoto,
 } from "../src/services/dotNet";
 import { jwtDecode } from "jwt-decode";
 import { RsetUserProfile } from "../src/features/slices/mainSlice";
+import StringHelpers from "../src/utils/stringHelpers";
+import CustomImage from "../src/components/UI/CustomImage";
 const baseURL = "http://172.16.10.15:3001";
+
+const SHAWL_COLORS = [
+  {
+    id: "royal-blue",
+    nameFa: "آبی کاربنی (Persia Khodro / BMW)",
+    nameEn: "Royal Blue (Persia Khodro / BMW)",
+    descFa: "رنگ آبی کاربنی رسمی پرشیاخودرو و بیام‌و",
+    descEn: "Official Persia Khodro & BMW Royal Blue",
+    colorPrompt: "royal blue (آبی کاربنی)",
+  },
+  {
+    id: "charcoal-black",
+    nameFa: "مشکی زغالی (Persia Khodro)",
+    nameEn: "Charcoal Black (Persia Khodro)",
+    descFa: "مشکی متالیک لوکس و سنگین",
+    descEn: "Luxury Metallic Charcoal Black",
+    colorPrompt: "charcoal black / metallic black",
+  },
+  {
+    id: "m-light-blue",
+    nameFa: "آبی روشن ام (BMW M)",
+    nameEn: "BMW M Light Blue",
+    descFa: "آبی آسمانی اسپرت سری M بیام‌و",
+    descEn: "BMW M Series Sky Blue",
+    colorPrompt: "sky blue / BMW M light blue",
+  },
+  {
+    id: "m-dark-blue",
+    nameFa: "آبی تیره ام (BMW M)",
+    nameEn: "BMW M Dark Blue",
+    descFa: "آبی تیره اسپرت و کلاسیک سری M",
+    descEn: "BMW M Series Dark Navy Blue",
+    colorPrompt: "dark navy blue / BMW M dark blue",
+  },
+  {
+    id: "m-red",
+    nameFa: "قرمز ام (BMW M)",
+    nameEn: "BMW M Red",
+    descFa: "قرمز مسابقه‌ای تهاجمی سری M",
+    descEn: "BMW M Series Racing Red",
+    colorPrompt: "bright fire-engine red / BMW M red",
+  },
+  {
+    id: "mini-green",
+    nameFa: "سبز ریسینگ مینی (MINI)",
+    nameEn: "MINI British Racing Green",
+    descFa: "سبز اصیل مسابقات بریتانیا برند مینی",
+    descEn: "Classic British Racing Green",
+    colorPrompt: "deep British racing green / forest green",
+  },
+  {
+    id: "opel-yellow",
+    nameFa: "زرد رسمی اوپل (Opel)",
+    nameEn: "Opel Yellow",
+    descFa: "زرد زنده و پرانرژی سازمانی اوپل",
+    descEn: "Vibrant Opel Yellow",
+    colorPrompt: "vibrant cadmium yellow",
+  },
+  {
+    id: "nissan-red",
+    nameFa: "قرمز نیسان (NISSAN)",
+    nameEn: "Nissan Red",
+    descFa: "قرمز متالیک رسمی و نمادین نیسان",
+    descEn: "Official Nissan Metallic Red",
+    colorPrompt: "cherry red / metallic dark red",
+  },
+  {
+    id: "titanium-silver",
+    nameFa: "نقره‌ای تیتانیوم (BMW)",
+    nameEn: "Titanium Silver (BMW)",
+    descFa: "نقره‌ای متالیک لوکس و مدرن بیام‌و",
+    descEn: "Luxury Titanium Silver Metallic",
+    colorPrompt: "titanium silver / cool metallic gray",
+  },
+  {
+    id: "alpine-white",
+    nameFa: "سفید آلپاین (BMW)",
+    nameEn: "Alpine White (BMW)",
+    descFa: "سفید براق و پرستیژ آلپاین بیام‌و",
+    descEn: "Glossy Alpine White",
+    colorPrompt: "alpine white / bright off-white",
+  },
+  {
+    id: "champagne-gold",
+    nameFa: "بژ متالیک شامپاینی (MINI/BMW)",
+    nameEn: "Champagne Metallic (MINI/BMW)",
+    descFa: "بژ متالیک شامپاینی کلاسیک و مجلل",
+    descEn: "Warm Champagne Gold Metallic",
+    colorPrompt: "champagne gold / soft warm metallic beige",
+  },
+  {
+    id: "dark-gray",
+    nameFa: "خاکستری متالیک (Persia Khodro)",
+    nameEn: "Dark Gray Metallic (Persia Khodro)",
+    descFa: "خاکستری تیره متالیک رسمی",
+    descEn: "Official Dark Metallic Gray",
+    colorPrompt: "dark mineral gray / gunmetal",
+  },
+];
 
 const stepsFa = [
   "درحال تحلیل ساختار چهره و شناسایی نقاط بیومتریک...",
@@ -42,65 +146,31 @@ const stepsEn = [
   "Generating final high-resolution 3:4 passport image...",
 ];
 
-const profileData = {
-  en: {
-    name: "Behzad Naderloo",
-    address: "Tehran HQ, 4th Floor",
-    dept: "Sales & Marketing",
-    date: "March 12, 2018",
-    desc: "Responsible for overseeing the sales team at the central branch, ensuring targets are met, and maintaining high standards of customer service consistent with the BMW brand.",
-    bullets: [
-      "Develop and implement strategic sales plans.",
-      "Manage customer relationships and resolve escalations.",
-      "Coordinate with the marketing team for product launches.",
-      "Prepare monthly performance reports for the board.",
-    ],
-    manager: "Hossein Tehrani",
-    sub1: "Sara Mohammadi",
-    sub2: "Reza Karimi",
-  },
-  fa: {
-    name: "بهزاد ندرلو",
-    address: "دفتر مرکزی تهران، طبقه ۴",
-    dept: "فروش و بازاریابی",
-    date: "۲۲ اسفند ۱۳۹۶",
-    desc: "مسئول نظارت بر تیم فروش در شعبه مرکزی، اطمینان از تحقق اهداف و حفظ استانداردهای بالای خدمات مشتری مطابق با برند BMW.",
-    bullets: [
-      "توسعه و اجرای استراتژی‌های فروش.",
-      "مدیریت روابط با مشتریان و حل مشکلات پیچیده.",
-      "هماهنگی با تیم بازاریابی برای معرفی محصولات جدید.",
-      "تهیه گزارش‌های ماهانه عملکرد برای هیئت مدیره.",
-    ],
-    manager: "حسین تهرانی",
-    sub1: "سارا محمدی",
-    sub2: "ریزا کریمی",
-  },
-};
-
 const Profile: React.FC = () => {
   const { t, dir, language } = useLanguage();
   const [activeTab, setActiveTab] = useState<"info" | "passport_photo">("info");
+
   const user = useAppSelector((state) => state);
   const firstName = user?.main?.userProfile?.userLogin?.firstName;
   const personalCode = user?.main?.userProfile?.userLogin?.personalCode;
   const lastName = user?.main?.userProfile?.userLogin?.lastName;
+  console.log(user?.main?.userProfile?.userLogin?.profileAttachment);
+
   const [avatarUrl, setAvatarUrl] = useState<string>("");
   const [isSavingToDb, setIsSavingToDb] = useState(false);
   const userProfile = user?.main?.userProfile?.userLogin;
   const aiPhotoUsed = user?.main?.userProfile?.userLogin?.aiPhotoUsed;
   const dispatch = useAppDispatch();
+  const [shawlColor, setShawlColor] = useState<string>("royal-blue");
+  const [selectedModel, setSelectedModel] =
+    useState<string>("gemini-3-pro-image");
   const department = user?.main?.userProfile?.userLogin?.department;
   const isMan = user?.main?.userProfile?.userLogin?.gender === "مرد";
   const isWomen = user?.main?.userProfile?.userLogin?.gender === "زن";
   console.log(userProfile, aiPhotoUsed);
-  const [isAdmin, setIsAdmin] = useState<boolean>(true);
-  const [isUpdatingLimit, setIsUpdatingLimit] = useState<boolean>(false);
   const [toasts, setToasts] = useState<any[]>([]);
   const [sourceImage, setSourceImage] = useState<string | null>(null);
   const [gender, setGender] = useState<"مرد" | "زن">("مرد");
-  const [selectedModel, setSelectedModel] = useState<string>(
-    "gemini-3.1-flash-image",
-  );
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -112,6 +182,12 @@ const Profile: React.FC = () => {
   const [ovalY, setOvalY] = useState<number>(42);
   const [ovalSize, setOvalSize] = useState<number>(50);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const profilePhoto =
+    avatarUrl ||
+    (user?.main?.userProfile?.userLogin?.profileAttachment &&
+      StringHelpers.getImage(
+        user?.main?.userProfile?.userLogin?.profileAttachment,
+      ));
 
   const addToast = (
     type: "success" | "error" | "info" | "loading",
@@ -133,25 +209,25 @@ const Profile: React.FC = () => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   };
 
-  const fetchRemoteProfile = async () => {
-    try {
-      const res = await fetch(`${baseURL}/api/user/profile/default_user`);
-      const data = await res.json();
-      console.log("hello res", data);
-      if (data.success && data.profile) {
-        if (data.profile.avatar_url) {
-          // localStorage.setItem("user_avatar", data?.profile?.avatar_url);
-          setAvatarUrl(data.profile.avatar_url);
-        }
+  // const fetchRemoteProfile = async () => {
+  //   try {
+  //     const res = await fetch(`${baseURL}/api/user/profile/default_user`);
+  //     const data = await res.json();
+  //     console.log("hello res", data);
+  //     if (data.success && data.profile) {
+  //       if (data.profile.avatar_url) {
+  //         // localStorage.setItem("user_avatar", data?.profile?.avatar_url);
+  //         setAvatarUrl(data.profile.avatar_url);
+  //       }
 
-        if (data.profile.ai_passport_photo_used !== undefined) {
-          // setAiPhotoUsed(data.profile.ai_passport_photo_used ? 1 : 0);
-        }
-      }
-    } catch (err) {
-      console.warn("Could not fetch profile from remote Postgres DB:", err);
-    }
-  };
+  //       if (data.profile.ai_passport_photo_used !== undefined) {
+  //         // setAiPhotoUsed(data.profile.ai_passport_photo_used ? 1 : 0);
+  //       }
+  //     }
+  //   } catch (err) {
+  //     console.warn("Could not fetch profile from remote Postgres DB:", err);
+  //   }
+  // };
 
   useEffect(() => {
     // fetchRemoteProfile();
@@ -169,14 +245,9 @@ const Profile: React.FC = () => {
     try {
       const token: any = localStorage.getItem("token");
       const decoded: any = jwtDecode(token);
-      const postData = {
-        personalCode: "11880",
-        Title: "سلام",
-        message: " این تسته هستش برای شما",
-      };
+
       const res = await getUserProfile();
       const { code, result }: any = res?.data;
-
       if (code === 0) {
         dispatch(RsetUserProfile({ token: decoded, userLogin: result }));
       }
@@ -191,56 +262,7 @@ const Profile: React.FC = () => {
     }
   }, [activeTab]);
 
-  const handleToggleAiPhotoLimit = async (newStatus: number) => {
-    if (!isAdmin) {
-      addToast(
-        "error",
-        language === "fa" ? "عدم دسترسی ادمین" : "Admin Permission Required",
-        language === "fa"
-          ? "تغییر وضعیت این فیلد فقط توسط مدیر سیستم (Admin) امکان‌پذیر است."
-          : "Only Admin users can modify this field.",
-      );
-      return;
-    }
-    setIsUpdatingLimit(true);
-    try {
-      const res = await fetch(`${baseURL}/api/user/profile/ai-photo-limit`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: personalCode, used: newStatus }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        // setAiPhotoUsed(newStatus);
-        addToast(
-          "success",
-          language === "fa"
-            ? "بروزرسانی دسترسی ادمین"
-            : "Limit Updated by Admin",
-          language === "fa"
-            ? newStatus === 1
-              ? "امکان ساخت تصویر پرسنلی غیرفعال شد (مقدار ۱ ثبت شد)."
-              : "امکان ساخت تصویر پرسنلی برای کاربر فعال گردید (مقدار ۰ ثبت شد)."
-            : newStatus === 1
-              ? "AI Photo generation disabled (set to 1)."
-              : "AI Photo generation enabled (set to 0).",
-        );
-      } else {
-        throw new Error(data.error || "Failed to update limit");
-      }
-    } catch (err: any) {
-      addToast(
-        "error",
-        language === "fa" ? "خطا" : "Error",
-        err.message ||
-          (language === "fa"
-            ? "خطا در ثبت تغییرات دسترسی."
-            : "Failed to update access level."),
-      );
-    } finally {
-      setIsUpdatingLimit(false);
-    }
-  };
+  console.log(selectedModel);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -281,70 +303,82 @@ const Profile: React.FC = () => {
   const handleGenerate = async () => {
     if (!sourceImage) return;
 
-    if (aiPhotoUsed) {
-      const msg =
-        language === "fa"
-          ? "سقف مجاز ساخت تصویر پرسنلی برای شما به پایان رسیده است (۱/۱ استفاده شده). امکان ارسال درخواست جدید وجود ندارد."
-          : "Your 1-time AI passport photo limit has been used (1/1). You cannot send a new request.";
-      setErrorMsg(msg);
-      addToast(
-        "error",
-        language === "fa" ? "سقف مجاز تکمیل شده" : "Limit Exceeded",
-        msg,
-      );
-      return;
-    }
+    const res = await getUserProfile();
+    const { code, result }: any = res?.data;
+    if (code === 0 && !result?.aiPhotoUsed) {
+      if (aiPhotoUsed) {
+        const msg =
+          language === "fa"
+            ? "سقف مجاز ساخت تصویر پرسنلی برای شما به پایان رسیده است (۱/۱ استفاده شده). امکان ارسال درخواست جدید وجود ندارد."
+            : "Your 1-time AI passport photo limit has been used (1/1). You cannot send a new request.";
+        setErrorMsg(msg);
+        addToast(
+          "error",
+          language === "fa" ? "سقف مجاز تکمیل شده" : "Limit Exceeded",
+          msg,
+        );
+        return;
+      }
 
-    setIsGenerating(true);
-    setGeneratedImage(null);
-    setErrorMsg(null);
-    setSuccessMsg(null);
-    setProgressPercentage(5);
-
-    const createMask = (src: string): Promise<string> => {
-      return new Promise((resolve) => {
-        const img = new window.Image();
-        img.crossOrigin = "anonymous";
-        img.onload = () => {
-          const canvas = document.createElement("canvas");
-          canvas.width = img.width || 512;
-          canvas.height = img.height || 512;
-          const ctx = canvas.getContext("2d");
-          if (ctx) {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            if (maskMode === "strict") {
-              ctx.fillStyle = "#FFFFFF";
-              ctx.beginPath();
-              const centerX = canvas.width * (ovalX / 100);
-              const centerY = canvas.height * (ovalY / 100);
-              const radiusX = canvas.width * (ovalSize / 100) * 0.225;
-              const radiusY = canvas.height * (ovalSize / 100) * 0.275;
-              ctx.ellipse(
-                centerX,
-                centerY,
-                radiusX,
-                radiusY,
-                0,
-                0,
-                2 * Math.PI,
-              );
-              ctx.fill();
+      setIsGenerating(true);
+      setGeneratedImage(null);
+      setErrorMsg(null);
+      setSuccessMsg(null);
+      setProgressPercentage(5);
+      const createMask = (src: string): Promise<string> => {
+        return new Promise((resolve) => {
+          const img = new window.Image();
+          img.crossOrigin = "anonymous";
+          img.onload = () => {
+            const canvas = document.createElement("canvas");
+            canvas.width = img.width || 512;
+            canvas.height = img.height || 512;
+            const ctx = canvas.getContext("2d");
+            if (ctx) {
+              ctx.clearRect(0, 0, canvas.width, canvas.height);
+              if (maskMode === "strict") {
+                ctx.fillStyle = "#FFFFFF";
+                ctx.beginPath();
+                const centerX = canvas.width * (ovalX / 100);
+                const centerY = canvas.height * (ovalY / 100);
+                const radiusX = canvas.width * (ovalSize / 100) * 0.225;
+                const radiusY = canvas.height * (ovalSize / 100) * 0.275;
+                ctx.ellipse(
+                  centerX,
+                  centerY,
+                  radiusX,
+                  radiusY,
+                  0,
+                  0,
+                  2 * Math.PI,
+                );
+                ctx.fill();
+              }
             }
-          }
-          resolve(canvas.toDataURL("image/png"));
-        };
-        img.onerror = () => {
-          resolve(
-            "data:image/png;base64,iVBOR0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=",
-          );
-        };
-        img.src = src;
-      });
-    };
-    const basePrompt = `You are a professional biometric passport and ID photo photographer.
+            resolve(canvas.toDataURL("image/png"));
+          };
+          img.onerror = () => {
+            resolve(
+              "data:image/png;base64,iVBOR0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=",
+            );
+          };
+          img.src = src;
+        });
+      };
+
+      const basePrompt = `You are an elite professional biometric passport photographer and facial reconstruction specialist.
 TASK
 
-Using ONLY the uploaded face photo as the identity reference, create one high-quality biometric passport-style ID photo.
+Using ONLY the uploaded face photo as the absolute identity reference, generate one ultra-high-quality biometric passport-style ID photo.
+
+════════════════════════════
+CRITICAL FACIAL FIDELITY MANDATE (EXTREMELY IMPORTANT)
+════════════════════════════
+
+- Maintain 100% pixel-perfect likeness, facial anatomy, and exact proportions of the original user's face.
+- Retain all delicate unique facial micro-details: the precise shape, size, color, and symmetry of the eyes, unique eyelids, shape of the nose bridge and nostrils, precise curvature and volume of the lips, jawline contours, ear placement, cheekbones, birthmarks, freckles, skin pores, and natural skin texture.
+- Absolutely NO modification of facial features, NO facial morphing, NO generic AI face-swapping, and NO stylized cartoonish or airbrushed/plastic/smooth filtering.
+- The face in the output MUST be 100% identical, immediately recognizable, and exactly the same person as in the reference image without any deviation. Every millimeter of the facial geometry, skin tones, and texture must match the original.
 
 ════════════════════════════
 IDENTITY (HIGHEST PRIORITY)
@@ -404,28 +438,35 @@ Lighting:
 - Sharp focus
 
 ════════════════════════════
-CLOTHING
+CLOTHING & DRESS PRESERVATION (EXTREMELY CRITICAL)
 ════════════════════════════
 
-If clothing is not suitable, generate simple formal clothing.`;
+ FIRST, analyze the original clothing of the person in the uploaded image.
+- IF THE PERSON IS ALREADY WEARING FORMAL CLOTHING (such as a suit jacket/blazer, collared shirt, necktie, bowtie, or formal office wear), you MUST PRESERVE those clothing details exactly as they are. Keep the exact colors, textures, patterns, necktie knots, collars, lapels, buttons, and folds from the original photo. Do not replace them or replace a suit/tie with a different outfit.
+- ONLY IF the original clothing is casual or unsuitable (e.g., hoodies, t-shirts, sportswear, pajamas), you should replace them with high-quality, professional formal business clothing as specified below.`;
 
-    const maleClothing = `
+      const maleClothing = `
 
-Male:
-- Plain collared shirt or formal top.`;
+Male Clothing Rules:
+1. Preserve Original Formal Attire: If the original photo already features a suit jacket, blazer, shirt, or tie, preserve these items exactly without alteration.
+2. If replacement is needed: Generate a highly realistic professional dark business suit jacket (charcoal black or dark navy blue), a crisp white collared dress shirt, and a clean, elegant, tasteful solid-colored or striped necktie. It must look completely natural and perfectly fitted around the neck and shoulders.`;
 
-    const femaleClothing = `
+      const activeColorObj =
+        SHAWL_COLORS.find((c) => c.id === shawlColor) || SHAWL_COLORS[0];
+      const colorPromptStr = activeColorObj.colorPrompt;
+      const colorNameFa = activeColorObj.nameFa;
 
-Female:
-- Wear a plain official Iranian maqna'eh.
-- Hair, neck and ears fully covered.
-- Entire face remains visible.
-- Black, navy or dark gray.
-- No logos, decorations or patterns.
-- Do NOT alter any facial proportions while adding the maqna'eh.`;
+      const femaleClothing = `
 
-    const tailPrompt = `
+Female Clothing & Shawl Rules:
+1. Shawl Requirement: Wear a modern, elegant ${colorPromptStr} shawl (${colorNameFa}) made of soft, light, flowing premium georgette/chiffon fabric.
+2. Shawl Draping Style: The shawl must wrap smoothly and neatly around the head, framing the face beautifully, and drape gracefully over the shoulders and chest exactly like a modern draped hijab shawl (as in the provided example). This must NOT look like a stiff, rigid Iranian maqna'eh, NOT look like a hood, and NOT look like a rigid cowl. One side of the shawl should drape down naturally over the front shoulder.
+3. Preserve Under-wear/Suit: If the original photo already features a formal blazer, dress, or jacket, keep that clothing visible under the neatly draped ${colorPromptStr} shawl. If the original clothing was casual, generate a professional elegant dark business suit jacket/blazer or neat high-collar formal blouse underneath the shawl.
+4. Hair & Neck: Hair, neck, and ears must be fully covered by the shawl.
+5. Solid Color: Solid ${colorPromptStr} color, with no patterns, decorations, or logos.
+6. Do NOT alter any facial proportions while adding the modern ${colorPromptStr} shawl (${colorNameFa}).`;
 
+      const tailPrompt = `
 No hats, sunglasses or unnecessary accessories.
 
 ════════════════════════════
@@ -448,121 +489,151 @@ FINAL OUTPUT
 
 Generate ONE high-resolution biometric passport photo suitable for official identification documents while preserving the person's identity exactly.`;
 
-    const fullPrompt =
-      basePrompt + (isMan ? maleClothing : femaleClothing) + tailPrompt;
+      const fullPrompt =
+        basePrompt + (isMan ? maleClothing : femaleClothing) + tailPrompt;
 
-    const steps = language === "fa" ? stepsFa : stepsEn;
-    let stepIdx = 0;
-    setProgressStep(steps[0]);
+      const steps = language === "fa" ? stepsFa : stepsEn;
+      let stepIdx = 0;
+      setProgressStep(steps[0]);
 
-    // Timer to simulate progress bar transitions nicely
-    const interval = setInterval(() => {
-      setProgressPercentage((prev) => {
-        if (prev < 90) {
-          const nextPercent = prev + Math.floor(Math.random() * 8) + 2;
-          const currentStepIdx = Math.min(
-            Math.floor(nextPercent / 20),
-            steps.length - 1,
-          );
-          setProgressStep(steps[currentStepIdx]);
-          return nextPercent;
+      const interval = setInterval(() => {
+        setProgressPercentage((prev) => {
+          if (prev < 90) {
+            const nextPercent = prev + Math.floor(Math.random() * 8) + 2;
+            const currentStepIdx = Math.min(
+              Math.floor(nextPercent / 20),
+              steps.length - 1,
+            );
+            setProgressStep(steps[currentStepIdx]);
+            return nextPercent;
+          }
+          return prev;
+        });
+      }, 1200);
+      try {
+        const maskData = await createMask(sourceImage);
+        const response = await fetch(`${baseURL}/api/images/edits`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            image: sourceImage,
+            mask: maskData,
+            prompt: fullPrompt,
+            model: selectedModel,
+            userId: personalCode,
+          }),
+        });
+        clearInterval(interval);
+        if (response.ok) {
+          const postData = {
+            personalCode: personalCode,
+            aiPhotoUsed: 1,
+          };
+          const updateUsedPhoto = await updatedLimitUsedPhotoAi(postData);
+          console.log("updateUsedPhoto", updateUsedPhoto);
+        } else {
+          const errData = await response.json();
+          throw new Error(errData.error || "Server returned an error");
         }
-        return prev;
-      });
-    }, 1200);
-    try {
-      const maskData = await createMask(sourceImage);
-      const response = await fetch(`${baseURL}/api/images/edits`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          image: sourceImage,
-          mask: maskData,
-          prompt: fullPrompt,
-          model: selectedModel,
-          userId: personalCode,
-        }),
-      });
-      clearInterval(interval);
-      if (response.ok) {
-        const postData = {
-          personalCode: personalCode,
-          aiPhotoUsed: 1,
-        };
-        const updateUsedPhoto = await updatedLimitUsedPhotoAi(postData);
-        console.log("updateUsedPhoto", updateUsedPhoto);
-      } else {
-        const errData = await response.json();
-        throw new Error(errData.error || "Server returned an error");
-      }
 
-      const data = await response.json();
-      const imgData = data?.data?.[0];
+        const data = await response.json();
+        const imgData = data?.data?.[0];
 
-      if (imgData) {
-        const resultUrl = imgData.b64_json
-          ? `data:image/png;base64,${imgData.b64_json}`
-          : imgData.url;
+        if (imgData) {
+          const resultUrl = imgData.b64_json
+            ? `data:image/png;base64,${imgData.b64_json}`
+            : imgData.url;
 
-        setProgressPercentage(100);
-        setGeneratedImage(resultUrl);
-        // setAiPhotoUsed(true);
-        setSuccessMsg(
-          language === "fa"
-            ? "تصویر پرسنلی شما با موفقیت تولید شد! سقف مجاز تک‌بار شما مصرف گردید."
-            : "Your passport photo was successfully generated! Your 1-time quota has been used.",
+          setProgressPercentage(100);
+          setGeneratedImage(resultUrl);
+          // setAiPhotoUsed(true);
+          setSuccessMsg(
+            language === "fa"
+              ? "تصویر پرسنلی شما با موفقیت تولید شد! سقف مجاز تک‌بار شما مصرف گردید."
+              : "Your passport photo was successfully generated! Your 1-time quota has been used.",
+          );
+          addToast(
+            "info",
+            language === "fa" ? "ثبت سقف مجاز" : "Quota Used",
+            language === "fa"
+              ? "درخواست با موفقیت ثبت شد. فیلد سقف مجاز کاربر به ۱ (غیرفعال) تغییر یافت."
+              : "Request completed. User photo quota updated to 1.",
+          );
+        } else {
+          throw new Error("No image data returned from API.");
+        }
+      } catch (err: any) {
+        clearInterval(interval);
+        setErrorMsg(
+          err.message ||
+            (language === "fa"
+              ? "برقراری ارتباط با سرویس هوش مصنوعی با خطا مواجه شد."
+              : "Failed to communicate with AI service."),
         );
-        addToast(
-          "info",
-          language === "fa" ? "ثبت سقف مجاز" : "Quota Used",
-          language === "fa"
-            ? "درخواست با موفقیت ثبت شد. فیلد سقف مجاز کاربر به ۱ (غیرفعال) تغییر یافت."
-            : "Request completed. User photo quota updated to 1.",
-        );
-      } else {
-        throw new Error("No image data returned from API.");
+      } finally {
+        setIsGenerating(false);
       }
-    } catch (err: any) {
-      clearInterval(interval);
-      setErrorMsg(
-        err.message ||
-          (language === "fa"
-            ? "برقراری ارتباط با سرویس هوش مصنوعی با خطا مواجه شد."
-            : "Failed to communicate with AI service."),
+    } else {
+      addToast(
+        "error",
+        language === "fa" ? "خطا" : "Error",
+        language === "fa"
+          ? "سقف مجاز ساخت تصویر پرسنلی هوشمند برای شما به پایان رسیده است (محدودیت ۱ بار). امکان درخواست جدید وجود ندارد."
+          : "Your smart personnel image generation limit has been reached (limit: 1 time). You cannot submit a new request.",
       );
-    } finally {
-      setIsGenerating(false);
     }
+  };
+
+  const handleCreateBase64ToFile = async (base64String: string) => {
+    const arr = base64String.split(",");
+    const mimeMatch = arr[0].match(/:(.*?);/);
+    const mime = mimeMatch ? mimeMatch[1] : "image/png";
+
+    const byteString = atob(arr[1]);
+    const ab = new ArrayBuffer(byteString.length);
+    const ia = new Uint8Array(ab);
+    const extension = mime.split("/")[1] || "png";
+    const fileName = `${personalCode}.${extension}`;
+
+    for (let i = 0; i < byteString.length; i++) {
+      ia[i] = byteString.charCodeAt(i);
+    }
+    return new File([ab], fileName, { type: mime });
   };
 
   const handleApplyAsProfile = async () => {
     if (!generatedImage) return;
-
     localStorage.setItem("user_avatar", generatedImage);
     setAvatarUrl(generatedImage);
     window.dispatchEvent(new Event("avatarChanged"));
-
     setIsSavingToDb(true);
-    addToast(
-      "loading",
-      language === "fa" ? "ذخیره در دیتابیس" : "Database Upload",
-      language === "fa"
-        ? "درحال آپلود و ذخیره‌سازی تصویر در دیتابیس ریموت PostgreSQL..."
-        : "Uploading and saving profile image to remote PostgreSQL DB...",
-    );
+    // addToast(
+    //   "loading",
+    //   language === "fa" ? "ذخیره در دیتابیس" : "Database Upload",
+    //   language === "fa"
+    //     ? "درحال آپلود و ذخیره‌سازی تصویر در دیتابیس ریموت PostgreSQL..."
+    //     : "Uploading and saving profile image to remote PostgreSQL DB...",
+    // );
     try {
-      const res = await fetch(`${baseURL}/api/user/profile/avatar`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userId: personalCode,
-          avatarUrl: generatedImage,
-        }),
-      });
-      const data = await res.json();
-      if (data.success) {
+      const formData = new FormData();
+      const file = await handleCreateBase64ToFile(generatedImage);
+      formData.append("FormFiles", file);
+      formData.append("AttachmentType", "picPersonal");
+      const resAttachment = await addAttachment(formData);
+      console.log("resAttachment resAttachment", resAttachment);
+      const postData = {
+        profileAttachmentId: resAttachment?.data?.result?.[0]?.attachmentId,
+      };
+      const resAttachmentProfile = await updatedProfilePhoto(postData);
+      console.log(
+        "resAttachmentProfileresAttachmentProfileresAttachmentProfileresAttachmentProfile",
+        resAttachmentProfile,
+      );
+
+      if (resAttachment?.data?.code === 0) {
+        setIsSavingToDb(false);
         addToast(
           "success",
           language === "fa" ? "پایگاه داده ریموت" : "Remote Database",
@@ -591,13 +662,13 @@ Generate ONE high-resolution biometric passport photo suitable for official iden
       }
     } catch (err) {
       console.error("Error saving avatar to Postgres DB:", err);
-      addToast(
-        "error",
-        language === "fa" ? "خطا در دیتابیس" : "Database Error",
-        language === "fa"
-          ? "اتصال به دیتابیس ریموت برقرار نشد، اما تصویر به صورت محلی ذخیره شد."
-          : "Could not connect to remote DB, saved locally.",
-      );
+      // addToast(
+      //   "error",
+      //   language === "fa" ? "خطا در دیتابیس" : "Database Error",
+      //   language === "fa"
+      //     ? "اتصال به دیتابیس ریموت برقرار نشد، اما تصویر به صورت محلی ذخیره شد."
+      //     : "Could not connect to remote DB, saved locally.",
+      // );
       setSuccessMsg(
         language === "fa"
           ? "تصویر پروفایل شما با موفقیت به صورت محلی به‌روزرسانی شد!"
@@ -647,7 +718,6 @@ Generate ONE high-resolution biometric passport photo suitable for official iden
       window.open(generatedImage, "_blank");
     }
   };
-
   return (
     <div className="max-w-5xl mx-auto space-y-8 relative">
       <ToastContainer
@@ -663,17 +733,15 @@ Generate ONE high-resolution biometric passport photo suitable for official iden
             alt="Cover"
             className="w-full h-full object-cover opacity-30"
           />
+
           <div className="absolute inset-0 bg-gradient-to-t from-bmw-base to-transparent"></div>
         </div>
         <div
           className={`absolute -bottom-12 ${dir === "rtl" ? "right-8" : "left-8"} flex items-end gap-6`}
         >
-          <div className="w-32 h-32 rounded-full border-4 border-bmw-base bg-bmw-surface overflow-hidden shadow-2xl relative group">
-            <img
-              src={avatarUrl}
-              alt="Profile"
-              className="w-full h-full object-cover"
-            />
+          {/* <div className="w-32 h-32 rounded-full border border-bmw-base bg-bmw-surface overflow-hidden shadow-2xl relative group"> */}
+          <CustomImage src={profilePhoto} size={120} />
+          {/* 
             {(isGenerating || isSavingToDb) && (
               <div className="absolute inset-0 bg-gray-950/85 backdrop-blur-md flex flex-col items-center justify-center p-2 text-white z-20 animate-fade-in text-center rounded-full">
                 <div className="relative flex items-center justify-center mb-1">
@@ -691,7 +759,7 @@ Generate ONE high-resolution biometric passport photo suitable for official iden
                 </span>
               </div>
             )}
-          </div>
+          </div> */}
           <div className="mb-2">
             <h1 className="text-3xl font-bold text-bmw-text">
               {firstName} {lastName}
@@ -773,8 +841,8 @@ Generate ONE high-resolution biometric passport photo suitable for official iden
               </h3>
               <p className="text-xs text-bmw-textSec mt-2 leading-relaxed">
                 {language === "fa"
-                  ? "این ابزار با استفاده از مدل تخصصی Gemini 3.1 Flash Image چهره شما را پردازش کرده و یک عکس پرسنلی بیومتریک استاندارد با پس‌زمینه سفید، نورپردازی آتلیه‌ای و لباس رسمی تولید می‌کند."
-                  : "This tool uses the specialized Gemini 3.1 Flash Image model to process your face and generate a standard biometric passport photo with a clean white background, professional studio lighting, and formal clothing."}
+                  ? "این ابزار با استفاده از مدل تخصصی Gemini 3 Pro (Banana Pro) چهره شما را پردازش کرده و یک عکس پرسنلی بیومتریک استاندارد با پس‌زمینه سفید، نورپردازی آتلیه‌ای و لباس رسمی تولید می‌کند."
+                  : "This tool uses the specialized Gemini 3 Pro (Banana Pro) model to process your face and generate a standard biometric passport photo with a clean white background, professional studio lighting, and formal clothing."}{" "}
               </p>
             </div>
 
@@ -825,7 +893,7 @@ Generate ONE high-resolution biometric passport photo suitable for official iden
                     className={`p-3.5 rounded-xl border text-sm font-semibold transition-all flex items-center justify-center gap-2 ${
                       isWomen
                         ? "opacity-40 cursor-not-allowed bg-bmw-hover border-bmw-border text-bmw-textSec/50" // استایل حالت غیرفعال
-                        : gender === "male"
+                        : isMan
                           ? "bg-bmw-blue/10 border-bmw-blue text-bmw-blue shadow-md"
                           : "bg-bmw-hover border-bmw-border text-bmw-textSec hover:text-bmw-text"
                     }`}
@@ -850,86 +918,225 @@ Generate ONE high-resolution biometric passport photo suitable for official iden
                   >
                     <User className="w-4 h-4" />
                     {language === "fa"
-                      ? "خانم (مقنعه رسمی سرمه‌ای/مشکی)"
-                      : "Female (Official Maqna'eh)"}
+                      ? `خانم (${SHAWL_COLORS.find((c) => c.id === shawlColor)?.nameFa.split(" (")[0] || "شال مدرن"})`
+                      : `Female (${SHAWL_COLORS.find((c) => c.id === shawlColor)?.nameEn.split(" (")[0] || "Modern Shawl"})`}
                   </button>
                 </div>
               </div>
+              {isWomen && (
+                <div className="p-4 bg-bmw-hover/40 border border-bmw-border/50 rounded-xl space-y-3 animate-fade-in">
+                  <div className="flex items-center justify-between">
+                    <label className="block text-xs font-bold text-bmw-textSec uppercase tracking-wider">
+                      {language === "fa"
+                        ? "رنگ شال سازمانی (پرشیاخودرو / BMW / MINI / Opel / NISSAN)"
+                        : "Organizational Shawl Color (Persia Khodro / BMW / MINI / Opel / NISSAN)"}
+                    </label>
+                    <span className="text-[10px] bg-bmw-blue/15 text-bmw-blue px-2 py-0.5 rounded-full font-semibold">
+                      {language === "fa" ? "انتخابی خانم‌ها" : "For Females"}
+                    </span>
+                  </div>
 
-              {/* Model Selection */}
+                  <div className="relative">
+                    <select
+                      value={shawlColor}
+                      onChange={(e) => setShawlColor(e.target.value)}
+                      className="w-full bg-bmw-surface border border-bmw-border hover:border-bmw-blue/50 text-bmw-text rounded-xl p-3 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-bmw-blue/30 transition-all cursor-pointer appearance-none pr-10"
+                      dir={dir}
+                    >
+                      {SHAWL_COLORS.map((color) => (
+                        <option
+                          key={color.id}
+                          value={color.id}
+                          className="bg-bmw-surface text-bmw-text"
+                        >
+                          {language === "fa" ? color.nameFa : color.nameEn}
+                        </option>
+                      ))}
+                    </select>
+                    <div
+                      className={`absolute inset-y-0 ${dir === "rtl" ? "left-3" : "right-3"} flex items-center pointer-events-none text-bmw-textSec`}
+                    >
+                      <ChevronDown className="w-4 h-4" />
+                    </div>
+                  </div>
+
+                  {/* Brand Highlight Banner */}
+                  {(() => {
+                    const activeColor =
+                      SHAWL_COLORS.find((c) => c.id === shawlColor) ||
+                      SHAWL_COLORS[0];
+                    let brandLabel = "";
+                    let badgeClass = "";
+                    if (
+                      activeColor.id.includes("m-") ||
+                      activeColor.id.includes("alpine") ||
+                      activeColor.id.includes("titanium")
+                    ) {
+                      brandLabel = "BMW";
+                      badgeClass =
+                        "bg-blue-600/15 text-blue-400 border border-blue-500/25";
+                    } else if (activeColor.id.includes("mini")) {
+                      brandLabel = "MINI";
+                      badgeClass =
+                        "bg-emerald-600/15 text-emerald-400 border border-emerald-500/25";
+                    } else if (activeColor.id.includes("opel")) {
+                      brandLabel = "Opel";
+                      badgeClass =
+                        "bg-yellow-500/15 text-yellow-400 border border-yellow-500/25";
+                    } else if (activeColor.id.includes("nissan")) {
+                      brandLabel = "NISSAN";
+                      badgeClass =
+                        "bg-red-600/15 text-red-400 border border-red-500/25";
+                    } else {
+                      brandLabel = "Persia Khodro";
+                      badgeClass =
+                        "bg-amber-500/15 text-amber-400 border border-amber-500/25";
+                    }
+
+                    return (
+                      <div className="flex items-center gap-3 p-3 bg-bmw-surface/50 rounded-lg border border-bmw-border/30 text-xs">
+                        <div
+                          className="w-3.5 h-3.5 rounded-full shrink-0 shadow-inner"
+                          style={{
+                            backgroundColor:
+                              activeColor.id === "royal-blue"
+                                ? "#0033CC"
+                                : activeColor.id === "charcoal-black"
+                                  ? "#1C1C1C"
+                                  : activeColor.id === "m-light-blue"
+                                    ? "#5EACE0"
+                                    : activeColor.id === "m-dark-blue"
+                                      ? "#112255"
+                                      : activeColor.id === "m-red"
+                                        ? "#E11D48"
+                                        : activeColor.id === "mini-green"
+                                          ? "#004F30"
+                                          : activeColor.id === "opel-yellow"
+                                            ? "#FACC15"
+                                            : activeColor.id === "nissan-red"
+                                              ? "#DC2626"
+                                              : activeColor.id ===
+                                                  "titanium-silver"
+                                                ? "#A1A1AA"
+                                                : activeColor.id ===
+                                                    "alpine-white"
+                                                  ? "#F4F4F5"
+                                                  : activeColor.id ===
+                                                      "champagne-gold"
+                                                    ? "#D97706"
+                                                    : "#4B5563",
+                          }}
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="font-bold text-bmw-text text-xs">
+                              {language === "fa"
+                                ? activeColor.nameFa.split(" (")[0]
+                                : activeColor.nameEn.split(" (")[0]}
+                            </span>
+                            <span
+                              className={`text-[9px] px-1.5 py-0.2 rounded-md font-bold uppercase ${badgeClass}`}
+                            >
+                              {brandLabel}
+                            </span>
+                          </div>
+                          <p className="text-[10px] text-bmw-textSec mt-0.5 leading-normal">
+                            {language === "fa"
+                              ? activeColor.descFa
+                              : activeColor.descEn}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
+              )}
               <div>
                 <label className="block text-xs font-bold text-bmw-textSec uppercase tracking-wider mb-2">
                   {language === "fa"
                     ? "مدل هوش مصنوعی مولد تصویر"
                     : "AI Image Generation Model"}
                 </label>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="grid grid-cols-12 sm:grid-cols-3 gap-3">
                   <button
                     type="button"
-                    disabled
-                    className="p-3 rounded-xl border text-left transition-all flex flex-col gap-1 bg-bmw-hover/40 border-bmw-border/50 text-bmw-textSec/50 cursor-not-allowed opacity-60 relative overflow-hidden"
+                    onClick={() => {
+                      setSelectedModel("gemini-3-pro-image");
+                    }}
+                    className={`p-3 rounded-xl col-span-4 border text-left transition-all flex flex-col gap-1 relative overflow-hidden ${
+                      selectedModel === "gemini-3-pro-image"
+                        ? "bg-bmw-blue/10 border-bmw-blue text-bmw-blue shadow-md"
+                        : "bg-bmw-hover border-bmw-border text-bmw-textSec hover:text-bmw-text"
+                    }`}
                   >
                     <div className="flex items-center justify-between gap-1.5 w-full">
                       <div className="flex items-center gap-1.5 font-bold text-xs">
-                        <Sparkles className="w-3.5 h-3.5 shrink-0 text-amber-500/50" />
-                        <span>Gemini 3 Pro (Banana Pro)</span>
+                        <Sparkles className="w-3.5 h-3.5 shrink-0 text-amber-500" />
+                        <span>Gemini 3 Pro</span>
                       </div>
-                      <span className="text-[9px] bg-red-500/15 text-red-400 px-1.5 py-0.5 rounded-md font-medium shrink-0">
-                        {language === "fa" ? "غیرفعال" : "Disabled"}
+                      <span className="text-[9px] bg-emerald-500/15 text-emerald-400 px-1.5 py-0.5 rounded-md font-medium shrink-0">
+                        {language === "fa" ? "فعال" : "Active"}
                       </span>
                     </div>
-                    <span className="text-[10px] text-bmw-textSec/50 leading-normal">
+                    <span className="text-[10px] text-bmw-textSec leading-normal mt-1">
                       {language === "fa"
-                        ? "پیشرفته‌ترین مدل تولید تصویر با رندر فوق‌العاده جزئیات چهره و متون"
-                        : "Ultra-advanced image generation with precise facial rendering & text"}
+                        ? "پیشرفته‌ترین مدل تولید تصویر با رند فوق‌العاده جزئیات چهره"
+                        : "Ultra-advanced image generation with precise face details"}
                     </span>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => setSelectedModel("gemini-3.1-flash-image")}
-                    className={`p-3 rounded-xl border text-left transition-all flex flex-col gap-1 ${
+                    className={`p-3 rounded-xl col-span-4 border text-left transition-all flex flex-col gap-1 relative overflow-hidden ${
                       selectedModel === "gemini-3.1-flash-image"
                         ? "bg-bmw-blue/10 border-bmw-blue text-bmw-blue shadow-md"
                         : "bg-bmw-hover border-bmw-border text-bmw-textSec hover:text-bmw-text"
                     }`}
                   >
-                    <div className="flex items-center gap-1.5 font-bold text-xs">
-                      <Sparkles className="w-3.5 h-3.5 shrink-0 text-blue-400" />
-                      <span>Gemini 3.1 Flash (Banana 2)</span>
+                    <div className="flex items-center justify-between gap-1.5 w-full">
+                      <div className="flex items-center gap-1.5 font-bold text-xs">
+                        <Sparkles className="w-3.5 h-3.5 shrink-0 text-blue-400" />
+                        <span>Gemini 3.1 Flash</span>
+                      </div>
+                      <span className="text-[9px] bg-emerald-500/15 text-emerald-400 px-1.5 py-0.5 rounded-md font-medium shrink-0">
+                        {language === "fa" ? "فعال" : "Active"}
+                      </span>
                     </div>
-                    <span className="text-[10px] text-bmw-textSec leading-normal">
+                    <span className="text-[10px] text-bmw-textSec leading-normal mt-1">
                       {language === "fa"
                         ? "سرعت بالا، نورپردازی عالی، پایبندی به پرامپت با جستجوی هوشمند تصویر"
-                        : "Fast and smart model with advanced lighting and tight instruction adherence"}
+                        : "Fast and smart model with advanced lighting"}
                     </span>
                   </button>
-
                   <button
                     type="button"
                     onClick={() =>
                       setSelectedModel("gemini-3.1-flash-lite-image")
                     }
-                    className={`p-3 rounded-xl border text-left transition-all flex flex-col gap-1 ${
+                    className={`p-3 rounded-xl col-span-4 border text-left transition-all flex flex-col gap-1 relative overflow-hidden ${
                       selectedModel === "gemini-3.1-flash-lite-image"
                         ? "bg-bmw-blue/10 border-bmw-blue text-bmw-blue shadow-md"
                         : "bg-bmw-hover border-bmw-border text-bmw-textSec hover:text-bmw-text"
                     }`}
                   >
-                    <div className="flex items-center gap-1.5 font-bold text-xs">
-                      <Sparkles className="w-3.5 h-3.5 shrink-0 text-teal-400" />
-                      <span>Gemini 3.1 Flash-Lite (Banana 2 Lite)</span>
+                    <div className="flex items-center justify-between gap-1.5 w-full">
+                      <div className="flex items-center gap-1.5 font-bold text-xs">
+                        <Sparkles className="w-3.5 h-3.5 shrink-0 text-teal-400" />
+                        <span>Gemini 3.1 Lite</span>
+                      </div>
+                      <span className="text-[9px] bg-emerald-500/15 text-emerald-400 px-1.5 py-0.5 rounded-md font-medium shrink-0">
+                        {language === "fa" ? "فعال" : "Active"}
+                      </span>
                     </div>
-                    <span className="text-[10px] text-bmw-textSec leading-normal">
+                    <span className="text-[10px] text-bmw-textSec leading-normal mt-1">
                       {language === "fa"
                         ? "مدل بلادرنگ و سریع با هزینه محاسباتی بسیار کم و کیفیت عالی"
-                        : "Real-time ultra-fast and lightweight model with high efficiency"}
+                        : "Real-time ultra-fast and lightweight model"}
                     </span>
                   </button>
                 </div>
               </div>
-
-              {/* Photo Uploader */}
               <div>
                 <label className="block text-xs font-bold text-bmw-textSec uppercase tracking-wider mb-2">
                   {language === "fa"

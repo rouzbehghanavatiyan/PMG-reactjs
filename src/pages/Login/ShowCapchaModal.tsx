@@ -9,7 +9,6 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { asyncWrapper } from "../../utils/asyncWrapper";
 import { useToast } from "../../hooks/useToast";
-
 const TWO_MINUTES = 120;
 
 const ShowCapchaModal: React.FC<any> = ({
@@ -66,7 +65,7 @@ const ShowCapchaModal: React.FC<any> = ({
   }, toast);
 
   useEffect(() => {
-    if (capchaCode.length === 6 && !expired) {
+    if (capchaCode.length === 4 && !expired) {
       handleCheckVerifyCapcha();
     }
   }, [capchaCode]);
@@ -115,15 +114,14 @@ const ShowCapchaModal: React.FC<any> = ({
           </p>
           <span className="font-bold text-xl">{timeText}</span>
         </span>
-
         <div className="space-y-2">
           <CustomInput
-            maxLength={6}
+            maxLength={4}
             name="capchaCode"
             control={control}
             numeric
             className="w-full rounded-xl border border-gray-200 px-4 py-3 outline-none focus:border-bmw-blue"
-            placeholder="123456"
+            placeholder="1234"
           />
 
           {isLoading && (
