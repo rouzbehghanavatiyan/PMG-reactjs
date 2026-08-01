@@ -143,6 +143,11 @@ export const getAllUsers = async () => {
   return await api.get(`api/users/getAllUsers`);
 };
 
+export const getAllFoodPerWeek = async () => {
+  return await api.get(`api/food/getAllFoodPerWeek`);
+};
+
+
 export const isReadNotif = async (postData: any) => {
   return await api.put(`/api/notif/isReadNotif`, postData);
 };
@@ -154,3 +159,4 @@ export const sendNotifToAll = (postData: any) => {
 export const updatedLimitUsedPhotoAi = async (postData: any) => {
   return await api.put(`/api/users/updatedLimitUsedPhotoAi`, postData);
 };
+

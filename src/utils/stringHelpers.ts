@@ -22,6 +22,21 @@ export default class StringHelpers {
   static filterIsActive = (data: any) => {
     return data?.filter((item: any) => item?.isActive);
   };
+
+  static getDayOfWeekName = (dayNumber: number | string): string => {
+    const day = Number(dayNumber);
+
+    const days: Record<number, string> = {
+      1: "شنبه",
+      2: "یک‌شنبه",
+      3: "دوشنبه",
+      4: "سه‌شنبه",
+      5: "چهارشنبه",
+    };
+
+    return days[day] ?? "";
+  };
+
   static toPersianMonthName = (month: string | number): string => {
     if (!month) return "";
 
@@ -137,5 +152,85 @@ export default class StringHelpers {
       calendar: persian,
       locale: persian_fa,
     }).format("YYYY/MM/DD - HH:mm");
+  };
+  static sortByWeekAndDay = <
+    T extends {
+      menuId?: number | string;
+      day?: number | string;
+    },
+  >(
+    data: T[],
+  ): T[] => {
+    if (!Array.isArray(data)) return [];
+
+    return [...data].sort((a, b) => {
+      const weekA = Number(a.menuId);
+      const weekB = Number(b.menuId);
+
+      if (weekA !== weekB) {
+        return weekA - weekB;
+      }
+
+      const dayA = Number(a.day);
+      const dayB = Number(b.day);
+
+      return dayA - dayB;
+    });
+  };
+  static fillMissingDays = <
+    T extends {
+      menuId?: number | string;
+      day?: number | string;
+      menuName?: string | null;
+      registerDateMenu?: string | null;
+      [key: string]: any;
+    },
+  >(
+    data: T[],
+  ): T[] => {
+    if (!Array.isArray(data)) return [];
+    const groups: Record<string, T[]> = {};
+    data.forEach((item) => {
+      const menuId = String(item.menuId ?? "unknown");
+      if (!groups[menuId]) {
+        groups[menuId] = [];
+      }
+      groups[menuId].push(item);
+    });
+
+    const result: T[] = [];
+    Object.keys(groups).forEach((menuIdKey) => {
+      const groupItems = groups[menuIdKey];
+
+      const baseItem = groupItems[0] || {};
+      const actualMenuId = baseItem.menuId;
+      const menuName = baseItem.menuName ?? null;
+      const registerDateMenu = baseItem.registerDateMenu ?? null;
+
+      for (let day = 1; day <= 5; day++) {
+        const existingItem = groupItems.find(
+          (item) => Number(item.day) === day,
+        );
+
+        if (existingItem) {
+          result.push(existingItem);
+        } else {
+          const nullItem = {
+            menuId: actualMenuId,
+            day: day,
+            menuName: menuName,
+            registerDateMenu: registerDateMenu,
+            menuItemId: null,
+            foodName: null,
+            active: null,
+            isActive: null,
+          } as unknown as T;
+
+          result.push(nullItem);
+        }
+      }
+    });
+
+    return result;
   };
 }

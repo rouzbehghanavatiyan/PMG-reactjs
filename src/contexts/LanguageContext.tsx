@@ -336,7 +336,7 @@ const translations: Record<Language, Record<string, any>> = {
     // Food Order (Phase 2)
     food_title: "رزرو هفتگی غذا",
     food_sub: "انتخاب برنامه غذایی برای هفته آینده.",
-    week_start: "هفته منتهی به ۱۰ آبان",
+    week_start: "انتخاب غذا",
     submit_order: "ثبت سفارشات",
     order_success: "سفارشات با موفقیت ثبت شد!",
     menu_a: "منوی الف (اصلی)",

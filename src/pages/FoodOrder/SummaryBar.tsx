@@ -1,3 +1,4 @@
+import { Check } from "lucide-react";
 import React from "react";
 
 type Props = {
@@ -33,20 +34,22 @@ const SummaryBar: React.FC<Props> = ({
             </span>
           </div>
         </div>
-
         <button
           onClick={onSubmit}
           disabled={isSubmitting}
           className={`
-            w-full md:w-auto px-8 py-3 rounded-lg font-bold text-white transition-all
+            w-full md:w-auto py-3 cursor-pointer rounded-lg font-bold text-white transition-all
             ${
               isSubmitting
                 ? "bg-gray-600 cursor-not-allowed"
-                : "bg-bmw-blue hover:bg-blue-600 transform hover:scale-105"
+                : "bg-green-500 hover:bg-green-600 transform"
             }
           `}
         >
-          {isSubmitting ? "Processing..." : t("submit_order")}
+          <span className="flex gap-2 text-[14px] px-3">
+            <Check size={22} />
+            {isSubmitting ? "Processing..." : t("submit_order")}
+          </span>
         </button>
       </div>
     </div>

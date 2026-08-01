@@ -1,5 +1,4 @@
 import React from "react";
-import { Check, Flame, Leaf } from "lucide-react";
 import type { DailyMenu, MealType } from "./type";
 
 type Props = {
@@ -19,7 +18,8 @@ const MealOption: React.FC<Props> = ({ day, type, selected, t, onSelect }) => {
     ? "border-bmw-blue bg-blue-900/10"
     : "border-green-600 bg-green-900/10";
 
-  const inactiveClass = "border-transparent bg-bmw-hover hover:border-bmw-border";
+  const inactiveClass =
+    "border-transparent bg-bmw-hover hover:border-bmw-border";
 
   return (
     <label
@@ -30,13 +30,13 @@ const MealOption: React.FC<Props> = ({ day, type, selected, t, onSelect }) => {
     >
       <input
         type="radio"
-        name={`meal-${day.dayKey}`}
+        name={`meal-${day.menuItemId}`}
         className="hidden"
         checked={isSelected}
         onChange={() => onSelect(day.dayKey, type)}
       />
 
-      <div className="flex justify-between items-start mb-1">
+      {/* <div className="flex justify-between items-start mb-1">
         <span
           className={`text-xs font-bold uppercase tracking-wider ${
             isA ? "text-bmw-blue" : "text-green-500"
@@ -50,17 +50,17 @@ const MealOption: React.FC<Props> = ({ day, type, selected, t, onSelect }) => {
             className={isA ? "text-bmw-blue" : "text-green-500"}
           />
         )}
-      </div>
-
-      <p className="text-sm text-bmw-text font-medium leading-tight mb-2 h-10 flex items-center">
-        {t(`meals.${option.nameKey}`)}
-      </p>
-
-      <div className="flex items-center gap-2 mt-auto">
-        <span className="text-[10px] text-gray-500 flex items-center gap-1">
-          {isA ? <Flame size={10} /> : <Leaf size={10} />}
-          {option.cals} {t("calories")}
-        </span>
+      </div> */}
+      <div>
+        {day?.foodName ? (
+          <p className="text-sm justify-center text-bmw-blue font-medium leading-tight h-10 flex items-center">
+            {day?.foodName}
+          </p>
+        ) : (
+          <p className="text-sm justify-center text-gray-300 font-medium leading-tight h-10 flex items-center">
+            تعطیل
+          </p>
+        )}
       </div>
     </label>
   );

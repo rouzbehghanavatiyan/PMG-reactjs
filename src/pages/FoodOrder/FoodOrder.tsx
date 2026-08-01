@@ -6,14 +6,17 @@ import FoodHeader from "./FoodHeader";
 import WeeklyMenuGrid from "./WeeklyMenuGrid";
 import SummaryBar from "./SummaryBar";
 import PollSection from "./PollSection";
-import { Check } from "lucide-react";
-import { sendNotifToAll } from "../../services/dotNet";
+import { Check, ChevronLeft, ChevronRight } from "lucide-react";
+import { getAllFoodPerWeek, sendNotifToAll } from "../../services/dotNet";
 import { useAppSelector } from "../../features/store";
 import FoodOrderHistory from "./FoodOrderHistory";
+import StringHelpers from "../../utils/stringHelpers";
 
 const FoodOrder: React.FC = () => {
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<"current" | "history">("current");
+  const [allFoodMenu, setAllFoodMenu] = useState<any>([]);
+
   const [selections, setSelections] = useState<Record<string, MealType>>({
     sat: "None",
     sun: "None",
@@ -21,10 +24,190 @@ const FoodOrder: React.FC = () => {
     tue: "None",
     wed: "None",
   });
+  const mockHistoryData: any[] = [
+    {
+      weekLabel: " هفته اول تیر",
+      startDate: "شنبه ۲۱ تیر",
+      status: "delivered",
+      selections: {
+        sat: "A",
+        sun: "B",
+        mon: "A",
+        tue: "None",
+        wed: "A",
+      },
+      menu: [
+        {
+          dayKey: "sat",
+          date: "1405/04/21",
+          optionA: { nameKey: "kabab_koubideh", calories: 650 },
+          optionB: { nameKey: "grilled_chicken", calories: 400 },
+        },
+        {
+          dayKey: "sun",
+          date: "1405/04/22",
+          optionA: { nameKey: "gheimeh", calories: 600 },
+          optionB: { nameKey: "adasi", calories: 350 },
+        },
+        {
+          dayKey: "mon",
+          date: "1405/04/23",
+          optionA: { nameKey: "tahchin", calories: 700 },
+          optionB: { nameKey: "caesar_salad", calories: 450 },
+        },
+        {
+          dayKey: "tue",
+          date: "1405/04/24",
+          optionA: { nameKey: "loobia_polo", calories: 580 },
+          optionB: { nameKey: "steamed_vegetables", calories: 250 },
+        },
+        {
+          dayKey: "wed",
+          date: "1405/04/25",
+          optionA: { nameKey: "joojeh", calories: 620 },
+          optionB: { nameKey: "steamed_fish", calories: 380 },
+        },
+      ],
+    },
+    {
+      weekLabel: "هفته دوم تیر",
+      startDate: "شنبه ۲۱ تیر",
+      status: "delivered",
+      selections: {
+        sat: "A",
+        sun: "B",
+        mon: "A",
+        tue: "None",
+        wed: "A",
+      },
+      menu: [
+        {
+          dayKey: "sat",
+          date: "1405/04/21",
+          optionA: { nameKey: "kabab_koubideh", calories: 650 },
+          optionB: { nameKey: "grilled_chicken", calories: 400 },
+        },
+        {
+          dayKey: "sun",
+          date: "1405/04/22",
+          optionA: { nameKey: "gheimeh", calories: 600 },
+          optionB: { nameKey: "adasi", calories: 350 },
+        },
+        {
+          dayKey: "mon",
+          date: "1405/04/23",
+          optionA: { nameKey: "tahchin", calories: 700 },
+          optionB: { nameKey: "caesar_salad", calories: 450 },
+        },
+        {
+          dayKey: "tue",
+          date: "1405/04/24",
+          optionA: { nameKey: "loobia_polo", calories: 580 },
+          optionB: { nameKey: "steamed_vegetables", calories: 250 },
+        },
+        {
+          dayKey: "wed",
+          date: "1405/04/25",
+          optionA: { nameKey: "joojeh", calories: 620 },
+          optionB: { nameKey: "steamed_fish", calories: 380 },
+        },
+      ],
+    },
+    {
+      weekLabel: "هفته سوم تیر",
+      startDate: "شنبه ۲۱ تیر",
+      status: "delivered",
+      selections: {
+        sat: "A",
+        sun: "B",
+        mon: "A",
+        tue: "None",
+        wed: "A",
+      },
+      menu: [
+        {
+          dayKey: "sat",
+          date: "1405/04/21",
+          optionA: { nameKey: "kabab_koubideh", calories: 650 },
+          optionB: { nameKey: "grilled_chicken", calories: 400 },
+        },
+        {
+          dayKey: "sun",
+          date: "1405/04/22",
+          optionA: { nameKey: "gheimeh", calories: 600 },
+          optionB: { nameKey: "adasi", calories: 350 },
+        },
+        {
+          dayKey: "mon",
+          date: "1405/04/23",
+          optionA: { nameKey: "tahchin", calories: 700 },
+          optionB: { nameKey: "caesar_salad", calories: 450 },
+        },
+        {
+          dayKey: "tue",
+          date: "1405/04/24",
+          optionA: { nameKey: "loobia_polo", calories: 580 },
+          optionB: { nameKey: "steamed_vegetables", calories: 250 },
+        },
+        {
+          dayKey: "wed",
+          date: "1405/04/25",
+          optionA: { nameKey: "joojeh", calories: 620 },
+          optionB: { nameKey: "steamed_fish", calories: 380 },
+        },
+      ],
+    },
+    {
+      weekLabel: "هفته چهارم تیر",
+      startDate: "شنبه ۲۱ تیر",
+      status: "delivered",
+      selections: {
+        sat: "A",
+        sun: "B",
+        mon: "A",
+        tue: "None",
+        wed: "A",
+      },
+      menu: [
+        {
+          dayKey: "sat",
+          date: "1405/04/21",
+          optionA: { nameKey: "kabab_koubideh", calories: 650 },
+          optionB: { nameKey: "grilled_chicken", calories: 400 },
+        },
+        {
+          dayKey: "sun",
+          date: "1405/04/22",
+          optionA: { nameKey: "gheimeh", calories: 600 },
+          optionB: { nameKey: "adasi", calories: 350 },
+        },
+        {
+          dayKey: "mon",
+          date: "1405/04/23",
+          optionA: { nameKey: "tahchin", calories: 700 },
+          optionB: { nameKey: "caesar_salad", calories: 450 },
+        },
+        {
+          dayKey: "tue",
+          date: "1405/04/24",
+          optionA: { nameKey: "loobia_polo", calories: 580 },
+          optionB: { nameKey: "steamed_vegetables", calories: 250 },
+        },
+        {
+          dayKey: "wed",
+          date: "1405/04/25",
+          optionA: { nameKey: "joojeh", calories: 620 },
+          optionB: { nameKey: "steamed_fish", calories: 380 },
+        },
+      ],
+    },
+  ];
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [answers, setAnswers] = useState<Record<string, number>>({});
-  
+  const [selectedWeekIndex, setSelectedWeekIndex] = useState(0);
+
   const userLogin = useAppSelector(
     (state) => state?.main?.userProfile?.userLogin,
   );
@@ -66,43 +249,78 @@ const FoodOrder: React.FC = () => {
     }
   };
 
+  const handleGetAllFoodPerWeek = async () => {
+    const res = await getAllFoodPerWeek();
+    if (res?.data !== 0) {
+      setAllFoodMenu(res?.data);
+    }
+  };
+
   useEffect(() => {
     if (!userLogin?.personalCode) return;
-    handleSendNotifToAll();
+    // handleSendNotifToAll();
+    handleGetAllFoodPerWeek();
   }, [userLogin?.personalCode]);
+
+  const handlePrevWeek = () => {
+    if (selectedWeekIndex < mockHistoryData.length - 1) {
+      setSelectedWeekIndex(selectedWeekIndex + 1);
+    }
+  };
+
+  const handleNextWeek = () => {
+    if (selectedWeekIndex > 0) {
+      setSelectedWeekIndex(selectedWeekIndex - 1);
+    }
+  };
+  const currentWeekData = mockHistoryData[selectedWeekIndex];
+
+  const fixMissingDayWeek = StringHelpers.fillMissingDays(allFoodMenu);
+  console.log("fixMissingDayWeek", fixMissingDayWeek);
 
   return (
     <div className="space-y-8">
-      <FoodHeader 
-        t={t} 
-        activeTab={activeTab} 
-        setActiveTab={setActiveTab} 
-      />
-
+      <FoodHeader t={t} activeTab={activeTab} setActiveTab={setActiveTab} />
       {activeTab === "current" ? (
         <>
-          {success && (
-            <div className="bg-green-900/20 border border-green-800 text-green-500 p-4 rounded-lg flex items-center gap-3 animate-pulse shadow-sm">
-              <Check size={20} />
-              {t("order_success")}
-            </div>
-          )}
-          
-          <div className="bg-bmw-surface rounded-2xl shadow-lg">
-            <WeeklyMenuGrid
-              weeklyMenu={weeklyMenu}
-              selections={selections}
-              t={t}
-              onSelect={handleSelect}
-            />
-            <SummaryBar
-              selections={selections}
-              t={t}
-              isSubmitting={isSubmitting}
-              onSubmit={handleSubmit}
-            />
-          </div>
+          <div className="shadow-sm border border-bmw-border bg-bmw-surface rounded-xl p-3">
+            <div className="flex border-b-[1px] border-gray-200 pb-3 items-center justify-between">
+              <button
+                onClick={handlePrevWeek}
+                disabled={selectedWeekIndex === mockHistoryData.length - 1}
+                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-40 transition-all cursor-pointer"
+              >
+                <ChevronRight size={24} className="text-bmw-text" />
+              </button>
 
+              <div className="text-center">
+                <span className="text-xs text-bmw-blue font-bold px-3 py-1 bg-bmw-blue/10 rounded-full">
+                  {currentWeekData.weekLabel}
+                </span>
+              </div>
+              <button
+                onClick={handleNextWeek}
+                disabled={selectedWeekIndex === 0}
+                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-40 transition-all cursor-pointer"
+              >
+                <ChevronLeft size={24} className="text-bmw-text" />
+              </button>
+            </div>
+            <div className="bg-bmw-surface rounded-2xl">
+              <WeeklyMenuGrid
+                weeklyMenu={fixMissingDayWeek}
+                selections={selections}
+                t={t}
+                onSelect={handleSelect}
+              />
+              <SummaryBar
+                selections={selections}
+                t={t}
+                isSubmitting={isSubmitting}
+                onSubmit={handleSubmit}
+              />
+            </div>
+          </div>
           <PollSection
             poll={poll}
             answers={answers}
@@ -113,7 +331,7 @@ const FoodOrder: React.FC = () => {
           />
         </>
       ) : (
-        <FoodOrderHistory />
+        <FoodOrderHistory mockHistoryData={mockHistoryData} />
       )}
 
       <div className="h-20 lg:hidden"></div>
