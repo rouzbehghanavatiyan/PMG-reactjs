@@ -16,11 +16,11 @@ const FoodHeader: React.FC<Props> = ({ t, activeTab, setActiveTab }) => {
           {activeTab === "current" ? t("food_title") : "تاریخچه سفارشات"}
         </h1>
         <p className="text-bmw-textSec text-sm mt-1">
-          {activeTab === "current" ? t("food_sub") : "مشاهده و پیگیری سفارش‌های قبلی شما"}
+          {activeTab === "current"
+            ? t("food_sub")
+            : "مشاهده و پیگیری سفارش‌های قبلی شما"}
         </p>
       </div>
-      
-      {/* Tabs Bar */}
       <div className="flex items-center gap-2 bg-bmw-surface border border-bmw-border p-1 rounded-xl text-sm">
         <button
           onClick={() => setActiveTab("current")}

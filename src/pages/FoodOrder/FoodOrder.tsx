@@ -284,28 +284,6 @@ const FoodOrder: React.FC = () => {
       {activeTab === "current" ? (
         <>
           <div className="shadow-sm border border-bmw-border bg-bmw-surface rounded-xl p-3">
-            <div className="flex border-b-[1px] border-gray-200 pb-3 items-center justify-between">
-              <button
-                onClick={handlePrevWeek}
-                disabled={selectedWeekIndex === mockHistoryData.length - 1}
-                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-40 transition-all cursor-pointer"
-              >
-                <ChevronRight size={24} className="text-bmw-text" />
-              </button>
-
-              <div className="text-center">
-                <span className="text-xs text-bmw-blue font-bold px-3 py-1 bg-bmw-blue/10 rounded-full">
-                  {currentWeekData.weekLabel}
-                </span>
-              </div>
-              <button
-                onClick={handleNextWeek}
-                disabled={selectedWeekIndex === 0}
-                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-40 transition-all cursor-pointer"
-              >
-                <ChevronLeft size={24} className="text-bmw-text" />
-              </button>
-            </div>
             <div className="bg-bmw-surface rounded-2xl">
               <WeeklyMenuGrid
                 weeklyMenu={fixMissingDayWeek}

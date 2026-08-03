@@ -26,8 +26,11 @@ const Login: React.FC<any> = () => {
     if (code === 0) {
       if (data?.isSuccess) {
         setShowCapchaModal(true);
+        setLoadingBtn(false);
+
         toast.success(data?.message);
       } else {
+        setLoadingBtn(false);
         toast.warning(data?.message);
       }
     }
