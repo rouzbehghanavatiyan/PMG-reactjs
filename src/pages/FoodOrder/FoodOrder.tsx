@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { poll, weeklyMenu } from "./data";
+import { poll } from "./data";
 import { useLanguage } from "../../contexts/LanguageContext";
 import type { MealType } from "./type";
 import FoodHeader from "./FoodHeader";
 import WeeklyMenuGrid from "./WeeklyMenuGrid";
 import SummaryBar from "./SummaryBar";
 import PollSection from "./PollSection";
-import { Check, ChevronLeft, ChevronRight } from "lucide-react";
 import { getAllFoodPerWeek, sendNotifToAll } from "../../services/dotNet";
 import { useAppSelector } from "../../features/store";
 import FoodOrderHistory from "./FoodOrderHistory";
@@ -15,205 +14,48 @@ import StringHelpers from "../../utils/stringHelpers";
 const FoodOrder: React.FC = () => {
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<"current" | "history">("current");
-  const [allFoodMenu, setAllFoodMenu] = useState<any>([]);
-
-  const [selections, setSelections] = useState<Record<string, MealType>>({
-    sat: "None",
-    sun: "None",
-    mon: "None",
-    tue: "None",
-    wed: "None",
-  });
-  const mockHistoryData: any[] = [
-    {
-      weekLabel: " هفته اول تیر",
-      startDate: "شنبه ۲۱ تیر",
-      status: "delivered",
-      selections: {
-        sat: "A",
-        sun: "B",
-        mon: "A",
-        tue: "None",
-        wed: "A",
-      },
-      menu: [
-        {
-          dayKey: "sat",
-          date: "1405/04/21",
-          optionA: { nameKey: "kabab_koubideh", calories: 650 },
-          optionB: { nameKey: "grilled_chicken", calories: 400 },
-        },
-        {
-          dayKey: "sun",
-          date: "1405/04/22",
-          optionA: { nameKey: "gheimeh", calories: 600 },
-          optionB: { nameKey: "adasi", calories: 350 },
-        },
-        {
-          dayKey: "mon",
-          date: "1405/04/23",
-          optionA: { nameKey: "tahchin", calories: 700 },
-          optionB: { nameKey: "caesar_salad", calories: 450 },
-        },
-        {
-          dayKey: "tue",
-          date: "1405/04/24",
-          optionA: { nameKey: "loobia_polo", calories: 580 },
-          optionB: { nameKey: "steamed_vegetables", calories: 250 },
-        },
-        {
-          dayKey: "wed",
-          date: "1405/04/25",
-          optionA: { nameKey: "joojeh", calories: 620 },
-          optionB: { nameKey: "steamed_fish", calories: 380 },
-        },
-      ],
-    },
-    {
-      weekLabel: "هفته دوم تیر",
-      startDate: "شنبه ۲۱ تیر",
-      status: "delivered",
-      selections: {
-        sat: "A",
-        sun: "B",
-        mon: "A",
-        tue: "None",
-        wed: "A",
-      },
-      menu: [
-        {
-          dayKey: "sat",
-          date: "1405/04/21",
-          optionA: { nameKey: "kabab_koubideh", calories: 650 },
-          optionB: { nameKey: "grilled_chicken", calories: 400 },
-        },
-        {
-          dayKey: "sun",
-          date: "1405/04/22",
-          optionA: { nameKey: "gheimeh", calories: 600 },
-          optionB: { nameKey: "adasi", calories: 350 },
-        },
-        {
-          dayKey: "mon",
-          date: "1405/04/23",
-          optionA: { nameKey: "tahchin", calories: 700 },
-          optionB: { nameKey: "caesar_salad", calories: 450 },
-        },
-        {
-          dayKey: "tue",
-          date: "1405/04/24",
-          optionA: { nameKey: "loobia_polo", calories: 580 },
-          optionB: { nameKey: "steamed_vegetables", calories: 250 },
-        },
-        {
-          dayKey: "wed",
-          date: "1405/04/25",
-          optionA: { nameKey: "joojeh", calories: 620 },
-          optionB: { nameKey: "steamed_fish", calories: 380 },
-        },
-      ],
-    },
-    {
-      weekLabel: "هفته سوم تیر",
-      startDate: "شنبه ۲۱ تیر",
-      status: "delivered",
-      selections: {
-        sat: "A",
-        sun: "B",
-        mon: "A",
-        tue: "None",
-        wed: "A",
-      },
-      menu: [
-        {
-          dayKey: "sat",
-          date: "1405/04/21",
-          optionA: { nameKey: "kabab_koubideh", calories: 650 },
-          optionB: { nameKey: "grilled_chicken", calories: 400 },
-        },
-        {
-          dayKey: "sun",
-          date: "1405/04/22",
-          optionA: { nameKey: "gheimeh", calories: 600 },
-          optionB: { nameKey: "adasi", calories: 350 },
-        },
-        {
-          dayKey: "mon",
-          date: "1405/04/23",
-          optionA: { nameKey: "tahchin", calories: 700 },
-          optionB: { nameKey: "caesar_salad", calories: 450 },
-        },
-        {
-          dayKey: "tue",
-          date: "1405/04/24",
-          optionA: { nameKey: "loobia_polo", calories: 580 },
-          optionB: { nameKey: "steamed_vegetables", calories: 250 },
-        },
-        {
-          dayKey: "wed",
-          date: "1405/04/25",
-          optionA: { nameKey: "joojeh", calories: 620 },
-          optionB: { nameKey: "steamed_fish", calories: 380 },
-        },
-      ],
-    },
-    {
-      weekLabel: "هفته چهارم تیر",
-      startDate: "شنبه ۲۱ تیر",
-      status: "delivered",
-      selections: {
-        sat: "A",
-        sun: "B",
-        mon: "A",
-        tue: "None",
-        wed: "A",
-      },
-      menu: [
-        {
-          dayKey: "sat",
-          date: "1405/04/21",
-          optionA: { nameKey: "kabab_koubideh", calories: 650 },
-          optionB: { nameKey: "grilled_chicken", calories: 400 },
-        },
-        {
-          dayKey: "sun",
-          date: "1405/04/22",
-          optionA: { nameKey: "gheimeh", calories: 600 },
-          optionB: { nameKey: "adasi", calories: 350 },
-        },
-        {
-          dayKey: "mon",
-          date: "1405/04/23",
-          optionA: { nameKey: "tahchin", calories: 700 },
-          optionB: { nameKey: "caesar_salad", calories: 450 },
-        },
-        {
-          dayKey: "tue",
-          date: "1405/04/24",
-          optionA: { nameKey: "loobia_polo", calories: 580 },
-          optionB: { nameKey: "steamed_vegetables", calories: 250 },
-        },
-        {
-          dayKey: "wed",
-          date: "1405/04/25",
-          optionA: { nameKey: "joojeh", calories: 620 },
-          optionB: { nameKey: "steamed_fish", calories: 380 },
-        },
-      ],
-    },
-  ];
-
+  const [allFoodMenu, setAllFoodMenu] = useState<any[]>([]);
+  const [selections, setSelections] = useState<
+    Record<string | number, MealType>
+  >({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [answers, setAnswers] = useState<Record<string, number>>({});
-  const [selectedWeekIndex, setSelectedWeekIndex] = useState(0);
+
+  const [mockHistoryData] = useState<any[]>([]);
 
   const userLogin = useAppSelector(
     (state) => state?.main?.userProfile?.userLogin,
   );
 
-  const handleSelect = (day: string, type: MealType) => {
-    setSelections((prev) => ({ ...prev, [day]: type }));
+  const handleSelect = (menuItemId: string | number, type: MealType) => {
+    setSelections((prev) => ({
+      ...prev,
+      [menuItemId]: type,
+    }));
+
+    const selectedMenuItem = allFoodMenu.find(
+      (item: any) => item.menuItemId === menuItemId,
+    );
+
+    console.log("--- Meal Option Clicked ---");
+    console.log("Selected Type:", type);
+    console.log("Raw Menu Item from allFoodMenu:", selectedMenuItem);
+
+    if (selectedMenuItem) {
+      const selectedFood = {
+        ...selectedMenuItem,
+        selectedType: type,
+        selectedFoodName:
+          type === "A"
+            ? selectedMenuItem.foodName || selectedMenuItem.menuA?.foodName
+            : type === "B"
+              ? selectedMenuItem.menuB?.foodName
+              : null,
+      };
+      console.log("Final Processed Selected Food Object:", selectedFood);
+    }
+
     setSuccess(false);
   };
 
@@ -222,6 +64,7 @@ const FoodOrder: React.FC = () => {
     setTimeout(() => {
       setIsSubmitting(false);
       setSuccess(true);
+      console.log("Submitted selections: ", selections);
     }, 1000);
   };
 
@@ -229,17 +72,18 @@ const FoodOrder: React.FC = () => {
     setAnswers((prev) => ({ ...prev, [questionId.toString()]: optionId }));
   };
 
-  const handleAnswerQuestionUser = () => {};
+  const handleAnswerQuestionUser = () => {
+    console.log("Poll answers submitted: ", answers);
+  };
 
   const isFormComplete =
     poll.length > 0 && Object.keys(answers).length === poll.length;
 
   const handleSendNotifToAll = async () => {
     try {
-      console.log("Hellow notif");
       const postData = {
         personalCode: userLogin?.personalCode,
-        title: "Helllllllllllllllll",
+        title: "نظرسنجی",
         message: "نظر سنجی جدید",
       };
       const response = await sendNotifToAll(postData);
@@ -250,33 +94,22 @@ const FoodOrder: React.FC = () => {
   };
 
   const handleGetAllFoodPerWeek = async () => {
-    const res = await getAllFoodPerWeek();
-    if (res?.data !== 0) {
-      setAllFoodMenu(res?.data);
+    try {
+      const res = await getAllFoodPerWeek();
+      if (res?.data && res.data !== 0) {
+        setAllFoodMenu(res.data);
+      }
+    } catch (error) {
+      console.error("Error fetching weekly menu:", error);
     }
   };
 
   useEffect(() => {
     if (!userLogin?.personalCode) return;
-    // handleSendNotifToAll();
     handleGetAllFoodPerWeek();
   }, [userLogin?.personalCode]);
 
-  const handlePrevWeek = () => {
-    if (selectedWeekIndex < mockHistoryData.length - 1) {
-      setSelectedWeekIndex(selectedWeekIndex + 1);
-    }
-  };
-
-  const handleNextWeek = () => {
-    if (selectedWeekIndex > 0) {
-      setSelectedWeekIndex(selectedWeekIndex - 1);
-    }
-  };
-  const currentWeekData = mockHistoryData[selectedWeekIndex];
-
   const fixMissingDayWeek = StringHelpers.fillMissingDays(allFoodMenu);
-  console.log("fixMissingDayWeek", fixMissingDayWeek);
 
   return (
     <div className="space-y-8">
@@ -292,7 +125,6 @@ const FoodOrder: React.FC = () => {
                 onSelect={handleSelect}
               />
               <SummaryBar
-                selections={selections}
                 t={t}
                 isSubmitting={isSubmitting}
                 onSubmit={handleSubmit}

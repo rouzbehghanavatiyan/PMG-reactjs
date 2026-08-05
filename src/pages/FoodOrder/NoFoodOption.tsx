@@ -5,7 +5,7 @@ type Props = {
   day: DailyMenu;
   selected: MealType;
   t: (key: string) => string;
-  onSelect: (dayKey: string, type: MealType) => void;
+  onSelect: (menuItemId: string | number, type: MealType) => void;
 };
 
 const NoFoodOption: React.FC<Props> = ({ day, selected, t, onSelect }) => {
@@ -24,10 +24,13 @@ const NoFoodOption: React.FC<Props> = ({ day, selected, t, onSelect }) => {
     >
       <input
         type="radio"
-        name={`meal-${day.dayKey}`}
+        name={`meal-${day.menuItemId}`}
         className="hidden"
         checked={isSelected}
-        onChange={() => onSelect(day.dayKey, "None")}
+        onChange={() => {
+          console.log("No Food Selected for item:", day);
+          onSelect(day.menuItemId, "None");
+        }}
       />
       <span className="text-xs font-medium">{t("no_food")}</span>
     </label>

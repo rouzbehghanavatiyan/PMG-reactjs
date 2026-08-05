@@ -5,9 +5,9 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 
 type Props = {
   weeklyMenu: DailyMenu[];
-  selections: Record<string, MealType>;
+  selections: Record<string | number, MealType>;
   t: (key: string) => string;
-  onSelect?: (dayKey: string, type: MealType) => void;
+  onSelect?: (menuItemId: string | number, type: MealType) => void;
 };
 
 const PAGE_SIZE = 5;
@@ -33,6 +33,26 @@ const WeeklyMenuGrid: React.FC<Props> = ({
   const totalPages = pagedMenus.length;
   const currentItems = pagedMenus[page] ?? [];
 
+  const currentItemsWithFixedDate = useMemo(() => {
+    if (!currentItems.length) return [];
+
+    const firstDate = currentItems[0]?.registerDateMenu;
+
+    if (!firstDate) return currentItems;
+
+    const startDate = new Date(firstDate);
+
+    return currentItems.map((item, index) => {
+      const nextDate = new Date(startDate);
+      nextDate.setDate(startDate.getDate() + index);
+
+      return {
+        ...item,
+        registerDateMenu: nextDate.toISOString(),
+      };
+    });
+  }, [currentItems]);
+
   useEffect(() => {
     if (page > totalPages - 1) {
       setPage(Math.max(totalPages - 1, 0));
@@ -46,7 +66,7 @@ const WeeklyMenuGrid: React.FC<Props> = ({
   const handleNext = () => {
     setPage((prev) => Math.min(prev + 1, totalPages - 1));
   };
-
+ 
   return (
     <div className="bg-bmw-surface rounded-2xl">
       <div className="flex border-b-[1px] border-gray-200 pb-3 items-center justify-between">
@@ -59,7 +79,8 @@ const WeeklyMenuGrid: React.FC<Props> = ({
         </button>
         <div className="text-center">
           <span className="text-xs text-bmw-blue font-bold px-3 py-1 bg-bmw-blue/10 rounded-full">
-            هفته{totalPages === 0 ? 0 : page + 1}
+            {/* هفته{totalPages === 0 ? 0 : page + 1} */}
+            {currentItems?.[0]?.menuName}
           </span>
         </div>
         <button
@@ -70,11 +91,9 @@ const WeeklyMenuGrid: React.FC<Props> = ({
           <ChevronLeft size={24} className="text-bmw-text" />
         </button>
       </div>
-
       <div className="grid grid-cols-1 gap-4 p-5 lg:grid-cols-5">
         {currentItems.map((item, index) => {
           const itemKey = `${item.menuItemId}-${item.dayKey ?? item.date ?? index}`;
-
           return (
             <DayMenuCard
               key={itemKey}

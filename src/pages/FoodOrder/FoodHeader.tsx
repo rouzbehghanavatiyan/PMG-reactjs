@@ -33,7 +33,6 @@ const FoodHeader: React.FC<Props> = ({ t, activeTab, setActiveTab }) => {
           <Calendar size={16} />
           <span>{t("week_start")}</span>
         </button>
-
         <button
           onClick={() => setActiveTab("history")}
           className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all cursor-pointer ${
