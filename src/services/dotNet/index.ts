@@ -147,6 +147,9 @@ export const getAllFoodPerWeek = async () => {
   return await api.get(`api/food/getAllFoodPerWeek`);
 };
 
+export const getHistoryFoodByUser = async (personalCode: string) => {
+  return await api.get(`api/food/getHistoryFoodByUser/${personalCode}`);
+};
 
 export const isReadNotif = async (postData: any) => {
   return await api.put(`/api/notif/isReadNotif`, postData);
@@ -159,4 +162,3 @@ export const sendNotifToAll = (postData: any) => {
 export const updatedLimitUsedPhotoAi = async (postData: any) => {
   return await api.put(`/api/users/updatedLimitUsedPhotoAi`, postData);
 };
-

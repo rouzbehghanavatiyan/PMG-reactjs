@@ -21,7 +21,7 @@ const PollSection: React.FC<Props> = ({
   isFormComplete,
 }) => {
   return (
-    <div className="fixed bottom-0 left-0 right-0 p-4 bg-bmw-surface border-t border-bmw-border lg:relative lg:border lg:rounded-xl lg:bg-bmw-surface lg:p-6 lg:mt-8 z-20 shadow-lg">
+    <div className="p-4 bg-bmw-surface border-t border-bmw-border lg:relative lg:border lg:rounded-xl lg:bg-bmw-surface lg:p-6 lg:mt-8 z-20 shadow-lg">
       <div className="max-w-7xl mx-auto md:flex-row items-center justify-between gap-4">
         <div className="flex-col">
           <div className="p-4 space-y-10">

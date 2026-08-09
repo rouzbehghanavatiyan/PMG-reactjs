@@ -6,22 +6,26 @@ import FoodHeader from "./FoodHeader";
 import WeeklyMenuGrid from "./WeeklyMenuGrid";
 import SummaryBar from "./SummaryBar";
 import PollSection from "./PollSection";
-import { getAllFoodPerWeek, sendNotifToAll } from "../../services/dotNet";
+import {
+  getAllFoodPerWeek,
+  getHistoryFoodByUser,
+  sendNotifToAll,
+} from "../../services/dotNet";
 import { useAppSelector } from "../../features/store";
-import FoodOrderHistory from "./FoodOrderHistory";
 import StringHelpers from "../../utils/stringHelpers";
 
 const FoodOrder: React.FC = () => {
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<"current" | "history">("current");
   const [allFoodMenu, setAllFoodMenu] = useState<any[]>([]);
+  const [historyFoodMenu, setHistoryFoodMenu] = useState<any[]>([]);
+
   const [selections, setSelections] = useState<
     Record<string | number, MealType>
   >({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [answers, setAnswers] = useState<Record<string, number>>({});
-
   const [mockHistoryData] = useState<any[]>([]);
 
   const userLogin = useAppSelector(
@@ -33,15 +37,9 @@ const FoodOrder: React.FC = () => {
       ...prev,
       [menuItemId]: type,
     }));
-
     const selectedMenuItem = allFoodMenu.find(
       (item: any) => item.menuItemId === menuItemId,
     );
-
-    console.log("--- Meal Option Clicked ---");
-    console.log("Selected Type:", type);
-    console.log("Raw Menu Item from allFoodMenu:", selectedMenuItem);
-
     if (selectedMenuItem) {
       const selectedFood = {
         ...selectedMenuItem,
@@ -55,7 +53,6 @@ const FoodOrder: React.FC = () => {
       };
       console.log("Final Processed Selected Food Object:", selectedFood);
     }
-
     setSuccess(false);
   };
 
@@ -104,12 +101,28 @@ const FoodOrder: React.FC = () => {
     }
   };
 
+  const handleGetHistoryFoodByUser = async () => {
+    try {
+      const res = await getHistoryFoodByUser(userLogin?.personalCode);
+
+      if (res?.data?.isSuccess) {
+        setHistoryFoodMenu(res?.data?.data);
+      }
+    } catch (error) {
+      console.error("Error fetching weekly menu:", error);
+    }
+  };
+
   useEffect(() => {
     if (!userLogin?.personalCode) return;
     handleGetAllFoodPerWeek();
+    handleGetHistoryFoodByUser();
+    // handleSendNotifToAll();
   }, [userLogin?.personalCode]);
 
   const fixMissingDayWeek = StringHelpers.fillMissingDays(allFoodMenu);
+  const fixMissingDayHistory =
+    StringHelpers.fillMissingDayHistory(historyFoodMenu);
 
   return (
     <div className="space-y-8">
@@ -119,6 +132,7 @@ const FoodOrder: React.FC = () => {
           <div className="shadow-sm border border-bmw-border bg-bmw-surface rounded-xl p-3">
             <div className="bg-bmw-surface rounded-2xl">
               <WeeklyMenuGrid
+                isHistory={false}
                 weeklyMenu={fixMissingDayWeek}
                 selections={selections}
                 t={t}
@@ -131,19 +145,24 @@ const FoodOrder: React.FC = () => {
               />
             </div>
           </div>
-          <PollSection
+          {/* <PollSection
             poll={poll}
             answers={answers}
             t={t}
             onSubmit={handleAnswerQuestionUser}
             onAnswer={handleAnswer}
             isFormComplete={isFormComplete}
-          />
+          /> */}
         </>
       ) : (
-        <FoodOrderHistory mockHistoryData={mockHistoryData} />
+        <WeeklyMenuGrid
+          isHistory={true}
+          weeklyMenu={fixMissingDayHistory}
+          selections={selections}
+          t={t}
+          onSelect={handleSelect}
+        />
       )}
-
       <div className="h-20 lg:hidden"></div>
     </div>
   );

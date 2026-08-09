@@ -1,16 +1,21 @@
 import React from "react";
 
-const MealOption: React.FC<any> = ({ day, type, selected, t, onSelect }) => {
+const MealOption: React.FC<any> = ({
+  day,
+  type,
+  selected,
+  t,
+  onSelect,
+  isHistory,
+}) => {
   const isA = type === "A";
   const isSelected = selected === type;
 
   const colorClass = isA
     ? "border-bmw-blue bg-blue-900/10"
     : "border-green-600 bg-green-900/10";
-
   const inactiveClass =
     "border-transparent bg-bmw-hover hover:border-bmw-border";
-
   return (
     <label
       className={`
@@ -27,7 +32,11 @@ const MealOption: React.FC<any> = ({ day, type, selected, t, onSelect }) => {
           console.log("Clicked menu item:", day);
           console.log("Clicked meal type:", type);
 
-          onSelect(day.menuItemId, type);
+          if (!isHistory) {
+            onSelect(day.menuItemId, type);
+          } else {
+            return null;
+          }
         }}
       />
 

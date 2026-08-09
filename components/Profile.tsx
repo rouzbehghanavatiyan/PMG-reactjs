@@ -767,19 +767,19 @@ Generate ONE high-resolution biometric passport photo suitable for official iden
             <p className="text-bmw-blue font-medium">{department}</p>
           </div>
         </div>
-        <div
+        {/* <div
           className={`absolute bottom-4 ${dir === "rtl" ? "left-4" : "right-4"} flex items-center gap-3`}
         >
           <button
             onClick={() => setActiveTab("passport_photo")}
             className="bg-bmw-blue text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 hover:bg-blue-600 transition-colors shadow-lg shadow-black/20"
           >
-            <Sparkles size={16} />{" "}
+            <Sparkles size={16} />
             {language === "fa"
               ? "تغییر تصویر با هوش مصنوعی"
               : "Change Profile with AI"}
           </button>
-        </div>
+        </div> */}
       </div>
       <div className="flex border-b border-bmw-border/80 gap-6">
         <button
@@ -1057,13 +1057,13 @@ Generate ONE high-resolution biometric passport photo suitable for official iden
                     ? "مدل هوش مصنوعی مولد تصویر"
                     : "AI Image Generation Model"}
                 </label>
-                <div className="grid grid-cols-12 sm:grid-cols-3 gap-3">
+                <div className="grid grid-cols-12 lg:grid-cols-1 gap-3">
                   <button
                     type="button"
                     onClick={() => {
                       setSelectedModel("gemini-3-pro-image");
                     }}
-                    className={`p-3 rounded-xl col-span-4 border text-left transition-all flex flex-col gap-1 relative overflow-hidden ${
+                    className={`p-3 rounded-xl col-span-12 lg:col-span-4 border text-left transition-all flex flex-col gap-1 relative overflow-hidden ${
                       selectedModel === "gemini-3-pro-image"
                         ? "bg-bmw-blue/10 border-bmw-blue text-bmw-blue shadow-md"
                         : "bg-bmw-hover border-bmw-border text-bmw-textSec hover:text-bmw-text"
@@ -1088,7 +1088,7 @@ Generate ONE high-resolution biometric passport photo suitable for official iden
                   <button
                     type="button"
                     onClick={() => setSelectedModel("gemini-3.1-flash-image")}
-                    className={`p-3 rounded-xl col-span-4 border text-left transition-all flex flex-col gap-1 relative overflow-hidden ${
+                    className={`p-3 rounded-xl  col-span-12 lg:col-span-4 border text-left transition-all flex flex-col gap-1 relative overflow-hidden ${
                       selectedModel === "gemini-3.1-flash-image"
                         ? "bg-bmw-blue/10 border-bmw-blue text-bmw-blue shadow-md"
                         : "bg-bmw-hover border-bmw-border text-bmw-textSec hover:text-bmw-text"
@@ -1114,7 +1114,7 @@ Generate ONE high-resolution biometric passport photo suitable for official iden
                     onClick={() =>
                       setSelectedModel("gemini-3.1-flash-lite-image")
                     }
-                    className={`p-3 rounded-xl col-span-4 border text-left transition-all flex flex-col gap-1 relative overflow-hidden ${
+                    className={`p-3 rounded-xl col-span-12 lg:col-span-4 border text-left transition-all flex flex-col gap-1 relative overflow-hidden ${
                       selectedModel === "gemini-3.1-flash-lite-image"
                         ? "bg-bmw-blue/10 border-bmw-blue text-bmw-blue shadow-md"
                         : "bg-bmw-hover border-bmw-border text-bmw-textSec hover:text-bmw-text"
@@ -1451,7 +1451,7 @@ Generate ONE high-resolution biometric passport photo suitable for official iden
                     ? "خروجی استاندارد ۳:۴ بیومتریک"
                     : "Standard 3:4 Biometric Output"}
                 </span>
-                <span className="text-[10px] font-mono px-2 py-0.5 bg-green-500/10 text-green-500 rounded uppercase font-bold tracking-wider">
+                {/* <span className="text-[10px] font-mono px-2 py-0.5 bg-green-500/10 text-green-500 rounded uppercase font-bold tracking-wider">
                   {gender === "male"
                     ? language === "fa"
                       ? "آقا"
@@ -1459,7 +1459,7 @@ Generate ONE high-resolution biometric passport photo suitable for official iden
                     : language === "fa"
                       ? "خانم"
                       : "FEMALE"}
-                </span>
+                </span> */}
               </h3>
 
               {/* Passport Photo Canvas/Holder */}

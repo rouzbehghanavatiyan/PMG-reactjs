@@ -107,10 +107,8 @@ export default class StringHelpers {
       (now.getTime() - parsedDate.getTime()) / 1000,
     );
 
-    // تبدیل اعداد به فارسی کمکی
     const toFa = (num: number): string => num.toLocaleString("fa-IR");
 
-    // اگر زمان در آینده باشد
     if (diffInSeconds < 0) {
       const absSeconds = Math.abs(diffInSeconds);
       if (absSeconds < 60) return "چند ثانیه بعد";
@@ -118,7 +116,6 @@ export default class StringHelpers {
       if (minutes < 60) return `${toFa(minutes)} دقیقه بعد`;
       const hours = Math.floor(minutes / 60);
       if (hours < 24) return `${toFa(hours)} ساعت بعد`;
-      // برای زمان‌های دورتر در آینده، تاریخ کامل نمایش داده می‌شود
       return new DateObject({
         date: parsedDate,
         calendar: persian,
@@ -126,7 +123,6 @@ export default class StringHelpers {
       }).format("YYYY/MM/DD HH:mm");
     }
 
-    // اگر زمان در گذشته باشد (حالت استاندارد)
     if (diffInSeconds < 60) {
       return "چند ثانیه پیش";
     }
@@ -146,13 +142,13 @@ export default class StringHelpers {
       return `${toFa(diffInDays)} روز پیش`;
     }
 
-    // اگر بیشتر از یک هفته گذشته باشد، تاریخ کامل شمسی به همراه ساعت نمایش داده می‌شود
     return new DateObject({
       date: parsedDate,
       calendar: persian,
       locale: persian_fa,
     }).format("YYYY/MM/DD - HH:mm");
   };
+
   static sortByWeekAndDay = <
     T extends {
       menuId?: number | string;
@@ -177,6 +173,7 @@ export default class StringHelpers {
       return dayA - dayB;
     });
   };
+
   static fillMissingDays = <
     T extends {
       menuId?: number | string;
@@ -197,11 +194,9 @@ export default class StringHelpers {
       }
       groups[menuId].push(item);
     });
-
     const result: T[] = [];
     Object.keys(groups).forEach((menuIdKey) => {
       const groupItems = groups[menuIdKey];
-
       const baseItem = groupItems[0] || {};
       const actualMenuId = baseItem.menuId;
       const menuName = baseItem.menuName ?? null;
@@ -211,7 +206,6 @@ export default class StringHelpers {
         const existingItem = groupItems.find(
           (item) => Number(item.day) === day,
         );
-
         if (existingItem) {
           result.push(existingItem);
         } else {
@@ -225,6 +219,53 @@ export default class StringHelpers {
             active: null,
             isActive: null,
           } as unknown as T;
+
+          result.push(nullItem);
+        }
+      }
+    });
+
+    return result;
+  };
+
+  static fillMissingDayHistory = (data: any) => {
+    const groups: Record<string, any[]> = {};
+    data.forEach((item: any) => {
+      const menuId = String(item.MenuId ?? "unknown");
+      if (!groups[menuId]) {
+        groups[menuId] = [];
+      }
+      groups[menuId].push(item);
+    });
+    const result: any = [];
+    Object.keys(groups).forEach((menuIdKey) => {
+      const groupItems = groups[menuIdKey];
+      const baseItem = groupItems[0] || {};
+
+      const actualMenuId = baseItem.MenuId;
+      const menuName = baseItem.MenuName ?? null;
+      const createDate = baseItem.CreateDate ?? null;
+      const personnelCode = baseItem.PersonnelCode ?? null;
+      const userId = baseItem.UserId ?? null;
+
+      for (let day = 1; day <= 5; day++) {
+        const existingItem = groupItems.find(
+          (item) => Number(item.Day) === day,
+        );
+
+        if (existingItem) {
+          result.push(existingItem);
+        } else {
+          const nullItem = {
+            MenuId: actualMenuId,
+            Day: day,
+            MenuName: menuName,
+            CreateDate: createDate,
+            PersonnelCode: personnelCode,
+            UserId: userId,
+            MenuItemId: null,
+            FoodName: null,
+          };
 
           result.push(nullItem);
         }
