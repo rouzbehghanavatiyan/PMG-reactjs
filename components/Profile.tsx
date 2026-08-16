@@ -154,7 +154,7 @@ const Profile: React.FC = () => {
   const firstName = user?.main?.userProfile?.userLogin?.firstName;
   const personalCode = user?.main?.userProfile?.userLogin?.personalCode;
   const lastName = user?.main?.userProfile?.userLogin?.lastName;
-  console.log(user?.main?.userProfile?.userLogin?.profileAttachment);
+  console.log(baseURL);
 
   const [avatarUrl, setAvatarUrl] = useState<string>("");
   const [isSavingToDb, setIsSavingToDb] = useState(false);
@@ -718,6 +718,7 @@ Generate ONE high-resolution biometric passport photo suitable for official iden
       window.open(generatedImage, "_blank");
     }
   };
+
   return (
     <div className="max-w-5xl mx-auto space-y-8 relative">
       <ToastContainer
@@ -1319,8 +1320,6 @@ Generate ONE high-resolution biometric passport photo suitable for official iden
                           className="w-full accent-bmw-blue bg-bmw-surface rounded-lg appearance-none h-1.5 cursor-pointer"
                         />
                       </div>
-
-                      {/* Size Slider */}
                       <div className="space-y-1">
                         <div className="flex justify-between text-[11px] text-bmw-textSec">
                           <span>

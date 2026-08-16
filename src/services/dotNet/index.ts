@@ -151,6 +151,10 @@ export const getHistoryFoodByUser = async (personalCode: string) => {
   return await api.get(`api/food/getHistoryFoodByUser/${personalCode}`);
 };
 
+export const findAcceptFoodByUser = async (personalCode: string) => {
+  return await api.get(`api/food/findAcceptFoodByUser/${personalCode}`);
+};
+
 export const isReadNotif = async (postData: any) => {
   return await api.put(`/api/notif/isReadNotif`, postData);
 };
@@ -161,4 +165,12 @@ export const sendNotifToAll = (postData: any) => {
 
 export const updatedLimitUsedPhotoAi = async (postData: any) => {
   return await api.put(`/api/users/updatedLimitUsedPhotoAi`, postData);
+};
+
+export const createFoodPerWeekByUser = async (postData: any) => {
+  return await api.post(`/api/food/createFoodPerWeekByUser`, postData);
+};
+
+export const deleteFoodByUser = (postData: any) => {
+  return api.post(`/api/food/deleteFoodByUser`, postData);
 };

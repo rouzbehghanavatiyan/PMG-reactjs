@@ -229,40 +229,66 @@ export default class StringHelpers {
   };
 
   static fillMissingDayHistory = (data: any) => {
+    if (!Array.isArray(data)) return [];
+
     const groups: Record<string, any[]> = {};
     data.forEach((item: any) => {
-      const menuId = String(item.MenuId ?? "unknown");
+      const menuId = String(item.MenuId ?? item.menuId ?? "unknown");
       if (!groups[menuId]) {
         groups[menuId] = [];
       }
       groups[menuId].push(item);
     });
+
     const result: any = [];
     Object.keys(groups).forEach((menuIdKey) => {
       const groupItems = groups[menuIdKey];
-      const baseItem = groupItems[0] || {};
+      const baseItem =
+        groupItems.find((item) => item.fromDate || item.FromDate) ||
+        groupItems[0] ||
+        {};
 
-      const actualMenuId = baseItem.MenuId;
-      const menuName = baseItem.MenuName ?? null;
-      const createDate = baseItem.CreateDate ?? null;
-      const personnelCode = baseItem.PersonnelCode ?? null;
-      const userId = baseItem.UserId ?? null;
+      const actualMenuId = baseItem.MenuId ?? baseItem.menuId;
+      const menuName = baseItem.MenuName ?? baseItem.menuName ?? null;
+      const personnelCode =
+        baseItem.PersonnelCode ?? baseItem.personnelCode ?? null;
+      const userId = baseItem.UserId ?? baseItem.userId ?? null;
+
+      const fromDate = baseItem.FromDate ?? baseItem.fromDate ?? null;
+      const toDate = baseItem.ToDate ?? baseItem.toDate ?? null;
+
+      const calculateCorrectDate = (startDate: string, dayIndex: number) => {
+        if (!startDate) return baseItem.CreateDate ?? null;
+
+        const dateObj = new Date(startDate);
+        dateObj.setDate(dateObj.getDate() + (dayIndex - 1));
+
+        const yyyy = dateObj.getFullYear();
+        const mm = String(dateObj.getMonth() + 1).padStart(2, "0");
+        const dd = String(dateObj.getDate()).padStart(2, "0");
+
+        return `${yyyy}-${mm}-${dd}T00:00:00`;
+      };
 
       for (let day = 1; day <= 5; day++) {
         const existingItem = groupItems.find(
-          (item) => Number(item.Day) === day,
+          (item) => Number(item.Day ?? item.day) === day,
         );
 
         if (existingItem) {
           result.push(existingItem);
         } else {
+          const correctDate = calculateCorrectDate(fromDate, day);
+
           const nullItem = {
             MenuId: actualMenuId,
             Day: day,
             MenuName: menuName,
-            CreateDate: createDate,
+            CreateDate: correctDate,
             PersonnelCode: personnelCode,
             UserId: userId,
+            FromDate: fromDate,
+            ToDate: toDate,
             MenuItemId: null,
             FoodName: null,
           };

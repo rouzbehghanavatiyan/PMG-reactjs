@@ -3,7 +3,7 @@ import { Outlet } from "react-router-dom";
 import { Menu } from "lucide-react";
 import Sidebar from "../pages/Sidebar";
 import { useLanguage } from "../contexts/LanguageContext";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { jwtDecode } from "jwt-decode";
 import {
   RsetNotifMessage,
@@ -11,9 +11,12 @@ import {
 } from "../features/slices/mainSlice";
 import { getUserProfile, subscribePushNotification } from "../services/dotNet";
 import { asyncWrapper } from "../utils/asyncWrapper";
-import { useToast } from "../hooks/useToast";
 import * as signalR from "@microsoft/signalr";
 import { subscribeUserToPush } from "../utils/pushNotification";
+import { ToastContainer } from "../../components/Toast";
+import { useAppSelector } from "../features/store";
+import { addToast, removeToast } from "../features/slices/toastSloce";
+
 const baseURL = import.meta.env.VITE_API_URL;
 
 const PublicLayout: React.FC = () => {
@@ -25,23 +28,20 @@ const PublicLayout: React.FC = () => {
   const { dir } = useLanguage();
   const token = localStorage.getItem("token");
   const dispatch = useDispatch();
-  const toast = useToast();
 
-  const handleRefreshUser = asyncWrapper(async () => {
+  const toasts = useAppSelector((state) => state.toast.toasts);
+
+  const handleRefreshUser = async () => {
     if (!token) return;
     const decoded: any = jwtDecode(token);
-    const postData = {
-      personalCode: "11880",
-      Title: "سلام",
-      message: " این تسته هستش برای شما",
-    };
+
     const res = await getUserProfile();
     const { code, result }: any = res?.data;
 
     if (code === 0) {
       dispatch(RsetUserProfile({ token: decoded, userLogin: result }));
     }
-  }, toast);
+  };
 
   const handlePushPermission = useCallback(async () => {
     if (!token) return;
@@ -63,6 +63,7 @@ const PublicLayout: React.FC = () => {
       }
       return;
     }
+
     if (Notification.permission === "default") {
       const permission = await Notification.requestPermission();
 
@@ -74,6 +75,7 @@ const PublicLayout: React.FC = () => {
           p256dh: subscription?.toJSON().keys?.p256dh,
           auth: subscription?.toJSON()?.keys?.auth,
         };
+
         if (subscription) {
           await subscribePushNotification(postData);
         }
@@ -113,12 +115,21 @@ const PublicLayout: React.FC = () => {
       .build();
 
     newConnection.on("ReceiveMessage", (user: string, message: string) => {
-      console.log("ReceiveMessage:", user, message);
       dispatch(
         RsetNotifMessage({
           user,
           message,
           hasNew: true,
+        }),
+      );
+
+      dispatch(
+        addToast({
+          id: Date.now().toString(),
+          type: "info",
+          title: user,
+          message,
+          duration: 4500,
         }),
       );
     });
@@ -139,11 +150,15 @@ const PublicLayout: React.FC = () => {
         connectionStarted.current = false;
       }
     };
-  }, [token]);
+  }, [token, dispatch]);
 
   useEffect(() => {
     handlePushPermission();
-  }, []);
+  }, [handlePushPermission]);
+
+  const handleDismissToast = (id: string) => {
+    dispatch(removeToast(id));
+  };
 
   return (
     <div className="flex min-h-screen bg-bmw-base transition-colors duration-300">
@@ -167,6 +182,12 @@ const PublicLayout: React.FC = () => {
           <Outlet />
         </div>
       </main>
+
+      <ToastContainer
+        toasts={toasts}
+        onDismiss={handleDismissToast}
+        dir={dir}
+      />
     </div>
   );
 };

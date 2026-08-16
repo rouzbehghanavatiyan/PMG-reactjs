@@ -7,7 +7,6 @@ const SummaryBar: React.FC<any> = ({ t, isSubmitting, onSubmit }) => {
       <div className=" pt-6 flex justify-end">
         <button
           onClick={onSubmit}
-          disabled={isSubmitting}
           className={`
             w-full md:w-auto py-3 cursor-pointer rounded-lg font-bold text-white transition-all
             ${
@@ -19,7 +18,7 @@ const SummaryBar: React.FC<any> = ({ t, isSubmitting, onSubmit }) => {
         >
           <span className="flex gap-2 text-[14px] px-3">
             <Check size={22} />
-            {isSubmitting ? "Processing..." : t("submit_order")}
+            {t("submit_order")}
           </span>
         </button>
       </div>

@@ -8,6 +8,7 @@ type Props = {
   selections: Record<string | number, MealType>;
   t: (key: string) => string;
   isHistory?: boolean;
+  handleDelete: any;
   onSelect?: (menuItemId: string | number, type: MealType) => void;
 };
 
@@ -42,6 +43,7 @@ const WeeklyMenuGrid: React.FC<Props> = ({
   weeklyMenu,
   selections,
   isHistory,
+  handleDelete,
   t,
   onSelect,
 }) => {
@@ -130,6 +132,7 @@ const WeeklyMenuGrid: React.FC<Props> = ({
     <div className="bg-bmw-surface rounded-2xl">
       <div className="flex border-b-[1px] border-gray-200 pb-3 items-center justify-between">
         <button
+          type="button"
           onClick={handlePrev}
           disabled={page === 0}
           className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-40 transition-all cursor-pointer"
@@ -142,8 +145,8 @@ const WeeklyMenuGrid: React.FC<Props> = ({
             {getWeekTitle(page)}
           </span>
         </div>
-
         <button
+          type="button"
           onClick={handleNext}
           disabled={totalPages === 0 || page >= totalPages - 1}
           className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-40 transition-all cursor-pointer"
@@ -151,15 +154,14 @@ const WeeklyMenuGrid: React.FC<Props> = ({
           <ChevronLeft size={24} className="text-bmw-text" />
         </button>
       </div>
-
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-5 lg:grid-cols-5">
         {currentItemsWithFixedDate.map((item: any, index: number) => {
           const itemKey = `${item.foodName ?? "empty"}-${
             item.dayKey ?? item.date ?? item.menuItemId ?? index
           }`;
-
           return (
             <DayMenuCard
+              handleDelete={handleDelete}
               isHistory={isHistory}
               key={itemKey}
               day={item}

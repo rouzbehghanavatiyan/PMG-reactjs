@@ -310,7 +310,6 @@ const UsersManagement: React.FC = () => {
               </button>
             </div> */}
           </div>
-
           <div className="grid grid-cols-12 sm:grid-cols-3 gap-4 mt-6 pt-6 border-t border-bmw-border/60">
             <div className="bg-bmw-hover/60 col-span-12 lg:col-span-4 border border-bmw-border rounded-xl p-4 flex items-center gap-4">
               <div className="w-10 h-10 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center border border-blue-500/20">
