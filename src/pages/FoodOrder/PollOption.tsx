@@ -32,7 +32,6 @@ const PollOption: React.FC<Props> = ({ questionId, option, isSelected, onSelect 
           {option.optionText}
         </span>
       </div>
-
       <input
         type="radio"
         name={`question-${questionId}`}

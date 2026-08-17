@@ -174,3 +174,7 @@ export const createFoodPerWeekByUser = async (postData: any) => {
 export const deleteFoodByUser = (postData: any) => {
   return api.post(`/api/food/deleteFoodByUser`, postData);
 };
+
+export const getQuestionForFood = async () => {
+  return await api.get(`api/food/getQuestionForFood`);
+};

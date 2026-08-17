@@ -10,6 +10,7 @@ type Props = {
   index: number;
   selectedOption?: number;
   onSelect: (questionId: number, optionId: number) => void;
+  pollFood?: string;
 };
 
 const PollQuestion: React.FC<Props> = ({
@@ -17,15 +18,31 @@ const PollQuestion: React.FC<Props> = ({
   index,
   selectedOption,
   onSelect,
+  pollFood,
 }) => {
+  const isFoodQuestion = question.id === 1;
+
   return (
     <div className="space-y-4">
       <div className="flex gap-2">
         <span className="flex-shrink-0 w-8 h-8 rounded-lg bg-bmw-blue/10 text-bmw-blue flex items-center justify-center font-bold">
           {index + 1}
         </span>
-        <h3 className="text-bmw-text font-semibold text-lg pt-0.5">
-          {question.questionText}
+
+        <h3 className="text-bmw-text text-lg pt-0.5">
+          {isFoodQuestion ? (
+            <>
+              <span className="font-light text-bmw-text/55">
+                کیفیت غذای امروز{" "}
+              </span>
+              <span className="font-bold text-bmw-text">
+                {localStorage.getItem("pollFood")}
+              </span>
+              <span className="font-light text-bmw-text/55"> چطور بود؟</span>
+            </>
+          ) : (
+            <span className="font-semibold">{question.questionText}</span>
+          )}
         </h3>
       </div>
 

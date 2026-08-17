@@ -16,6 +16,7 @@ import StringHelpers from "../../utils/stringHelpers";
 import { useDispatch } from "react-redux";
 import { addToast } from "../../features/slices/toastSloce";
 import DeleteFoodModal from "./DeleteFoodModal";
+import PollSection from "./PollSection";
 
 const FoodOrder: React.FC = () => {
   const { t } = useLanguage();
@@ -35,6 +36,7 @@ const FoodOrder: React.FC = () => {
   const userLogin = useAppSelector(
     (state) => state?.main?.userProfile?.userLogin,
   );
+  const main = useAppSelector((state) => state?.main);
 
   const showToast = (
     type: "success" | "error" | "info" | "loading",
@@ -168,24 +170,6 @@ const FoodOrder: React.FC = () => {
     }
   };
 
-  const handleSendNotifToAll = async () => {
-    try {
-      const postData = {
-        personalCode: userLogin?.personalCode,
-        title: "نظرسنجی",
-        message: "نظر سنجی جدید",
-      };
-
-      const response = await sendNotifToAll(postData);
-      console.log("Notif response:", response);
-
-      showToast("success", "اعلان", "نوتیفیکیشن با موفقیت ارسال شد.");
-    } catch (error) {
-      console.error("Failed to send notification:", error);
-      showToast("error", "خطا", "ارسال نوتیفیکیشن با مشکل مواجه شد.");
-    }
-  };
-
   const handleGetAllFoodPerWeek = async () => {
     try {
       const res = await getAllFoodPerWeek();
@@ -220,7 +204,6 @@ const FoodOrder: React.FC = () => {
     handleGetAllFoodPerWeek();
     handleFindAcceptedFood();
     handleGetHistoryFoodByUser();
-    // handleSendNotifToAll();
   }, [userLogin?.personalCode]);
 
   const fixMissingDayWeek = useMemo(() => {
@@ -249,12 +232,9 @@ const FoodOrder: React.FC = () => {
     });
   }, [fixMissingDayWeek, checkAcceptedFood]);
 
-  console.log(fixMissingDayHistory);
-
   return (
     <div className="space-y-8">
       <FoodHeader t={t} activeTab={activeTab} setActiveTab={setActiveTab} />
-
       {activeTab === "current" ? (
         <>
           <div className="shadow-sm border border-bmw-border bg-bmw-surface rounded-xl p-3">
@@ -274,6 +254,7 @@ const FoodOrder: React.FC = () => {
               />
             </div>
           </div>
+          <PollSection t={t} />
         </>
       ) : (
         <WeeklyMenuGrid

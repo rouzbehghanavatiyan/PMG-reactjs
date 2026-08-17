@@ -12,7 +12,6 @@ const App: React.FC = () => {
     <LanguageProvider>
       <ThemeProvider>
         <RoutesApp />
-       
         <ToastViewport />
       </ThemeProvider>
     </LanguageProvider>

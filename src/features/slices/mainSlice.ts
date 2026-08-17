@@ -7,6 +7,7 @@ interface StateType {
   userProfile: any;
   poll: any;
   notifMessage: any;
+  dailyPollFood: null;
   isShowBirthday: boolean;
 }
 const saved = localStorage.getItem("permission");
@@ -18,6 +19,7 @@ const initialState: StateType = {
   userProfile: {},
   isShowBirthday: false,
   notifMessage: {},
+  dailyPollFood: null,
 };
 
 const mainSlice = createSlice({
@@ -29,6 +31,9 @@ const mainSlice = createSlice({
     },
     RsetNotifMessage: (state, { payload }: any) => {
       state.notifMessage = payload;
+    },
+    RsetDailyPollFood: (state, { payload }: any) => {
+      state.dailyPollFood = payload;
     },
     RsetMessageModal: (state, { payload }: any) => {
       state.messageModal = payload;
@@ -57,5 +62,6 @@ export const {
   RsetMessageModal,
   RsetIsShowBirthday,
   RsetNotifMessage,
+  RsetDailyPollFood,
 } = mainSlice.actions;
 export default mainSlice.reducer;
