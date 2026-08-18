@@ -3482,14 +3482,41 @@ body {
   }
 }
 
-css-13cymwt-control,
-.css-13cymwt-control input,
-.css-13cymwt-placeholder,
-.css-1dimb5e-singleValue {
-  font-weight: 300 !important;
-  font-size: 15px !important;
+.loader {
+  width: 110px;
+  aspect-ratio: 3;
+  --c: no-repeat radial-gradient(circle closest-side, #0284c7 90%, #0000);
+  background:
+    var(--c) 0% 50%,
+    var(--c) 50% 50%,
+    var(--c) 100% 50%;
+  background-size: calc(100% / 4) 40%;
+  animation: l-sequential 1.4s infinite ease-in-out;
 }
 
-.css-13cymwt-control {
-  border-radius: 15px !important;
+@keyframes l-sequential {
+  0% {
+    background-size:
+      calc(100% / 4) 100%,
+      calc(100% / 4) 40%,
+      calc(100% / 4) 40%;
+  }
+  33% {
+    background-size:
+      calc(100% / 4) 40%,
+      calc(100% / 4) 100%,
+      calc(100% / 4) 40%;
+  }
+  66% {
+    background-size:
+      calc(100% / 4) 40%,
+      calc(100% / 4) 40%,
+      calc(100% / 4) 100%;
+  }
+  100% {
+    background-size:
+      calc(100% / 4) 100%,
+      calc(100% / 4) 40%,
+      calc(100% / 4) 40%;
+  }
 }

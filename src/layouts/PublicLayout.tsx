@@ -140,8 +140,15 @@ const PublicLayout: React.FC = () => {
     });
 
     newConnection.on("ReceiveDailyQuestions", (foodData: any) => {
-      dispatch(RsetDailyPollFood(foodData));
-      localStorage.setItem("pollFood", foodData?.[0]?.foodName);
+      if (foodData?.code === 0) {
+        dispatch(RsetDailyPollFood(foodData?.result));
+      } else {
+        console.log("خطا در ارسال اطلاعات :", foodData);
+      }
+      console.log(foodData);
+
+      localStorage.setItem("pollFoodId", foodData?.[0]?.menuItemId);
+      localStorage.setItem("pollFoodName", foodData?.[0]?.foodName);
     });
 
     newConnection

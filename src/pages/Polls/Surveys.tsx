@@ -61,14 +61,13 @@ const Surveys: React.FC = () => {
   const onSubmit = asyncWrapper(async (data: any) => {
     const postData = {
       ...(editingPoll && { id: editingPoll.id }),
-
       title: data.title,
+      typeId: 1,
       description: data.content,
       isActive: true,
       timeLeft: data?.leftTime,
       expireTime: data.date?.toDate?.().toISOString(),
       score: Number(data.score),
-
       questions: data.questions.map((q: any, index: number) => {
         const editingQuestion = editingPoll?.questions?.find(
           (question: any) =>
@@ -127,9 +126,7 @@ const Surveys: React.FC = () => {
 
   const handleGetAllPoll = asyncWrapper(async () => {
     const res = await allPolls(userLogin?.personalCode);
-    console.log(res);
     const { result, code, message } = res?.data;
-
     if (code === 0) {
       setAllPoll(result);
     }

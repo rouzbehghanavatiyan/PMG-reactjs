@@ -62,11 +62,8 @@ export const getSalaryPerMonth = async (PersonalCode: any) => {
     `/api/salary/getSalaryPerMonth?PersonalCode=${PersonalCode}`,
   );
 };
+
 export const allPolls = async (PersonalCode: string | number) => {
-  console.log(
-    "PersonalCodePersonalCodePersonalCodePersonalCodePersonalCodePersonalCode",
-    PersonalCode,
-  );
   return await api.get(`/api/poll/allPolls?PersonalCode=${PersonalCode}`);
 };
 export const createQuestionAnswerUser = async (postData: any) => {
@@ -175,6 +172,6 @@ export const deleteFoodByUser = (postData: any) => {
   return api.post(`/api/food/deleteFoodByUser`, postData);
 };
 
-export const getQuestionForFood = async () => {
-  return await api.get(`api/food/getQuestionForFood`);
+export const getQuestionForFood = async (personalCode: any) => {
+  return await api.get(`api/food/getQuestionForFood/${personalCode}`);
 };

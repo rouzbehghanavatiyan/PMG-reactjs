@@ -4,62 +4,42 @@ import PollQuestion from "./PollQuestion";
 import Button from "../../components/UI/Button";
 import { useDispatch } from "react-redux";
 import { addToast } from "../../features/slices/toastSloce";
-import { getQuestionForFood, sendNotifToAll } from "../../services/dotNet";
+import {
+  createQuestionAnswerUser,
+  getQuestionForFood,
+  sendNotifToAll,
+} from "../../services/dotNet";
 import { useAppSelector } from "../../features/store";
 
-type Props = {
-  poll?: PollQuestionType[];
-  t?: (key: string) => string;
-  onSubmit?: (answers: Record<string, number>) => void;
-};
+const PollSection: React.FC<any> = ({
+  t,
+  getFoodQuestion,
+  setCheckSubmitedQuestions,
+}) => {
+  // const handleSendNotifToAll = async () => {
+  //   try {
+  //     const postData = {
+  //       title: "نظرسنجی",
+  //       message: "نظر سنجی جدید",
+  //     };
 
-const mockPollData: PollQuestionType[] = [
-  {
-    id: 1,
-    questionText: "کیفیت غذای امروز چطور بود؟",
-    options: [
-      { id: 1, optionText: "عالی" },
-      { id: 2, optionText: "خوب" },
-      { id: 3, optionText: "متوسط" },
-      { id: 4, optionText: "ضعیف" },
-    ],
-  },
-  {
-    id: 2,
-    questionText: "نحوه برخورد پرسنل توزیع غذا چگونه بود؟",
-    options: [
-      { id: 1, optionText: "خیلی خوب" },
-      { id: 2, optionText: "خوب" },
-      { id: 3, optionText: "نیاز به بهبود" },
-    ],
-  },
-];
+  //     const response = await sendNotifToAll(postData);
+  //     console.log("Notif response:", response);
+  //   } catch (error) {
+  //     console.error("Failed to send notification:", error);
+  //   }
+  // };
 
-const PollSection: React.FC<Props> = ({ poll = mockPollData, t, onSubmit }) => {
-  const handleSendNotifToAll = async () => {
-    try {
-      const postData = {
-        title: "نظرسنجی",
-        message: "نظر سنجی جدید",
-      };
-
-      const response = await sendNotifToAll(postData);
-      console.log("Notif response:", response);
-    } catch (error) {
-      console.error("Failed to send notification:", error);
-    }
-  };
-
-  const getFood = localStorage.getItem("pollFood");
+  const getFood = localStorage.getItem("pollFoodName");
   const dispatch = useDispatch();
   const main = useAppSelector((state) => state?.main);
   const [pollAnswers, setPollAnswers] = useState<Record<string, number>>({});
-  const [getFoodQuestion, setGetFoodQuestion] = useState([]);
+  const personalCode = main?.userProfile?.userLogin?.personalCode;
 
-  const isPollFormComplete = useMemo(() => {
-    if (!poll || poll.length === 0) return false;
-    return poll.every((q) => pollAnswers[q.id.toString()] !== undefined);
-  }, [poll, pollAnswers]);
+  // const isPollFormComplete = useMemo(() => {
+  //   if (!poll || poll.length === 0) return false;
+  //   return poll.every((q) => pollAnswers[q.id.toString()] !== undefined);
+  // }, [getFoodQuestion, pollAnswers]);
 
   const handlePollAnswer = (questionId: number, optionId: number) => {
     setPollAnswers((prev) => ({
@@ -67,15 +47,6 @@ const PollSection: React.FC<Props> = ({ poll = mockPollData, t, onSubmit }) => {
       [questionId.toString()]: optionId,
     }));
   };
-
-  const handleGetQuestionForFood = async () => {
-    const res = await getQuestionForFood();
-    if (res?.data?.length !== 0) {
-      setGetFoodQuestion(res?.data?.[0]);
-    }
-  };
-
-  console.log(main?.dailyPollFood, getFood);
 
   const showToast = (
     type: "success" | "error" | "info" | "loading",
@@ -94,35 +65,49 @@ const PollSection: React.FC<Props> = ({ poll = mockPollData, t, onSubmit }) => {
     );
   };
 
-  const handleSubmit = () => {
-    if (!isPollFormComplete) {
-      showToast("info", "نظرسنجی", "لطفاً به همه سوالات پاسخ دهید.");
-      return;
-    }
+  const onSubmit = async () => {
+    // if (!isPollFormComplete) {
+    //   showToast("info", "نظرسنجی", "لطفاً به همه سوالات پاسخ دهید.");
+    //   return;
+    // }
 
-    console.log("پاسخ‌های ثبت‌شده:", pollAnswers);
-    showToast("success", "ثبت موفق", "نظرسنجی با موفقیت ثبت شد.");
+    const postData = {
+      typeId: 2,
+      pollId: getFoodQuestion?.id || null,
+      personalCode: main?.userProfile?.userLogin?.personalCode || null,
+      answers: Object.entries(pollAnswers).map(
+        ([pollQuestionId, pollOptionId]) => ({
+          pollQuestionId,
+          pollOptionId,
+        }),
+      ),
+    };
+    console.log(postData);
 
-    if (onSubmit) {
-      onSubmit(pollAnswers);
+    const res = await createQuestionAnswerUser(postData);
+    console.log(res);
+    if (res?.data?.code === 0) {
+      showToast("success", "ثبت موفق", "نظرسنجی با موفقیت ثبت شد.");
+      setCheckSubmitedQuestions(false);
+    } else {
+      showToast("error", "اخطار", res?.data?.message);
     }
   };
-  useEffect(() => {
-    if (main?.dailyPollFood?.length > 0) {
-      handleSendNotifToAll();
-    }
-  }, [main?.dailyPollFood]);
 
-  useEffect(() => {
-    handleGetQuestionForFood();
-  }, []);
+  // useEffect(() => {
+  //   if (main?.dailyPollFood) {
+  //     handleSendNotifToAll();
+  //   }
+  // }, [main?.dailyPollFood]);
+
+  console.log();
 
   return (
     <div className="p-4 bg-bmw-surface border-t border-bmw-border lg:relative lg:border lg:rounded-xl lg:bg-bmw-surface lg:p-6 lg:mt-8 z-20 shadow-lg">
       <div className="max-w-7xl mx-auto md:flex-row items-center justify-between gap-4">
         <div className="flex-col">
           <div className="p-4 space-y-10">
-            {poll.map((q, index) => (
+            {getFoodQuestion?.questions?.map((q: any, index: number) => (
               <PollQuestion
                 key={q.id}
                 question={q}
@@ -132,10 +117,9 @@ const PollSection: React.FC<Props> = ({ poll = mockPollData, t, onSubmit }) => {
               />
             ))}
           </div>
-
           <div className="mt-8 pt-6 border-t border-bmw-border flex justify-end">
             <Button
-              onClick={handleSubmit}
+              onClick={onSubmit}
               className={`mb-5 px-6 py-3 rounded-lg font-bold text-white transition-all bg-bmw-blue hover:bg-blue-700 cursor-pointer`}
               label={t("submit_feedback")}
             />

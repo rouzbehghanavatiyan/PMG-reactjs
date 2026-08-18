@@ -63,6 +63,7 @@ const ShowQuestionsPoll: React.FC<ShowQuestionsPollProps> = () => {
 
   const handleAnswerQuestionUser = asyncWrapper(async () => {
     const postData = {
+      typeId: 1,
       pollId: poll?.id || null,
       personalCode: userLogin?.personalCode || null,
       answers: Object.entries(answers).map(

@@ -18,6 +18,7 @@ import {
   Network,
   Lightbulb,
   Users,
+  ClipboardMinus,
 } from "lucide-react";
 import { useLanguage } from "../contexts/LanguageContext";
 import ThemeAndLang from "../common/ThemeAndLang";
@@ -60,12 +61,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
       path: "/introductionOrganization",
     },
     { icon: CreditCard, label: "payslips", path: "/payslips" },
-    {
-      icon: CalendarDays,
-      label: "calendar",
-      path: "/calendar",
-      disabled: true,
-    },
+    // {
+    //   icon: CalendarDays,
+    //   label: "calendar",
+    //   path: "/calendar",
+    //   disabled: true,
+    // },
     { icon: LayoutGrid, label: "erp_title", path: "/erp" },
     { icon: MessageSquare, label: "chat_pdf", path: "/chatWithPDF" },
     ...(hasPermission("chatSmart.read")
@@ -77,11 +78,23 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
           },
         ]
       : []),
+
     { icon: FileText, label: "documents", path: "/documents", disabled: true },
     { icon: Utensils, label: "food_order", path: "/food" },
     { icon: ClipboardList, label: "surveys", path: "/surveys" },
     { icon: Ticket, label: "support", path: "/support", disabled: true },
     { icon: Lightbulb, label: "suggestions_feedback", path: "/feedbackSystem" },
+    ...(hasPermission("chatSmart.read")
+      ? [
+          {
+            icon: ClipboardMinus,
+            label: "گزارشات",
+            path: "/reports",
+            disabled: true,
+          },
+        ]
+      : []),
+    ,
   ];
 
   const hiddenTransform =

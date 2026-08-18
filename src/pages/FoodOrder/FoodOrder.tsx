@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useEffectEvent, useMemo, useState } from "react";
 import { useLanguage } from "../../contexts/LanguageContext";
 import type { MealType } from "./type";
 import FoodHeader from "./FoodHeader";
@@ -9,6 +9,7 @@ import {
   findAcceptFoodByUser,
   getAllFoodPerWeek,
   getHistoryFoodByUser,
+  getQuestionForFood,
   sendNotifToAll,
 } from "../../services/dotNet";
 import { useAppSelector } from "../../features/store";
@@ -17,6 +18,7 @@ import { useDispatch } from "react-redux";
 import { addToast } from "../../features/slices/toastSloce";
 import DeleteFoodModal from "./DeleteFoodModal";
 import PollSection from "./PollSection";
+import Loading from "../../components/UI/Loading";
 
 const FoodOrder: React.FC = () => {
   const { t } = useLanguage();
@@ -29,14 +31,18 @@ const FoodOrder: React.FC = () => {
   const [selections, setSelections] = useState<
     Record<string | number, MealType>
   >({});
+  const [getFoodQuestion, setGetFoodQuestion] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [checkSubmitedQuestions, setCheckSubmitedQuestions] = useState(false);
   const [selectedDeleteItem, setSelectedDeleteItem] = useState<any>(null);
   const userLogin = useAppSelector(
     (state) => state?.main?.userProfile?.userLogin,
   );
   const main = useAppSelector((state) => state?.main);
+  const personalCode = main?.userProfile?.userLogin?.personalCode;
 
   const showToast = (
     type: "success" | "error" | "info" | "loading",
@@ -232,50 +238,95 @@ const FoodOrder: React.FC = () => {
     });
   }, [fixMissingDayWeek, checkAcceptedFood]);
 
+  const handleGetQuestionForFood = async () => {
+    const res = await getQuestionForFood(personalCode);
+    console.log(res);
+    if (res?.data?.code === 0) {
+      setGetFoodQuestion(res?.data?.result);
+      if (res?.data?.result?.checkAnswerPoll) {
+        setCheckSubmitedQuestions(false);
+      }
+    }
+  };
+
+  const fetchAllData = async () => {
+    setIsLoading(true);
+    await Promise.all([
+      handleGetAllFoodPerWeek(),
+      handleFindAcceptedFood(),
+      handleGetHistoryFoodByUser(),
+      handleGetQuestionForFood(),
+    ]);
+    setIsLoading(false);
+  };
+
+  useEffect(() => {
+    if (!personalCode) return;
+    fetchAllData();
+  }, [personalCode]);
+
+  useEffect(() => {
+    if (main?.dailyPollFood?.checkAnswerPoll) return;
+    setCheckSubmitedQuestions(true);
+  }, [main?.dailyPollFood]);
+
+  if (isLoading) {
+    return <Loading t={t} />;
+  }
+
   return (
-    <div className="space-y-8">
-      <FoodHeader t={t} activeTab={activeTab} setActiveTab={setActiveTab} />
-      {activeTab === "current" ? (
-        <>
-          <div className="shadow-sm border border-bmw-border bg-bmw-surface rounded-xl p-3">
-            <div className="bg-bmw-surface rounded-2xl">
-              <WeeklyMenuGrid
-                handleDelete={handleDelete}
-                isHistory={false}
-                weeklyMenu={updatedMissingDayWeek}
-                selections={selections}
-                t={t}
-                onSelect={handleSelect}
-              />
-              <SummaryBar
-                t={t}
-                isSubmitting={isSubmitting}
-                onSubmit={handleSubmit}
-              />
+    <>
+      {isLoading && <Loading />}
+      <div className="space-y-8">
+        <FoodHeader t={t} activeTab={activeTab} setActiveTab={setActiveTab} />
+        {activeTab === "current" ? (
+          <>
+            <div className="shadow-sm border border-bmw-border bg-bmw-surface rounded-xl p-3">
+              <div className="bg-bmw-surface rounded-2xl">
+                <WeeklyMenuGrid
+                  handleDelete={handleDelete}
+                  isHistory={false}
+                  weeklyMenu={updatedMissingDayWeek}
+                  selections={selections}
+                  t={t}
+                  onSelect={handleSelect}
+                />
+                <SummaryBar
+                  t={t}
+                  isSubmitting={isSubmitting}
+                  onSubmit={handleSubmit}
+                />
+              </div>
             </div>
-          </div>
-          <PollSection t={t} />
-        </>
-      ) : (
-        <WeeklyMenuGrid
-          isHistory={true}
-          weeklyMenu={fixMissingDayHistory}
-          selections={selections}
-          t={t}
-          onSelect={handleSelect}
-        />
-      )}
-      <div className="h-20 lg:hidden"></div>
-      {showDeleteModal && (
-        <DeleteFoodModal
-          showToast={showToast}
-          handleFindAcceptedFood={handleFindAcceptedFood}
-          showDeleteModal={showDeleteModal}
-          setShowDeleteModal={setShowDeleteModal}
-          selectedDeleteItem={selectedDeleteItem}
-        />
-      )}
-    </div>
+            {checkSubmitedQuestions && (
+              <PollSection
+                t={t}
+                getFoodQuestion={getFoodQuestion}
+                setCheckSubmitedQuestions={setCheckSubmitedQuestions}
+              />
+            )}
+          </>
+        ) : (
+          <WeeklyMenuGrid
+            isHistory={true}
+            weeklyMenu={fixMissingDayHistory}
+            selections={selections}
+            t={t}
+            onSelect={handleSelect}
+          />
+        )}
+        <div className="h-20 lg:hidden"></div>
+        {showDeleteModal && (
+          <DeleteFoodModal
+            showToast={showToast}
+            handleFindAcceptedFood={handleFindAcceptedFood}
+            showDeleteModal={showDeleteModal}
+            setShowDeleteModal={setShowDeleteModal}
+            selectedDeleteItem={selectedDeleteItem}
+          />
+        )}
+      </div>
+    </>
   );
 };
 

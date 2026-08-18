@@ -36,7 +36,7 @@ const PollQuestion: React.FC<Props> = ({
                 کیفیت غذای امروز{" "}
               </span>
               <span className="font-bold text-bmw-text">
-                {localStorage.getItem("pollFood")}
+                {localStorage.getItem("pollFoodName")}
               </span>
               <span className="font-light text-bmw-text/55"> چطور بود؟</span>
             </>
