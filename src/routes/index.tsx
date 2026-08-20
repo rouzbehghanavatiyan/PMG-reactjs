@@ -20,6 +20,7 @@ import FeedbackSystem from "../../components/FeedbackSystem";
 import SmartKnowledgeGraph from "../../components/SmartKnowledgeGraph";
 import Profile from "../../components/Profile";
 import UsersManagement from "../../components/UsersManagement";
+import ListeningEar from "../pages/Login/ShowListeningEarModal";
 
 export const RoutesApp: React.FC = () => {
   return (
@@ -41,7 +42,7 @@ export const RoutesApp: React.FC = () => {
             <Route path="/chatWithPDF" element={<ChatWithPDF />} />
             <Route path="/feedbackSystem" element={<FeedbackSystem />} />
             <Route path="/userManagement" element={<UsersManagement />} />
-            
+
             <Route
               path="/smartKnowledgeGraph"
               element={<SmartKnowledgeGraph />}
