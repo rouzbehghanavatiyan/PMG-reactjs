@@ -20,7 +20,6 @@ import FeedbackSystem from "../../components/FeedbackSystem";
 import SmartKnowledgeGraph from "../../components/SmartKnowledgeGraph";
 import Profile from "../../components/Profile";
 import UsersManagement from "../../components/UsersManagement";
-import ListeningEar from "../pages/Login/ShowListeningEarModal";
 
 export const RoutesApp: React.FC = () => {
   return (

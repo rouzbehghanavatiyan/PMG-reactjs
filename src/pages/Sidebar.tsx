@@ -94,7 +94,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
           },
         ]
       : []),
-    ,
   ];
 
   const hiddenTransform =

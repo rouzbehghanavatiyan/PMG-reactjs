@@ -149,6 +149,8 @@ const Surveys: React.FC = () => {
       : poll.checkAnswerPoll === false;
   });
 
+  console.log(allPoll, filteredPolls);
+
   return (
     <div className="space-y-8">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -182,109 +184,6 @@ const Surveys: React.FC = () => {
           variant="success"
         />
       )}
-      {/* <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredPolls?.map((survey: any) => {
-          return (
-            survey?.isActive && (
-              <div
-                key={survey.id}
-                className="bg-bmw-surface border border-bmw-border rounded-xl overflow-hidden hover:border-bmw-blue/50 transition-all group flex flex-col h-full shadow-sm"
-              >
-                <div className="p-6 flex-1">
-                  <div className="flex justify-between items-start mb-4">
-                    <div className="px-2 py-1 bg-bmw-base rounded border border-bmw-border text-xs text-bmw-textSec font-mono">
-                      {survey.questions?.length} {t("questions_count")}
-                    </div>
-                    {hasPermission("Poll.Delete") && (
-                      <Button
-                        size="sm"
-                        type="button"
-                        variant="outline-danger"
-                        onClick={() => handleDeletePoll(survey)}
-                        className="text-red-500 border rounded px-2 py-1 hover:text-red-600 whitespace-nowrap"
-                        label="حذف"
-                        leftIcon={<Trash size={14} />}
-                      />
-                    )}
-                    {hasPermission("Poll.Edit") && (
-                      <Button
-                        size="sm"
-                        type="button"
-                        variant="outline-orange"
-                        label="ویرایش"
-                        leftIcon={<Pencil size={14} />}
-                        onClick={() => {
-                          setEditingPoll(survey);
-                          setShowAddPolls(true);
-                        }}
-                      />
-                    )}
-                    {activeTab === "history" ? (
-                      <div className="flex items-center gap-1 text-green-500 text-xs font-bold bg-green-900/10 px-2 py-1 rounded">
-                        <CheckCircle size={12} /> {t("completed")}
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-1 text-yellow-500 text-xs font-bold bg-yellow-900/10 px-2 py-1 rounded">
-                        <Trophy size={12} /> {survey.score} {t("points")}
-                      </div>
-                    )}
-                  </div>
-
-                  <h3 className="text-xl font-bold text-bmw-text mb-2 line-clamp-2 group-hover:text-bmw-blue transition-colors">
-                    {survey.title}
-                  </h3>
-                  <p className="text-bmw-textSec text-sm line-clamp-3 mb-4">
-                    {survey.description}
-                  </p>
-
-                  <div className="flex items-center gap-4 text-xs text-bmw-textSec">
-                    <div className="flex items-center gap-1">
-                      <Clock size={14} /> {survey.timeLeft} {t("minutes")}
-                    </div>
-                    <div>
-                      Deadline:{" "}
-                      <span className="text-bmw-text font-medium">
-                        {StringHelpers.toPersianFullDateTime(survey.expireTime)}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-                <div className="p-4 border-t border-bmw-border bg-bmw-base/50">
-                  {activeTab === "active" ? (
-                    <button
-                      onClick={() => handleStartSurvey(survey)}
-                      className={`
-                  w-full py-2.5 cursor-pointer rounded-lg font-medium text-sm transition-all flex items-center justify-center gap-2
-                  bg-bmw-blue text-white hover:bg-blue-600 shadow-lg shadow-blue-900/20"
-                `}
-                    >
-                      <>
-                        {t("start_survey")}{" "}
-                        <ArrowRight size={16} className="rtl:rotate-180" />
-                      </>
-                    </button>
-                  ) : (
-                    <button
-                      className={`
-                  w-full py-2.5 cursor-pointer rounded-lg font-medium text-sm transition-all flex items-center justify-center gap-2
-                  bg-gray-200 text-bmw-textSec hover:bg-blue-600 "
-                `}
-                    >
-                      <>تکمیل شد </>
-                    </button>
-                  )}
-                </div>
-              </div>
-            )
-          );
-        })}
-        {filteredPolls.length === 0 && (
-          <div className="col-span-full py-12 flex flex-col items-center justify-center text-bmw-textSec opacity-60">
-            <ClipboardList size={48} className="mb-4" />
-            <p>نظرسنجی تکمیل شده ای وجود ندارد</p>
-          </div>
-        )}
-      </div> */}
       <div className="grid grid-cols-1 gap-4 sm:gap-5 md:grid-cols-2 lg:grid-cols-3 lg:gap-6">
         {filteredPolls?.map((survey: any) => {
           return (
@@ -310,7 +209,6 @@ const Surveys: React.FC = () => {
                         </div>
                       )}
                     </div>
-
                     <div className="flex flex-wrap items-center gap-2 sm:justify-end">
                       {hasPermission("Poll.Delete") && (
                         <Button
@@ -323,7 +221,7 @@ const Surveys: React.FC = () => {
                           leftIcon={<Trash size={14} />}
                         />
                       )}
-
+.
                       {hasPermission("Poll.Edit") && (
                         <Button
                           size="sm"

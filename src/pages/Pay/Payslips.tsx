@@ -197,12 +197,12 @@ const Payslips: React.FC = () => {
             </h1>
             <p className="text-bmw-textSec text-sm mt-1">{t("salary_sub")}</p>
           </div>
-          <button className="flex items-center gap-2 bg-bmw-surface border border-bmw-border px-4 py-2 rounded hover:border-bmw-blue transition-colors">
+          {/* <button className="flex items-center gap-2 bg-bmw-surface border border-bmw-border px-4 py-2 rounded hover:border-bmw-blue transition-colors">
             <Lock size={16} className="text-bmw-blue" />
             <span className="text-sm font-medium text-bmw-text">
               {t("password_protected")}
             </span>
-          </button>
+          </button> */}
         </div>
         {/* header pay */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

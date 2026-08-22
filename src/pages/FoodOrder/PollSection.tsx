@@ -100,8 +100,6 @@ const PollSection: React.FC<any> = ({
   //   }
   // }, [main?.dailyPollFood]);
 
-  console.log();
-
   return (
     <div className="p-4 bg-bmw-surface border-t border-bmw-border lg:relative lg:border lg:rounded-xl lg:bg-bmw-surface lg:p-6 lg:mt-8 z-20 shadow-lg">
       <div className="max-w-7xl mx-auto md:flex-row items-center justify-between gap-4">
