@@ -12,6 +12,7 @@ export default class StringHelpers {
       return `${StringHelpers.baseURL}/${data}`;
     }
   };
+  
   static toPersianDateTime = (date: string) => {
     return new DateObject({
       date: new Date(date),

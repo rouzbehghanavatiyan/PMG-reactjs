@@ -175,3 +175,7 @@ export const deleteFoodByUser = (postData: any) => {
 export const getQuestionForFood = async (personalCode: any) => {
   return await api.get(`api/food/getQuestionForFood/${personalCode}`);
 };
+
+export const createListeningEar = (postData: any) => {
+  return api.post(`/api/listeningEar/createListeningEar`, postData);
+};

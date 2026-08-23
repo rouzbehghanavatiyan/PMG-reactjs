@@ -94,6 +94,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
           },
         ]
       : []),
+    {
+      icon: ClipboardMinus,
+      label: "گزارشات",
+      path: "/reports",
+    },
   ];
 
   const hiddenTransform =

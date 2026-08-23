@@ -298,7 +298,7 @@ const FoodOrder: React.FC = () => {
                 />
               </div>
             </div>
-            {checkSubmitedQuestions && (
+            {checkSubmitedQuestions && getFoodQuestion !== null && (
               <PollSection
                 t={t}
                 getFoodQuestion={getFoodQuestion}

@@ -86,6 +86,7 @@ const UsersManagement: React.FC = () => {
     const imagePath =
       user?.profileAttachment &&
       StringHelpers.getImage(user?.profileAttachment);
+
     if (!imagePath) {
       addToast("error", "تصویر یافت نشد", "این کاربر عکسی برای دانلود ندارد.");
       return;
@@ -94,24 +95,93 @@ const UsersManagement: React.FC = () => {
     const originalName = user?.profileAttachment?.fileName ?? "";
     const extension = originalName.match(/\.[^.]+$/)?.[0] ?? ".jpg";
 
+    const downloadName = originalName
+      ? originalName
+      : `profile_image${extension}`;
+
     try {
       const response = await fetch(imagePath);
+
+      if (!response.ok) {
+        throw new Error("مشکل در دریافت فایل از سرور");
+      }
+
       const blob = await response.blob();
-      const blobUrl = URL.createObjectURL(blob);
+      window.open(imagePath, "_blank");
+
+      const blobUrl = window.URL.createObjectURL(blob);
 
       const link = document.createElement("a");
       link.href = blobUrl;
-      link.download = `${user?.personalCode}${extension}`;
+      link.download = downloadName;
+
       document.body.appendChild(link);
       link.click();
-      link.remove();
 
-      setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(blobUrl);
     } catch (err) {
       console.error(err);
-      addToast("error", "خطا", "دانلود تصویر انجام نشد.");
+      addToast(
+        "error",
+        "خطا",
+        "دانلود تصویر انجام نشد. (ممکن است مشکل CORS باشد)",
+      );
     }
   };
+
+  //   const handleDownloadImage = async (user: any) => {
+  //   const imagePath =
+  //     user?.profileAttachment &&
+  //     StringHelpers.getImage(user?.profileAttachment);
+
+  //   if (!imagePath) {
+  //     addToast("error", "تصویر یافت نشد", "این کاربر عکسی برای دانلود ندارد.");
+  //     return;
+  //   }
+
+  //   const originalName = user?.profileAttachment?.fileName ?? "";
+  //   const extension = originalName.match(/\.[^.]+$/)?.[0] ?? ".jpg";
+
+  //   const downloadName = originalName
+  //     ? originalName
+  //     : `profile_image${extension}`;
+
+  //   try {
+  //     const response = await fetch(imagePath);
+
+  //     if (!response.ok) {
+  //       throw new Error("مشکل در دریافت فایل از سرور");
+  //     }
+
+  //     // ۲. تبدیل فایل به داده خام مرورگر (Blob)
+  //     const blob = await response.blob();
+
+  //     // ۳. ساخت یک آدرس موقت داخلی برای دانلود
+  //     const blobUrl = window.URL.createObjectURL(blob);
+
+  //     // ۴. ایجاد تگ a مخفی و شبیه‌سازی کلیک روی آن
+  //     const link = document.createElement("a");
+  //     link.href = blobUrl;
+  //     link.download = downloadName;
+
+  //     document.body.appendChild(link);
+  //     link.click();
+
+  //     document.body.removeChild(link);
+  //     window.URL.revokeObjectURL(blobUrl);
+
+  //     // در صورت نیاز می‌توانید اینجا یک پیغام موفقیت هم نمایش دهید
+  //     // addToast("success", "موفق", "تصویر با موفقیت دانلود شد.");
+  //   } catch (err) {
+  //     console.error(err);
+  //     addToast(
+  //       "error",
+  //       "خطا",
+  //       "دانلود تصویر انجام نشد. (ممکن است مشکل CORS باشد)",
+  //     );
+  //   }
+  // };
 
   useEffect(() => {
     setCurrentPage(1);

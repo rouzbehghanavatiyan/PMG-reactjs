@@ -221,7 +221,6 @@ const Surveys: React.FC = () => {
                           leftIcon={<Trash size={14} />}
                         />
                       )}
-.
                       {hasPermission("Poll.Edit") && (
                         <Button
                           size="sm"
