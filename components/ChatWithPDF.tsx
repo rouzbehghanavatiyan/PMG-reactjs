@@ -27,6 +27,7 @@ import { useAppSelector } from "../src/features/store";
 import { useHasPermission } from "../src/hooks/usePermissions";
 import { useMediaQuery } from "react-responsive";
 import { useLanguage } from "../src/contexts/LanguageContext";
+import Loading from "../src/components/UI/Loading";
 
 interface ChatSession {
   id: string;
@@ -765,7 +766,6 @@ const ChatWithPDF: React.FC = () => {
       console.error("Error deleting session:", err);
     }
   };
-
   // Scroll to bottom of chat
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -1102,7 +1102,6 @@ const ChatWithPDF: React.FC = () => {
     });
   };
 
-  // Filtered documents for user chat selection
   const filteredEnabledDocs = ragDocs
     .filter((doc) => doc.is_enabled !== false)
     .filter((doc) => {
@@ -1114,7 +1113,6 @@ const ChatWithPDF: React.FC = () => {
       );
     });
 
-  // Filtered documents for admin list
   const filteredAdminDocs = ragDocs.filter((doc) => {
     // 1. Filter by status
     if (adminDocFilterStatus === "enabled" && doc.is_enabled === false)
@@ -1122,7 +1120,6 @@ const ChatWithPDF: React.FC = () => {
     if (adminDocFilterStatus === "disabled" && doc.is_enabled !== false)
       return false;
 
-    // 2. Filter by search query
     if (!adminDocSearchQuery.trim()) return true;
     const query = adminDocSearchQuery.toLowerCase();
     const matchesTitle = doc.title.toLowerCase().includes(query);
@@ -1137,1222 +1134,1496 @@ const ChatWithPDF: React.FC = () => {
   });
 
   return (
-    <div className="space-y-6 animate-fade-in" dir={isRtl ? "rtl" : "ltr"}>
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-bmw-border pb-5">
-        <div>
-          <h1 className="text-3xl font-bold text-bmw-text tracking-tight">
-            {isRtl
-              ? "مکالمه هوشمند با اسناد سازمانی"
-              : "Chat with PDF Documents"}
-          </h1>
-          <p className="text-bmw-textSec text-sm mt-1">
-            {isRtl
-              ? "مستقیماً با محتوای اسناد و مدارک سازمانی، چت کنید و پاسخهای علمی و دقیق دریافت کنید."
-              : "Upload reference guides, policies, or contracts and ask questions directly about their contents."}
-          </p>
-        </div>
+    <>
+      {/* <Loading /> */}
+      <div className="space-y-6 animate-fade-in" dir={isRtl ? "rtl" : "ltr"}>
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-bmw-border pb-5">
+          <div>
+            <h1 className="text-3xl font-bold text-bmw-text tracking-tight">
+              {isRtl
+                ? "مکالمه هوشمند با اسناد سازمانی"
+                : "Chat with PDF Documents"}
+            </h1>
+            <p className="text-bmw-textSec text-sm mt-1">
+              {isRtl
+                ? "مستقیماً با محتوای اسناد و مدارک سازمانی، چت کنید و پاسخهای علمی و دقیق دریافت کنید."
+                : "Upload reference guides, policies, or contracts and ask questions directly about their contents."}
+            </p>
+          </div>
 
-        <div className="flex bg-bmw-surface p-1 rounded-lg border border-bmw-border shadow-md">
-          <button
-            onClick={() => setActiveTab("chat")}
-            className={`px-4 py-2 text-xs md:text-sm font-bold rounded-md transition-all ${
-              activeTab === "chat"
-                ? "bg-bmw-blue text-white shadow-lg"
-                : "text-bmw-textSec hover:text-bmw-text"
-            }`}
-          >
-            {isRtl ? "گفتگوی هوشمند" : "AI Assistant Chat"}
-          </button>
-          {hasPermission("chatPdf.show") && (
+          <div className="flex bg-bmw-surface p-1 rounded-lg border border-bmw-border shadow-md">
             <button
-              onClick={() => setActiveTab("admin")}
+              onClick={() => setActiveTab("chat")}
               className={`px-4 py-2 text-xs md:text-sm font-bold rounded-md transition-all ${
-                activeTab === "admin"
+                activeTab === "chat"
                   ? "bg-bmw-blue text-white shadow-lg"
                   : "text-bmw-textSec hover:text-bmw-text"
               }`}
             >
-              {isRtl ? "مدیریت اسناد" : "Document Manager"}
+              {isRtl ? "گفتگوی هوشمند" : "AI Assistant Chat"}
             </button>
-          )}
-        </div>
-      </div>
-
-      {activeTab === "chat" && (
-        <div className="grid grid-cols-12 lg:grid-cols-12 gap-6 items-start">
-          <div
-            className={`${isSidebarOpen || isDesktop ? "flex" : "hidden lg:flex"} lg:col-span-4 col-span-12 bg-bmw-surface border border-bmw-border rounded-xl p-4 flex-col h-[350px] lg:h-[650px] overflow-hidden shadow-sm`}
-          >
-            <div className="flex justify-between items-center mb-4 pb-3 border-b border-bmw-border">
-              <span className="text-xs font-bold text-bmw-text uppercase tracking-wider flex items-center gap-1.5">
-                <History className="w-4 h-4 text-bmw-blue" />
-                {isRtl ? "تاریخچه گفتگوها" : "Conversations"}
-              </span>
+            {hasPermission("chatPdf.show") && (
               <button
-                onClick={handleNewChat}
-                className="bg-bmw-blue hover:bg-blue-600 text-white p-1.5 rounded-lg transition-all"
-                title={isRtl ? "مکالمه جدید" : "New Chat"}
+                onClick={() => setActiveTab("admin")}
+                className={`px-4 py-2 text-xs md:text-sm font-bold rounded-md transition-all ${
+                  activeTab === "admin"
+                    ? "bg-bmw-blue text-white shadow-lg"
+                    : "text-bmw-textSec hover:text-bmw-text"
+                }`}
               >
-                <Plus className="w-4 h-4" />
+                {isRtl ? "مدیریت اسناد" : "Document Manager"}
               </button>
-            </div>
-
-            <div className="flex-1 overflow-y-auto space-y-1.5 custom-scrollbar pr-1">
-              {sessions.length === 0 ? (
-                <p className="text-xs text-bmw-textSec italic text-center py-8">
-                  {isRtl
-                    ? "هیچ گفتگویی یافت نشد."
-                    : "No conversations started yet."}
-                </p>
-              ) : (
-                sessions.map((sess) => {
-                  const isActive = sess.id === activeSessionId;
-                  return (
-                    <div
-                      key={sess.id}
-                      onClick={() => handleSelectSession(sess.id)}
-                      className={`group flex items-center justify-between p-3 rounded-lg text-sm transition-all cursor-pointer border ${
-                        isActive
-                          ? "bg-bmw-blue/10 border-bmw-blue/30 text-bmw-text font-semibold"
-                          : "border-transparent text-bmw-textSec hover:bg-bmw-hover hover:text-bmw-text"
-                      }`}
-                    >
-                      <div className="flex items-center gap-2 truncate">
-                        <MessageSquare
-                          className={`w-4 h-4 flex-shrink-0 ${isActive ? "text-bmw-blue" : "text-bmw-textSec"}`}
-                        />
-                        <span className="truncate text-xs">{sess.title}</span>
-                      </div>
-                      <button
-                        onClick={(e) => handleDeleteSession(e, sess.id)}
-                        className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-red-500/10 text-bmw-textSec hover:text-red-400 transition-all"
-                        title={isRtl ? "حذف" : "Delete"}
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  );
-                })
-              )}
-            </div>
+            )}
           </div>
+        </div>
 
-          <div className="lg:col-span-8 col-span-12 bg-bmw-surface border border-bmw-border rounded-xl flex flex-col h-[500px] sm:h-[600px] lg:h-[650px] overflow-hidden shadow-sm relative">
-            <div className="lg:hidden h-14 border-b border-bmw-border px-4 flex items-center justify-between bg-bmw-hover/50 shrink-0 select-none">
-              <button
-                onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                className="flex items-center gap-1.5 text-xs text-bmw-text hover:bg-bmw-hover px-3 py-1.5 rounded-lg border border-bmw-border bg-bmw-surface transition-all cursor-pointer font-bold shadow-sm"
-              >
-                <History className="w-4 h-4 text-bmw-blue" />
-                <span>{isRtl ? "تاریخچه گفتگوها" : "History"}</span>
-              </button>
-              <div className="flex items-center gap-1">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                <span className="text-[10px] font-mono text-bmw-textSec font-bold">
-                  GEMINI 2.5 ACTIVE
+        {activeTab === "chat" && (
+          <div className="grid grid-cols-12 lg:grid-cols-12 gap-6 items-start">
+            <div
+              className={`${isSidebarOpen || isDesktop ? "flex" : "hidden lg:flex"} lg:col-span-4 col-span-12 bg-bmw-surface border border-bmw-border rounded-xl p-4 flex-col h-[350px] lg:h-[650px] overflow-hidden shadow-sm`}
+            >
+              <div className="flex justify-between items-center mb-4 pb-3 border-b border-bmw-border">
+                <span className="text-xs font-bold text-bmw-text uppercase tracking-wider flex items-center gap-1.5">
+                  <History className="w-4 h-4 text-bmw-blue" />
+                  {isRtl ? "تاریخچه گفتگوها" : "Conversations"}
                 </span>
-              </div>
-            </div>
-
-            <div className="bg-bmw-hover border-b border-bmw-border p-3 md:p-4 flex flex-col gap-2.5 transition-all">
-              <div
-                onClick={() => setIsDocSelectorExpanded(!isDocSelectorExpanded)}
-                className="flex items-center justify-between cursor-pointer hover:opacity-90 select-none"
-              >
-                <div className="flex items-center gap-1.5 sm:gap-2">
-                  <Database
-                    size={14}
-                    className="text-bmw-blue animate-pulse shrink-0"
-                  />
-                  <span className="text-[11px] sm:text-xs font-bold text-bmw-text tracking-wide uppercase">
-                    {isRtl
-                      ? "منابع جستجوی معنایی (RAG)"
-                      : "Semantic Query Sources (RAG)"}
-                  </span>
-                  <span className="text-[9px] sm:text-[10px] bg-bmw-blue/15 text-bmw-blue px-2 py-0.5 rounded-full font-bold">
-                    {selectedDocIds.length === 0
-                      ? isRtl
-                        ? "همه اسناد فعال"
-                        : "All Active Docs"
-                      : isRtl
-                        ? `${selectedDocIds.length} سند انتخاب شده`
-                        : `${selectedDocIds.length} Selected`}
-                  </span>
-                </div>
                 <button
-                  type="button"
-                  className="flex items-center gap-1 text-[10px] sm:text-[11px] font-bold text-bmw-blue bg-bmw-blue/10 hover:bg-bmw-blue/20 px-2 py-1 rounded-md transition-all border border-bmw-blue/20 cursor-pointer"
+                  onClick={handleNewChat}
+                  className="bg-bmw-blue hover:bg-blue-600 text-white p-1.5 rounded-lg transition-all"
+                  title={isRtl ? "مکالمه جدید" : "New Chat"}
                 >
-                  <span>
-                    {isDocSelectorExpanded
-                      ? isRtl
-                        ? "بستن تنظیمات منابع"
-                        : "Hide Sources"
-                      : isRtl
-                        ? "تنظیم و انتخاب منابع"
-                        : "Manage Sources"}
-                  </span>
-                  <ChevronDown
-                    className={`w-3 h-3 transition-transform duration-200 ${isDocSelectorExpanded ? "rotate-180" : ""}`}
-                  />
+                  <Plus className="w-4 h-4" />
                 </button>
               </div>
 
-              {isDocSelectorExpanded && (
-                <div className="flex flex-col gap-3 animate-fade-in pt-2 border-t border-bmw-border/30">
-                  <p className="text-[10px] text-bmw-textSec leading-relaxed">
+              <div className="flex-1 overflow-y-auto space-y-1.5 custom-scrollbar pr-1">
+                {sessions.length === 0 ? (
+                  <p className="text-xs text-bmw-textSec italic text-center py-8">
                     {isRtl
-                      ? "اسناد مورد نظر برای پاسخ‌دهی هوشمند را انتخاب کنید. اگر هیچ سندی را انتخاب نکنید، جستجو بر روی همه اسناد فعال انجام می‌شود."
-                      : "Select specific source documents to target. If none are selected, queries search across all enabled sources."}
+                      ? "هیچ گفتگویی یافت نشد."
+                      : "No conversations started yet."}
                   </p>
+                ) : (
+                  sessions.map((sess) => {
+                    const isActive = sess.id === activeSessionId;
+                    return (
+                      <div
+                        key={sess.id}
+                        onClick={() => handleSelectSession(sess.id)}
+                        className={`group flex items-center justify-between p-3 rounded-lg text-sm transition-all cursor-pointer border ${
+                          isActive
+                            ? "bg-bmw-blue/10 border-bmw-blue/30 text-bmw-text font-semibold"
+                            : "border-transparent text-bmw-textSec hover:bg-bmw-hover hover:text-bmw-text"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2 truncate">
+                          <MessageSquare
+                            className={`w-4 h-4 flex-shrink-0 ${isActive ? "text-bmw-blue" : "text-bmw-textSec"}`}
+                          />
+                          <span className="truncate text-xs">{sess.title}</span>
+                        </div>
+                        <button
+                          onClick={(e) => handleDeleteSession(e, sess.id)}
+                          className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-red-500/10 text-bmw-textSec hover:text-red-400 transition-all"
+                          title={isRtl ? "حذف" : "Delete"}
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            </div>
 
-                  {ragDocs.length > 0 && (
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-bmw-surface/50 border border-bmw-border/50 rounded-xl p-2.5">
-                      <div className="relative flex-1">
+            <div className="lg:col-span-8 col-span-12 bg-bmw-surface border border-bmw-border rounded-xl flex flex-col h-[500px] sm:h-[600px] lg:h-[650px] overflow-hidden shadow-sm relative">
+              <div className="lg:hidden h-14 border-b border-bmw-border px-4 flex items-center justify-between bg-bmw-hover/50 shrink-0 select-none">
+                <button
+                  onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                  className="flex items-center gap-1.5 text-xs text-bmw-text hover:bg-bmw-hover px-3 py-1.5 rounded-lg border border-bmw-border bg-bmw-surface transition-all cursor-pointer font-bold shadow-sm"
+                >
+                  <History className="w-4 h-4 text-bmw-blue" />
+                  <span>{isRtl ? "تاریخچه گفتگوها" : "History"}</span>
+                </button>
+                <div className="flex items-center gap-1">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                  <span className="text-[10px] font-mono text-bmw-textSec font-bold">
+                    GEMINI 2.5 ACTIVE
+                  </span>
+                </div>
+              </div>
+
+              <div className="bg-bmw-hover border-b border-bmw-border p-3 md:p-4 flex flex-col gap-2.5 transition-all">
+                <div
+                  onClick={() =>
+                    setIsDocSelectorExpanded(!isDocSelectorExpanded)
+                  }
+                  className="flex items-center justify-between cursor-pointer hover:opacity-90 select-none"
+                >
+                  <div className="flex items-center gap-1.5 sm:gap-2">
+                    <Database
+                      size={14}
+                      className="text-bmw-blue animate-pulse shrink-0"
+                    />
+                    <span className="text-[11px] sm:text-xs font-bold text-bmw-text tracking-wide uppercase">
+                      {isRtl
+                        ? "منابع جستجوی معنایی (RAG)"
+                        : "Semantic Query Sources (RAG)"}
+                    </span>
+                    <span className="text-[9px] sm:text-[10px] bg-bmw-blue/15 text-bmw-blue px-2 py-0.5 rounded-full font-bold">
+                      {selectedDocIds.length === 0
+                        ? isRtl
+                          ? "همه اسناد فعال"
+                          : "All Active Docs"
+                        : isRtl
+                          ? `${selectedDocIds.length} سند انتخاب شده`
+                          : `${selectedDocIds.length} Selected`}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    className="flex items-center gap-1 text-[10px] sm:text-[11px] font-bold text-bmw-blue bg-bmw-blue/10 hover:bg-bmw-blue/20 px-2 py-1 rounded-md transition-all border border-bmw-blue/20 cursor-pointer"
+                  >
+                    <span>
+                      {isDocSelectorExpanded
+                        ? isRtl
+                          ? "بستن تنظیمات منابع"
+                          : "Hide Sources"
+                        : isRtl
+                          ? "تنظیم و انتخاب منابع"
+                          : "Manage Sources"}
+                    </span>
+                    <ChevronDown
+                      className={`w-3 h-3 transition-transform duration-200 ${isDocSelectorExpanded ? "rotate-180" : ""}`}
+                    />
+                  </button>
+                </div>
+
+                {isDocSelectorExpanded && (
+                  <div className="flex flex-col gap-3 animate-fade-in pt-2 border-t border-bmw-border/30">
+                    <p className="text-[10px] text-bmw-textSec leading-relaxed">
+                      {isRtl
+                        ? "اسناد مورد نظر برای پاسخ‌دهی هوشمند را انتخاب کنید. اگر هیچ سندی را انتخاب نکنید، جستجو بر روی همه اسناد فعال انجام می‌شود."
+                        : "Select specific source documents to target. If none are selected, queries search across all enabled sources."}
+                    </p>
+
+                    {ragDocs.length > 0 && (
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-bmw-surface/50 border border-bmw-border/50 rounded-xl p-2.5">
+                        <div className="relative flex-1">
+                          <input
+                            type="text"
+                            value={userDocSearchQuery}
+                            onChange={(e) =>
+                              setUserDocSearchQuery(e.target.value)
+                            }
+                            placeholder={
+                              isRtl
+                                ? "جستجو در عنوان یا نام فایل..."
+                                : "Search active sources..."
+                            }
+                            className="w-full bg-bmw-surface border border-bmw-border/80 rounded-lg pl-7 pr-3 py-1.5 text-[11px] text-bmw-text focus:outline-none focus:border-bmw-blue/50 transition-all placeholder:text-[10px]"
+                          />
+                          <Search
+                            size={11}
+                            className="absolute left-2.5 top-2.5 text-bmw-textSec"
+                          />
+                          {userDocSearchQuery && (
+                            <button
+                              onClick={() => setUserDocSearchQuery("")}
+                              className="absolute right-2.5 top-2 text-[10px] text-bmw-textSec hover:text-bmw-text font-semibold px-1"
+                            >
+                              ✕
+                            </button>
+                          )}
+                        </div>
+
+                        <div className="flex items-center gap-2 shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const enabled = ragDocs.filter(
+                                (d) => d.is_enabled !== false,
+                              );
+                              const enabledIds = enabled.map((d) => d.id);
+                              const allSelected = enabledIds.every((id) =>
+                                selectedDocIds.includes(id),
+                              );
+                              if (allSelected) {
+                                setSelectedDocIds([]);
+                              } else {
+                                setSelectedDocIds(enabledIds);
+                              }
+                            }}
+                            className="text-[10px] text-bmw-blue hover:text-blue-400 bg-bmw-blue/5 hover:bg-bmw-blue/10 border border-bmw-blue/10 rounded-lg px-3 py-1.5 font-bold transition-all"
+                          >
+                            {ragDocs
+                              .filter((d) => d.is_enabled !== false)
+                              .every((d) => selectedDocIds.includes(d.id)) &&
+                            selectedDocIds.length > 0
+                              ? isRtl
+                                ? "لغو انتخاب همه"
+                                : "Clear All"
+                              : isRtl
+                                ? "انتخاب همه فعال‌ها"
+                                : "Select All Active"}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {ragDocs.length === 0 ? (
+                      <p className="text-[11px] text-bmw-textSec bg-bmw-base p-3 rounded-lg text-center border border-dashed border-bmw-border">
+                        {isRtl
+                          ? "هیچ سندی وجود ندارد."
+                          : "No knowledge documents found."}
+                      </p>
+                    ) : (
+                      (() => {
+                        const enabledDocs = ragDocs.filter(
+                          (d) => d.is_enabled !== false,
+                        );
+                        const filteredDocs = enabledDocs.filter((doc) => {
+                          const matchTitle = (doc.title || "")
+                            .toLowerCase()
+                            .includes(userDocSearchQuery.toLowerCase());
+                          const matchFile = (doc.file_name || "")
+                            .toLowerCase()
+                            .includes(userDocSearchQuery.toLowerCase());
+                          return matchTitle || matchFile;
+                        });
+
+                        return (
+                          <div className="flex flex-col gap-2">
+                            {/* Interactive scroll list with responsive larger max-height */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 max-h-[160px] overflow-y-auto pr-1 custom-scrollbar">
+                              {filteredDocs.map((doc) => {
+                                const isSelected = selectedDocIds.includes(
+                                  doc.id,
+                                );
+                                return (
+                                  <button
+                                    key={doc.id}
+                                    type="button"
+                                    onClick={() =>
+                                      handleToggleDocSelection(doc.id)
+                                    }
+                                    className={`flex items-start gap-2.5 text-left w-full p-2.5 rounded-lg transition-all text-xs border ${
+                                      isSelected
+                                        ? "bg-bmw-blue/10 border-bmw-blue/40 text-bmw-blue font-semibold shadow-sm"
+                                        : "bg-bmw-surface border-bmw-border/30 hover:bg-bmw-hover text-bmw-textSec"
+                                    }`}
+                                  >
+                                    <div
+                                      className={`mt-0.5 w-3.5 h-3.5 rounded border flex items-center justify-center shrink-0 transition-all ${
+                                        isSelected
+                                          ? "bg-bmw-blue border-bmw-blue text-white"
+                                          : "border-bmw-border bg-bmw-surface"
+                                      }`}
+                                    >
+                                      {isSelected && (
+                                        <span className="text-[8px] font-bold">
+                                          ✓
+                                        </span>
+                                      )}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <div
+                                        className="truncate font-medium text-[11px] text-bmw-text"
+                                        title={doc.title}
+                                      >
+                                        {doc.title}
+                                      </div>
+                                      <div
+                                        className="text-[9px] text-bmw-textSec font-mono mt-0.5 truncate opacity-70"
+                                        title={doc.file_name}
+                                      >
+                                        {doc.file_name}
+                                      </div>
+                                    </div>
+                                    <div className="flex flex-col items-end gap-0.5 shrink-0 select-none text-[9px] text-right">
+                                      <span className="font-mono font-medium opacity-80 px-1.5 py-0.5 bg-white/5 rounded text-[10px] text-bmw-text/80">
+                                        {doc.chunk_count}{" "}
+                                        {isRtl ? "بخش" : "chunks"}
+                                      </span>
+                                    </div>
+                                  </button>
+                                );
+                              })}
+
+                              {filteredDocs.length === 0 &&
+                                enabledDocs.length > 0 && (
+                                  <div className="col-span-full text-center p-4 bg-bmw-base/30 rounded border border-bmw-border/50">
+                                    <p className="text-[10px] text-bmw-textSec">
+                                      {isRtl
+                                        ? "هیچ موردی با جستجوی شما مطابقت ندارد."
+                                        : "No active sources match your search."}
+                                    </p>
+                                    <button
+                                      type="button"
+                                      onClick={() => setUserDocSearchQuery("")}
+                                      className="text-[10px] text-bmw-blue hover:underline mt-1 font-medium bg-transparent border-0 cursor-pointer"
+                                    >
+                                      {isRtl
+                                        ? "پاک کردن جستجو"
+                                        : "Clear Search Query"}
+                                    </button>
+                                  </div>
+                                )}
+
+                              {enabledDocs.length === 0 && (
+                                <div className="col-span-full text-center p-4 bg-amber-950/10 border border-amber-900/30 rounded-lg">
+                                  <p className="text-[11px] text-amber-400">
+                                    {isRtl
+                                      ? "تمام اسناد غیرفعال هستند. لطفاً به بخش مدیریت اسناد بروید."
+                                      : "All documents are currently disabled. Please enable them in the Document Manager tab."}
+                                  </p>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Display Selected Filtered helper if query is active */}
+                            {userDocSearchQuery && filteredDocs.length > 0 && (
+                              <div className="flex items-center justify-between pt-1 border-t border-bmw-border/30 text-[10px] text-bmw-textSec">
+                                <span>
+                                  {isRtl
+                                    ? `نتایج جستجو: ${filteredDocs.length} سند`
+                                    : `Found ${filteredDocs.length} matching`}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const filteredIds = filteredDocs.map(
+                                      (d) => d.id,
+                                    );
+                                    const allSelected = filteredIds.every(
+                                      (id) => selectedDocIds.includes(id),
+                                    );
+                                    if (allSelected) {
+                                      // Deselect filtered
+                                      setSelectedDocIds((prev) =>
+                                        prev.filter(
+                                          (id) => !filteredIds.includes(id),
+                                        ),
+                                      );
+                                    } else {
+                                      // Select filtered
+                                      setSelectedDocIds((prev) =>
+                                        Array.from(
+                                          new Set([...prev, ...filteredIds]),
+                                        ),
+                                      );
+                                    }
+                                  }}
+                                  className="text-bmw-blue hover:underline font-medium bg-transparent border-0 cursor-pointer"
+                                >
+                                  {filteredDocs.every((d) =>
+                                    selectedDocIds.includes(d.id),
+                                  )
+                                    ? isRtl
+                                      ? "غیرفعال‌سازی این لیست"
+                                      : "Deselect These"
+                                    : isRtl
+                                      ? "فعال‌سازی همه‌ی این لیست"
+                                      : "Select These"}
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })()
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Conversation Messages List */}
+              <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4 custom-scrollbar">
+                {messages.slice(0, visibleCount).map((msg, index) => {
+                  const isUser = msg.role === "user";
+                  return (
+                    <div
+                      key={index}
+                      className={`flex ${isUser ? "justify-end" : "justify-start"} animate-fade-in`}
+                    >
+                      <div
+                        className={`p-4 rounded-xl shadow-sm max-w-[85%] md:max-w-[75%] ${
+                          isUser
+                            ? "bg-bmw-blue text-white rounded-tr-none"
+                            : "bg-bmw-hover text-bmw-text border border-bmw-border rounded-tl-none"
+                        }`}
+                      >
+                        {isUser ? (
+                          <p className="text-xs md:text-sm whitespace-pre-wrap leading-relaxed">
+                            {msg.text}
+                          </p>
+                        ) : (
+                          <div className="space-y-1 text-xs md:text-sm leading-relaxed">
+                            {formatResponseText(msg.text, isRtl)}
+
+                            {/* Reaction system for model responses */}
+                            {msg.id && (
+                              <div className="flex items-center gap-1.5 mt-3 pt-2 border-t border-bmw-border/40 text-bmw-textSec">
+                                <span className="text-[10px] select-none opacity-70">
+                                  {isRtl ? "بازخورد:" : "Feedback:"}
+                                </span>
+                                <button
+                                  onClick={() =>
+                                    handleReaction(msg.id, index, "up")
+                                  }
+                                  className={`p-1 rounded-md transition-all ${
+                                    msg.reaction === "up"
+                                      ? "text-green-500 bg-green-500/10 border border-green-500/20"
+                                      : "text-bmw-textSec hover:text-bmw-text hover:bg-bmw-border"
+                                  }`}
+                                  title={isRtl ? "مفید بود" : "Helpful"}
+                                >
+                                  <ThumbsUp className="w-3 h-3 fill-current" />
+                                </button>
+                                <button
+                                  onClick={() =>
+                                    handleReaction(msg.id, index, "down")
+                                  }
+                                  className={`p-1 rounded-md transition-all ${
+                                    msg.reaction === "down"
+                                      ? "text-red-500 bg-red-500/10 border border-red-500/20"
+                                      : "text-bmw-textSec hover:text-bmw-text hover:bg-bmw-border"
+                                  }`}
+                                  title={isRtl ? "غیرمفید بود" : "Not helpful"}
+                                >
+                                  <ThumbsDown className="w-3 h-3 fill-current" />
+                                </button>
+                              </div>
+                            )}
+
+                            {msg.searchDiagnostics && (
+                              <div className="mt-3 bg-bmw-base p-2.5 rounded-lg border border-bmw-border/60 text-[10px] text-bmw-textSec space-y-2 select-none">
+                                <details className="group">
+                                  <summary className="flex items-center justify-between cursor-pointer font-bold text-bmw-text select-none">
+                                    <span className="flex items-center gap-1.5 text-[11px] text-bmw-blue/90">
+                                      <Database
+                                        size={12}
+                                        className="text-bmw-blue shrink-0"
+                                      />
+                                      {isRtl
+                                        ? "جزئیات فنی موتور جستجو و رتبه‌بندی"
+                                        : "Search Engine & Reranking Diagnostics"}
+                                    </span>
+                                    <span className="text-[10px] text-bmw-textSec group-open:rotate-180 transition-transform">
+                                      ▼
+                                    </span>
+                                  </summary>
+
+                                  <div className="mt-2 pt-2 border-t border-bmw-border/40 space-y-2.5 animate-fade-in text-[10.5px]">
+                                    <div className="flex flex-wrap gap-1.5">
+                                      <span className="px-1.5 py-0.5 bg-blue-500/5 border border-blue-500/10 text-bmw-blue rounded">
+                                        {isRtl
+                                          ? "جستجوی ترکیبی:"
+                                          : "Hybrid Search:"}{" "}
+                                        {msg.searchDiagnostics.isHybridEnabled
+                                          ? "✓"
+                                          : "✗"}
+                                      </span>
+                                      {msg.searchDiagnostics
+                                        .isHybridEnabled && (
+                                        <span className="px-1.5 py-0.5 bg-zinc-500/5 border border-zinc-500/10 rounded">
+                                          W:{" "}
+                                          {msg.searchDiagnostics.semanticWeight}
+                                          S /{" "}
+                                          {msg.searchDiagnostics.keywordWeight}K
+                                        </span>
+                                      )}
+                                      <span className="px-1.5 py-0.5 bg-purple-500/5 border border-purple-500/10 text-purple-600 dark:text-purple-400 rounded">
+                                        {isRtl
+                                          ? "رتبه‌بندی مجدد:"
+                                          : "Reranker:"}{" "}
+                                        {msg.searchDiagnostics
+                                          .isRerankingEnabled
+                                          ? "✓"
+                                          : "✗"}
+                                      </span>
+                                      <span className="px-1.5 py-0.5 bg-zinc-500/5 border border-zinc-500/10 rounded">
+                                        {isRtl
+                                          ? `تعداد کل تکه‌ها: ${msg.searchDiagnostics.retrievedCount}`
+                                          : `Total chunks: ${msg.searchDiagnostics.retrievedCount}`}
+                                      </span>
+                                    </div>
+
+                                    {msg.searchDiagnostics
+                                      .queryTransformation &&
+                                      msg.searchDiagnostics.queryTransformation
+                                        .enabled && (
+                                        <div className="bg-emerald-500/5 p-2.5 rounded-lg border border-emerald-500/20 space-y-1.5 text-[10px]">
+                                          <div className="flex items-center gap-1.5 font-bold text-emerald-600 dark:text-emerald-400">
+                                            <span className="inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse animate-duration-1000 shrink-0" />
+                                            <span>
+                                              {isRtl
+                                                ? "بهینه‌سازی و بازنویسی هوشمند سوال (Query Transformation):"
+                                                : "Query Transformation Diagnostics:"}
+                                            </span>
+                                          </div>
+                                          <div className="space-y-1">
+                                            <div>
+                                              <span className="text-bmw-text font-bold">
+                                                {isRtl
+                                                  ? "سوالClarified نهایی:"
+                                                  : "Clarified Search Query:"}{" "}
+                                              </span>
+                                              <span className="text-bmw-textSec italic">
+                                                "
+                                                {
+                                                  msg.searchDiagnostics
+                                                    .queryTransformation
+                                                    .clarifiedQuery
+                                                }
+                                                "
+                                              </span>
+                                            </div>
+                                            {msg.searchDiagnostics
+                                              .queryTransformation.variations &&
+                                              msg.searchDiagnostics
+                                                .queryTransformation.variations
+                                                .length > 0 && (
+                                                <div>
+                                                  <span className="text-bmw-text font-bold block">
+                                                    {isRtl
+                                                      ? "نسخه‌های موازی تولید شده برای جستجوی کلیدواژه‌ای:"
+                                                      : "Parallel search variations generated:"}
+                                                  </span>
+                                                  <ul className="list-disc pl-4 rtl:pl-0 rtl:pr-4 space-y-0.5 mt-0.5 font-sans">
+                                                    {msg.searchDiagnostics.queryTransformation.variations.map(
+                                                      (
+                                                        v: string,
+                                                        idx: number,
+                                                      ) => (
+                                                        <li
+                                                          key={idx}
+                                                          className="text-bmw-textSec italic"
+                                                        >
+                                                          "{v}"
+                                                        </li>
+                                                      ),
+                                                    )}
+                                                  </ul>
+                                                </div>
+                                              )}
+                                          </div>
+                                        </div>
+                                      )}
+
+                                    <div className="bg-bmw-surface p-1.5 rounded border border-bmw-border/30 grid grid-cols-2 gap-2 text-[10px]">
+                                      <div>
+                                        <span className="font-bold block text-bmw-text">
+                                          {isRtl
+                                            ? "فیلترهای اعمال‌شده:"
+                                            : "Applied Filters:"}
+                                        </span>
+                                        <span className="font-mono text-bmw-textSec">
+                                          Year:{" "}
+                                          {msg.searchDiagnostics.filtersApplied
+                                            ?.year || "all"}
+                                          , Sec:{" "}
+                                          {msg.searchDiagnostics.filtersApplied
+                                            ?.section || "all"}
+                                        </span>
+                                      </div>
+                                      <div>
+                                        <span className="font-bold block text-bmw-text">
+                                          {isRtl
+                                            ? "استخراج خودکار از سوال:"
+                                            : "Auto-extracted from query:"}
+                                        </span>
+                                        <span className="font-mono text-bmw-textSec">
+                                          Year:{" "}
+                                          {msg.searchDiagnostics
+                                            .extractedFilters?.year || "none"}
+                                          , Sec:{" "}
+                                          {msg.searchDiagnostics
+                                            .extractedFilters?.section ||
+                                            "none"}
+                                        </span>
+                                      </div>
+                                    </div>
+
+                                    <div className="space-y-1.5">
+                                      <span className="font-bold text-bmw-text block">
+                                        {isRtl
+                                          ? "۵ تکه سند برتر راه‌یافته به مدل:"
+                                          : "Top 5 document chunks used as context:"}
+                                      </span>
+                                      <div className="space-y-1 max-h-[140px] overflow-y-auto custom-scrollbar pr-0.5">
+                                        {msg.searchDiagnostics.topChunks?.map(
+                                          (chunk: any, cidx: number) => (
+                                            <div
+                                              key={cidx}
+                                              className="p-2 bg-bmw-surface/50 border border-bmw-border/40 rounded flex flex-col gap-1 text-[10px]"
+                                            >
+                                              <div className="flex items-center justify-between font-bold text-bmw-text">
+                                                <span className="truncate max-w-[60%]">
+                                                  [{chunk.title}]
+                                                </span>
+                                                <div className="flex items-center gap-1 text-[9px] font-mono shrink-0">
+                                                  <span className="px-1 bg-blue-500/5 text-bmw-blue rounded">
+                                                    S: {chunk.semanticScore}
+                                                  </span>
+                                                  <span className="px-1 bg-amber-500/5 text-amber-600 rounded">
+                                                    K: {chunk.keywordScore}
+                                                  </span>
+                                                  {chunk.rerankScore !==
+                                                    undefined && (
+                                                    <span className="px-1 bg-purple-500/5 text-purple-600 rounded font-bold">
+                                                      Rerank:{" "}
+                                                      {chunk.rerankScore}
+                                                    </span>
+                                                  )}
+                                                </div>
+                                              </div>
+                                              <p className="text-bmw-textSec line-clamp-2 italic">
+                                                "{chunk.snippet}"
+                                              </p>
+                                              {chunk.rerankReason && (
+                                                <span className="text-[9px] text-purple-600 dark:text-purple-400 font-medium">
+                                                  💡 Reason:{" "}
+                                                  {chunk.rerankReason}
+                                                </span>
+                                              )}
+                                            </div>
+                                          ),
+                                        )}
+                                      </div>
+                                    </div>
+                                  </div>
+                                </details>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+
+                {/* Show more messages lazy loading button */}
+                {messages.length > visibleCount && (
+                  <div className="flex justify-center my-4 animate-fade-in">
+                    <button
+                      onClick={() => setVisibleCount((prev) => prev + 5)}
+                      className="px-4 py-2 text-xs font-bold text-bmw-blue bg-bmw-blue/10 hover:bg-bmw-blue/20 border border-bmw-blue/20 rounded-lg transition-all flex items-center gap-1.5 shadow-sm"
+                    >
+                      <span>
+                        {isRtl ? "نمایش پیام‌های بیشتر" : "Show More Messages"}
+                      </span>
+                      <span className="bg-bmw-blue text-white text-[10px] px-1.5 py-0.5 rounded-full font-mono">
+                        {messages.length - visibleCount}
+                      </span>
+                    </button>
+                  </div>
+                )}
+
+                {isLoadingChat && (
+                  <div className="flex justify-start animate-pulse">
+                    <div className="p-4 rounded-xl bg-bmw-hover text-bmw-text border border-bmw-border rounded-tl-none">
+                      <div className="flex gap-1">
+                        <span className="w-1.5 h-1.5 bg-bmw-blue rounded-full animate-bounce"></span>
+                        <span className="w-1.5 h-1.5 bg-bmw-blue rounded-full animate-bounce delay-150"></span>
+                        <span className="w-1.5 h-1.5 bg-bmw-blue rounded-full animate-bounce delay-300"></span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                <div ref={messagesEndRef} />
+              </div>
+
+              {/* Bottom Form Query Input */}
+              <div className="p-4 border-t border-bmw-border bg-bmw-surface/50">
+                <div className="flex gap-2 max-w-4xl mx-auto">
+                  <input
+                    type="text"
+                    value={inputText}
+                    onChange={(e) => handleInputChange(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleSend()}
+                    placeholder={
+                      isRtl
+                        ? "سوالی در مورد اسناد انتخاب شده بپرسید..."
+                        : "Ask a question about the active documents..."
+                    }
+                    className="flex-1 bg-bmw-input text-bmw-text border border-bmw-border rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-bmw-blue focus:ring-1 focus:ring-bmw-blue transition-all placeholder:text-bmw-textSec"
+                  />
+                  <button
+                    onClick={handleSend}
+                    disabled={isLoadingChat || !inputText.trim()}
+                    className="bg-bmw-blue text-white hover:bg-blue-600 px-5 py-3 rounded-lg font-bold text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5 shadow-md shrink-0"
+                  >
+                    <Send className="w-4 h-4" />
+                    <span className="hidden sm:inline">
+                      {isRtl ? "ارسال" : "Send"}
+                    </span>
+                  </button>
+                </div>
+                <p className="text-[10px] text-center text-bmw-textSec mt-2">
+                  {isRtl
+                    ? "این سیستم با مدل هوش مصنوعی Gemini-2.5-Flash و با جستجوی برداری پیشرفته تغذیه می‌شود."
+                    : "RAG Retrieval and document chat powered by Google Gemini-2.5-Flash."}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Document Management Tab (Admin panel for uploading PDFs and vector indexing) */}
+        {activeTab === "admin" && (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+            {/* Upload Form Box */}
+            <div className="lg:col-span-1 bg-bmw-surface border border-bmw-border rounded-xl p-5 shadow-sm space-y-4">
+              <h3 className="text-base font-bold text-bmw-text pb-2 border-b border-bmw-border flex items-center gap-2">
+                <Upload className="w-5 h-5 text-bmw-blue" />
+                {isRtl ? "بارگذاری سند PDF جدید" : "Index New PDF Document"}
+              </h3>
+
+              <form onSubmit={handleUploadSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-bold text-bmw-textSec uppercase tracking-wider mb-1.5">
+                    {isRtl ? "عنوان سند" : "Document Title"}
+                  </label>
+                  <input
+                    type="text"
+                    value={docTitle}
+                    onChange={(e) => setDocTitle(e.target.value)}
+                    className="w-full bg-bmw-input text-bmw-text border border-bmw-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-bmw-blue focus:ring-1 focus:ring-bmw-blue transition-all"
+                    placeholder={
+                      isRtl
+                        ? "مثلاً: آیین‌نامه فنی بی‌ام‌و، مینی، ترا، اوپل و ..."
+                        : "e.g. BMW Technical Manual"
+                    }
+                    required
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3.5">
+                  <div>
+                    <label className="block text-xs font-bold text-bmw-textSec uppercase tracking-wider mb-1.5">
+                      {isRtl ? "سال سند" : "Document Year"}
+                    </label>
+                    <select
+                      value={docYear}
+                      onChange={(e) => setDocYear(Number(e.target.value))}
+                      className="w-full bg-bmw-input text-bmw-text border border-bmw-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-bmw-blue focus:ring-1 focus:ring-bmw-blue transition-all cursor-pointer"
+                    >
+                      <option value={2026}>2026</option>
+                      <option value={2025}>2025</option>
+                      <option value={2024}>2024</option>
+                      <option value={2023}>2023</option>
+                      <option value={2022}>2022</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-bmw-textSec uppercase tracking-wider mb-1.5">
+                      {isRtl ? "بخش / فصل سند" : "Document Section"}
+                    </label>
+                    <select
+                      value={docSection}
+                      onChange={(e) => setDocSection(e.target.value)}
+                      className="w-full bg-bmw-input text-bmw-text border border-bmw-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-bmw-blue focus:ring-1 focus:ring-bmw-blue transition-all cursor-pointer"
+                    >
+                      <option value="بخش عمومی">
+                        {isRtl ? "بخش عمومی" : "General Section"}
+                      </option>
+                      <option value="فصل اول">
+                        {isRtl ? "فصل اول" : "Chapter 1"}
+                      </option>
+                      <option value="فصل دوم">
+                        {isRtl ? "فصل دوم" : "Chapter 2"}
+                      </option>
+                      <option value="فصل سوم">
+                        {isRtl ? "فصل سوم" : "Chapter 3"}
+                      </option>
+                      <option value="فصل چهارم">
+                        {isRtl ? "فصل چهارم" : "Chapter 4"}
+                      </option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-bmw-textSec uppercase tracking-wider mb-1.5">
+                    {isRtl ? "انتخاب فایل PDF" : "Choose PDF File"}
+                  </label>
+                  <label className="cursor-pointer border border-dashed border-bmw-border hover:border-bmw-blue bg-bmw-input rounded-xl p-6 text-center flex flex-col items-center justify-center gap-2 transition-all">
+                    <FileText className="w-8 h-8 text-bmw-textSec" />
+                    <span className="text-xs font-bold text-bmw-text">
+                      {selectedFile
+                        ? selectedFile.name
+                        : isRtl
+                          ? "انتخاب فایل (.pdf)"
+                          : "Select PDF Document"}
+                    </span>
+                    <span className="text-[10px] text-bmw-textSec">
+                      {isRtl ? "حداکثر حجم: ۵۰ مگابایت" : "Max size: 50MB"}
+                    </span>
+                    <input
+                      type="file"
+                      id="pdf-file-input"
+                      accept=".pdf"
+                      onChange={handleFileChange}
+                      className="hidden"
+                      required
+                    />
+                  </label>
+                </div>
+
+                {uploadMsg && (
+                  <div
+                    className={`p-4 rounded-lg border text-xs flex gap-2 items-start ${
+                      uploadMsg.type === "success"
+                        ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                        : "bg-red-500/10 text-red-400 border-red-500/20"
+                    }`}
+                  >
+                    {uploadMsg.type === "success" ? (
+                      <Check className="w-4 h-4 shrink-0 mt-0.5" />
+                    ) : (
+                      <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                    )}
+                    <span>{uploadMsg.text}</span>
+                  </div>
+                )}
+
+                {isUploading && (
+                  <div className="space-y-2 bg-bmw-hover p-4 rounded-lg border border-bmw-border">
+                    <div className="flex justify-between items-center text-xs font-bold text-bmw-text">
+                      <span className="text-bmw-blue animate-pulse">
+                        {uploadStatus}
+                      </span>
+                      <span className="font-mono">{uploadProgress}%</span>
+                    </div>
+                    <div className="w-full bg-bmw-input rounded-full h-2 overflow-hidden border border-bmw-border">
+                      <div
+                        className="bg-bmw-blue h-full rounded-full transition-all duration-300 ease-out"
+                        style={{ width: `${uploadProgress}%` }}
+                      ></div>
+                    </div>
+                    {currentChunkInfo && (
+                      <div className="mt-3 pt-2.5 border-t border-bmw-border/50 text-[11px] space-y-1 text-start animate-in fade-in duration-200">
+                        <div className="flex justify-between font-mono text-bmw-textSec">
+                          <span>
+                            {isRtl ? "بخش در حال پردازش:" : "Chunk Index:"}{" "}
+                            <span className="text-bmw-blue font-extrabold bg-bmw-blue/5 px-1.5 py-0.5 rounded">
+                              #{currentChunkInfo.index}
+                            </span>{" "}
+                            / {currentChunkInfo.total}
+                          </span>
+                          <span>
+                            {isRtl ? "شناسه پایگاه داده (ID):" : "Database ID:"}{" "}
+                            <span className="text-amber-500 font-extrabold bg-amber-500/5 px-1.5 py-0.5 rounded">
+                              {currentChunkInfo.id}
+                            </span>
+                          </span>
+                        </div>
+                        <div className="bg-bmw-input p-2 rounded text-[10px] text-bmw-textSec font-mono truncate border border-bmw-border/30 mt-1">
+                          "{currentChunkInfo.snippet}..."
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={isUploading}
+                  className="w-full bg-bmw-blue hover:bg-blue-600 text-white font-bold py-2.5 rounded-lg text-sm transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
+                >
+                  {isUploading
+                    ? isRtl
+                      ? "در حال ایندکس..."
+                      : "Indexing..."
+                    : isRtl
+                      ? "آپلود و تحلیل وکتور"
+                      : "Upload & Index RAG"}
+                </button>
+              </form>
+            </div>
+
+            {/* Uploaded Documents List */}
+            <div className="lg:col-span-2 bg-bmw-surface border border-bmw-border rounded-xl p-5 shadow-sm space-y-4 h-[500px] lg:h-[650px] flex flex-col overflow-hidden">
+              <h3 className="text-base font-bold text-bmw-text pb-2 border-b border-bmw-border flex items-center gap-2">
+                <Database className="w-5 h-5 text-bmw-blue" />
+                {isRtl
+                  ? "اسناد تحلیل شده در پایگاه داده"
+                  : "Indexed PDF Collection"}
+              </h3>
+              {/* Search and Filter Row for Admin Tab */}
+              {ragDocs.length > 0 && (
+                <div className="flex flex-col sm:flex-row gap-2.5 justify-stretch">
+                  {/* Search Bar */}
+                  <div className="relative flex-1">
+                    <span className="absolute inset-y-0 right-3 flex items-center pr-1.5 pointer-events-none text-bmw-textSec">
+                      <Search className="w-4 h-4" />
+                    </span>
+                    <input
+                      type="text"
+                      value={adminDocSearchQuery}
+                      onChange={(e) => setAdminDocSearchQuery(e.target.value)}
+                      placeholder={
+                        isRtl
+                          ? "جستجو بر اساس نام، فایل یا تاریخ..."
+                          : "Search by name, file or date..."
+                      }
+                      className="w-full bg-bmw-input border border-bmw-border rounded-lg pr-9 pl-3 py-2 text-xs text-bmw-text focus:outline-none focus:border-bmw-blue focus:ring-1 focus:ring-bmw-blue transition-all"
+                    />
+                    {adminDocSearchQuery && (
+                      <button
+                        onClick={() => setAdminDocSearchQuery("")}
+                        className="absolute inset-y-0 left-2.5 flex items-center pr-1.5 text-bmw-textSec hover:text-bmw-text text-xs border-0 bg-transparent cursor-pointer"
+                      >
+                        ✕
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Filter Pills */}
+                  <div className="flex bg-bmw-input p-0.5 rounded-lg border border-bmw-border self-start sm:self-auto">
+                    <button
+                      type="button"
+                      onClick={() => setAdminDocFilterStatus("all")}
+                      className={`px-3 py-1.5 text-[10px] font-bold rounded-md transition-all cursor-pointer ${
+                        adminDocFilterStatus === "all"
+                          ? "bg-bmw-blue text-white shadow-sm"
+                          : "text-bmw-textSec hover:text-bmw-text"
+                      }`}
+                    >
+                      {isRtl ? "همه" : "All"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setAdminDocFilterStatus("enabled")}
+                      className={`px-3 py-1.5 text-[10px] font-bold rounded-md transition-all cursor-pointer ${
+                        adminDocFilterStatus === "enabled"
+                          ? "bg-green-500 text-white shadow-sm"
+                          : "text-bmw-textSec hover:text-bmw-text"
+                      }`}
+                    >
+                      {isRtl ? "فعال" : "Enabled"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setAdminDocFilterStatus("disabled")}
+                      className={`px-3 py-1.5 text-[10px] font-bold rounded-md transition-all cursor-pointer ${
+                        adminDocFilterStatus === "disabled"
+                          ? "bg-gray-500 text-white shadow-sm"
+                          : "text-bmw-textSec hover:text-bmw-text"
+                      }`}
+                    >
+                      {isRtl ? "غیرفعال" : "Disabled"}
+                    </button>
+                  </div>
+                </div>
+              )}
+              {isLoadingDocs ? (
+                <p className="text-xs text-bmw-textSec italic text-center py-8">
+                  {isRtl
+                    ? "در حال دریافت لیست اسناد..."
+                    : "Loading document database..."}
+                </p>
+              ) : ragDocs.length === 0 ? (
+                <p className="text-xs text-bmw-textSec italic text-center py-8">
+                  {isRtl
+                    ? "هیچ سندی بارگذاری و ایندکس نشده است."
+                    : "No indexed PDF documents found in database."}
+                </p>
+              ) : filteredAdminDocs.length === 0 ? (
+                <p className="text-xs text-red-400 italic text-center py-8">
+                  {isRtl
+                    ? "هیچ سندی با این مشخصات یافت نشد."
+                    : "No documents match your search or filter criteria."}
+                </p>
+              ) : (
+                <div className="flex-1 overflow-y-auto space-y-2 pr-1 custom-scrollbar">
+                  {filteredAdminDocs.map((doc) => (
+                    <div
+                      key={doc.id}
+                      className="p-3 bg-bmw-hover border border-bmw-border rounded-lg flex items-center justify-between gap-4 transition-all"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="p-2 bg-bmw-blue/10 text-bmw-blue rounded-lg">
+                          <FileText className="w-5 h-5" />
+                        </div>
+                        <div className="min-w-0">
+                          <h4 className="text-sm font-bold text-bmw-text truncate">
+                            {doc.title}
+                          </h4>
+                          <p className="text-[10px] text-bmw-textSec mt-0.5 truncate">
+                            File: {doc.file_name} • Chunks:{" "}
+                            <span className="font-bold text-bmw-blue">
+                              {doc.chunk_count}
+                            </span>{" "}
+                            • Date:{" "}
+                            {new Date(doc.created_at).toLocaleDateString(
+                              language === "fa" ? "fa-IR" : "en-US",
+                            )}
+                          </p>
+                          <div className="flex gap-1.5 mt-1">
+                            <span className="text-[9px] px-1.5 py-0.5 bg-blue-500/10 text-bmw-blue rounded font-bold font-mono">
+                              {doc.doc_year || doc.docYear || 2026}
+                            </span>
+                            <span className="text-[9px] px-1.5 py-0.5 bg-amber-500/10 text-amber-600 rounded font-bold">
+                              {doc.doc_section || doc.docSection || "بخش عمومی"}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <button
+                          onClick={() =>
+                            handleToggleDocEnable(
+                              doc.id,
+                              doc.is_enabled !== false,
+                            )
+                          }
+                          className={`p-1.5 rounded-lg transition-all flex items-center gap-1 text-xs font-medium ${
+                            doc.is_enabled !== false
+                              ? "text-green-500 hover:bg-green-500/10"
+                              : "text-gray-500 hover:bg-gray-500/10"
+                          }`}
+                          title={
+                            doc.is_enabled !== false
+                              ? isRtl
+                                ? "غیرفعال کردن سند"
+                                : "Disable Document"
+                              : isRtl
+                                ? "فعال کردن سند"
+                                : "Enable Document"
+                          }
+                        >
+                          {doc.is_enabled !== false ? (
+                            <>
+                              <Eye className="w-4 h-4" />
+                              <span className="hidden sm:inline text-[10px]">
+                                {isRtl ? "فعال" : "Enabled"}
+                              </span>
+                            </>
+                          ) : (
+                            <>
+                              <EyeOff className="w-4 h-4" />
+                              <span className="hidden sm:inline text-[10px]">
+                                {isRtl ? "غیرفعال" : "Disabled"}
+                              </span>
+                            </>
+                          )}
+                        </button>
+                        <button
+                          onClick={() => handleStartEditDoc(doc)}
+                          className="text-bmw-textSec hover:text-bmw-blue p-1.5 rounded-lg hover:bg-bmw-blue/10 transition-all"
+                          title={
+                            isRtl
+                              ? "ویرایش بخش‌های سند"
+                              : "Edit Document Chunks"
+                          }
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteDoc(doc.id, doc.title)}
+                          className="text-bmw-textSec hover:text-red-400 p-1.5 rounded-lg hover:bg-red-500/10 transition-all"
+                          title={isRtl ? "حذف" : "Delete"}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                  <div className="border border-bmw-border/60 bg-bmw-surface/30 rounded-2xl p-4 mt-3">
+                    <button
+                      type="button"
+                      onClick={() => setIsSearchConfigOpen(!isSearchConfigOpen)}
+                      className="w-full flex items-center justify-between text-xs font-bold text-bmw-blue/90 hover:text-bmw-blue transition-colors"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Search size={14} className="text-bmw-blue" />
+                        <span>
+                          {isRtl
+                            ? "تنظیمات جستجوی ترکیبی و فیلترهای پیشرفته اسناد"
+                            : "Hybrid Search Settings & Advanced Document Filters"}
+                        </span>
+                        {(hybridSearch ||
+                          reranking ||
+                          filterYear !== "all" ||
+                          filterSection !== "all") && (
+                          <span className="inline-flex h-2 w-2 rounded-full bg-green-500" />
+                        )}
+                      </div>
+                      <ChevronDown
+                        className={`w-3.5 h-3.5 transition-transform duration-200 ${isSearchConfigOpen ? "rotate-180" : ""}`}
+                      />
+                    </button>
+
+                    {isSearchConfigOpen && (
+                      <div className="mt-4 pt-3 border-t border-bmw-border/50 grid grid-cols-1 md:grid-cols-2 gap-4 animate-fade-in text-xs">
+                        <div className="space-y-3.5">
+                          <div className="flex items-center justify-between">
+                            <label className="font-bold text-bmw-text flex items-center gap-1.5">
+                              <span>
+                                {isRtl
+                                  ? "جستجوی ترکیبی (Hybrid Search)"
+                                  : "Hybrid Search"}
+                              </span>
+                              <span className="text-[10px] px-1.5 py-0.5 bg-blue-500/10 text-bmw-blue rounded font-normal font-mono">
+                                Vector + BM25
+                              </span>
+                            </label>
+                            <input
+                              type="checkbox"
+                              checked={hybridSearch}
+                              onChange={(e) =>
+                                setHybridSearch(e.target.checked)
+                              }
+                              className="w-4 h-4 rounded text-bmw-blue focus:ring-bmw-blue border-bmw-border"
+                            />
+                          </div>
+
+                          {hybridSearch && (
+                            <div className="space-y-2 bg-bmw-base/40 p-2.5 rounded-xl border border-bmw-border/30">
+                              <div className="flex items-center justify-between text-[11px] text-bmw-textSec">
+                                <span>
+                                  {isRtl
+                                    ? `وزن معنایی: ${semanticWeight}`
+                                    : `Semantic Weight: ${semanticWeight}`}
+                                </span>
+                                <span>
+                                  {isRtl
+                                    ? `وزن کلمه‌ای: ${keywordWeight}`
+                                    : `Keyword Weight: ${keywordWeight}`}
+                                </span>
+                              </div>
+                              <input
+                                type="range"
+                                min="0"
+                                max="1"
+                                step="0.1"
+                                value={semanticWeight}
+                                onChange={(e) => {
+                                  const sem = Number(e.target.value);
+                                  setSemanticWeight(sem);
+                                  setKeywordWeight(
+                                    Number((1 - sem).toFixed(1)),
+                                  );
+                                }}
+                                className="w-full h-1.5 bg-bmw-border rounded-lg appearance-none cursor-pointer accent-bmw-blue"
+                              />
+                            </div>
+                          )}
+
+                          <div className="flex items-center justify-between">
+                            <label className="font-bold text-bmw-text flex items-center gap-1.5">
+                              <span>
+                                {isRtl
+                                  ? "رتبه‌بندی مجدد (Reranking)"
+                                  : "Reranking"}
+                              </span>
+                              <span className="text-[10px] px-1.5 py-0.5 bg-purple-500/10 text-purple-600 dark:text-purple-400 rounded font-normal font-mono">
+                                Cross-Encoder
+                              </span>
+                            </label>
+                            <input
+                              type="checkbox"
+                              checked={reranking}
+                              onChange={(e) => setReranking(e.target.checked)}
+                              className="w-4 h-4 rounded text-bmw-blue focus:ring-bmw-blue border-bmw-border cursor-pointer"
+                            />
+                          </div>
+
+                          <div className="flex items-center justify-between pt-1">
+                            <label className="font-bold text-bmw-text flex items-center gap-1.5">
+                              <span>
+                                {isRtl
+                                  ? "بازنویسی هوشمند کوئری"
+                                  : "Query Transformation"}
+                              </span>
+                              <span className="text-[10px] px-1.5 py-0.5 bg-green-500/10 text-green-600 dark:text-green-400 rounded font-normal font-mono">
+                                Gemini Rewrite
+                              </span>
+                            </label>
+                            <input
+                              type="checkbox"
+                              checked={queryTransformation}
+                              onChange={(e) =>
+                                setQueryTransformation(e.target.checked)
+                              }
+                              className="w-4 h-4 rounded text-bmw-blue focus:ring-bmw-blue border-bmw-border cursor-pointer"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="space-y-3.5">
+                          <div className="flex flex-col gap-1.5">
+                            <label className="font-bold text-bmw-text">
+                              {isRtl
+                                ? "فیلتر بر اساس سال سند"
+                                : "Filter by Document Year"}
+                            </label>
+                            <select
+                              value={filterYear}
+                              onChange={(e) => setFilterYear(e.target.value)}
+                              className="bg-bmw-surface border border-bmw-border/80 rounded-lg p-2 text-xs focus:outline-none focus:border-bmw-blue/50"
+                            >
+                              <option value="all">
+                                {isRtl ? "همه سال‌ها" : "All Years"}
+                              </option>
+                              <option value="2026">2026</option>
+                              <option value="2025">2025</option>
+                              <option value="2024">2024</option>
+                              <option value="2023">2023</option>
+                              <option value="2022">2022</option>
+                            </select>
+                          </div>
+
+                          <div className="flex flex-col gap-1.5">
+                            <label className="font-bold text-bmw-text">
+                              {isRtl
+                                ? "فیلتر بر اساس بخش/فصل"
+                                : "Filter by Section/Chapter"}
+                            </label>
+                            <select
+                              value={filterSection}
+                              onChange={(e) => setFilterSection(e.target.value)}
+                              className="bg-bmw-surface border border-bmw-border/80 rounded-lg p-2 text-xs focus:outline-none focus:border-bmw-blue/50"
+                            >
+                              <option value="all">
+                                {isRtl ? "همه بخش‌ها" : "All Sections"}
+                              </option>
+                              <option value="فصل اول">
+                                {isRtl
+                                  ? "فصل اول / بخش ۱"
+                                  : "Chapter 1 / Section 1"}
+                              </option>
+                              <option value="فصل دوم">
+                                {isRtl
+                                  ? "فصل دوم / بخش ۲"
+                                  : "Chapter 2 / Section 2"}
+                              </option>
+                              <option value="فصل سوم">
+                                {isRtl
+                                  ? "فصل سوم / بخش ۳"
+                                  : "Chapter 3 / Section 3"}
+                              </option>
+                              <option value="فصل چهارم">
+                                {isRtl
+                                  ? "فصل چهارم / بخش ۴"
+                                  : "Chapter 4 / Section 4"}
+                              </option>
+                              <option value="بخش عمومی">
+                                {isRtl ? "بخش عمومی" : "General Section"}
+                              </option>
+                            </select>
+                          </div>
+                        </div>
+
+                        <div className="col-span-full mt-2 p-2 bg-bmw-blue/5 border border-bmw-blue/15 rounded-xl flex items-center gap-2 text-[10px] text-bmw-textSec">
+                          <Info size={12} className="text-bmw-blue shrink-0" />
+                          <span>
+                            {isRtl
+                              ? 'سیستم به صورت خودکار فیلترها را از متن سوال شما نیز استخراج می‌کند (مانند: "در اسناد سال ۲۰۲۳ و فصل دوم").'
+                              : 'The system also auto-extracts metadata filters from your query (e.g. "in 2023 documents under chapter 2").'}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Document Chunks Editor Modal */}
+        {editingDoc && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            {/* Backdrop */}
+            <div
+              className="absolute inset-0 bg-black/75 backdrop-blur-sm transition-opacity"
+              onClick={() => !isSavingDetails && setEditingDoc(null)}
+            ></div>
+
+            {/* Content Card */}
+            <div
+              className="relative w-full max-w-5xl bg-bmw-surface border border-bmw-border rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] text-start"
+              dir={isRtl ? "rtl" : "ltr"}
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between border-b border-bmw-border p-4 bg-bmw-base/50">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-bmw-blue/10 text-bmw-blue rounded-lg">
+                    <Database size={20} />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-semibold text-bmw-text">
+                      {isRtl
+                        ? "ویرایش و اصلاح بخش‌های متنی سند (RAG)"
+                        : "Edit & Refine Document Semantic Chunks (RAG)"}
+                    </h3>
+                    <p className="text-[11px] text-bmw-textSec mt-0.5 font-mono">
+                      {editingDoc.title} ({editingDoc.file_name})
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  disabled={isSavingDetails}
+                  onClick={() => setEditingDoc(null)}
+                  className="text-bmw-textSec hover:text-bmw-text text-lg p-1.5 focus:outline-none cursor-pointer"
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* Loader */}
+              {isLoadingDetails ? (
+                <div className="flex-1 flex flex-col items-center justify-center py-20 gap-3">
+                  <Loader2 className="animate-spin text-bmw-blue" size={32} />
+                  <span className="text-xs text-bmw-textSec">
+                    {isRtl
+                      ? "در حال دریافت اطلاعات بخش‌ها..."
+                      : "Retrieving document chunks..."}
+                  </span>
+                </div>
+              ) : (
+                <>
+                  {/* Search & Actions Bar */}
+                  <div className="border-b border-bmw-border p-3 flex flex-wrap items-center justify-between gap-3 bg-bmw-base/20">
+                    <div className="text-xs text-bmw-text font-bold">
+                      {isRtl ? "لیست بخش‌های سند:" : "Document Chunks:"}{" "}
+                      <span className="bg-bmw-blue/15 text-bmw-blue px-2 py-0.5 rounded-full text-[10px] font-mono ml-1">
+                        {editChunks.length} {isRtl ? "بخش" : "chunks"}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <div className="relative">
                         <input
                           type="text"
-                          value={userDocSearchQuery}
-                          onChange={(e) =>
-                            setUserDocSearchQuery(e.target.value)
-                          }
                           placeholder={
-                            isRtl
-                              ? "جستجو در عنوان یا نام فایل..."
-                              : "Search active sources..."
+                            isRtl ? "جستجو در محتوا..." : "Search content..."
                           }
-                          className="w-full bg-bmw-surface border border-bmw-border/80 rounded-lg pl-7 pr-3 py-1.5 text-[11px] text-bmw-text focus:outline-none focus:border-bmw-blue/50 transition-all placeholder:text-[10px]"
+                          value={chunkSearch}
+                          onChange={(e) => setChunkSearch(e.target.value)}
+                          className="bg-bmw-base border border-bmw-border rounded-lg px-3 py-1.5 text-[11px] text-bmw-text pl-8 focus:outline-none focus:border-bmw-blue/50 w-44"
                         />
                         <Search
                           size={11}
                           className="absolute left-2.5 top-2.5 text-bmw-textSec"
                         />
-                        {userDocSearchQuery && (
-                          <button
-                            onClick={() => setUserDocSearchQuery("")}
-                            className="absolute right-2.5 top-2 text-[10px] text-bmw-textSec hover:text-bmw-text font-semibold px-1"
-                          >
-                            ✕
-                          </button>
-                        )}
                       </div>
 
-                      <div className="flex items-center gap-2 shrink-0">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const enabled = ragDocs.filter(
-                              (d) => d.is_enabled !== false,
-                            );
-                            const enabledIds = enabled.map((d) => d.id);
-                            const allSelected = enabledIds.every((id) =>
-                              selectedDocIds.includes(id),
-                            );
-                            if (allSelected) {
-                              setSelectedDocIds([]);
-                            } else {
-                              setSelectedDocIds(enabledIds);
-                            }
-                          }}
-                          className="text-[10px] text-bmw-blue hover:text-blue-400 bg-bmw-blue/5 hover:bg-bmw-blue/10 border border-bmw-blue/10 rounded-lg px-3 py-1.5 font-bold transition-all"
-                        >
-                          {ragDocs
-                            .filter((d) => d.is_enabled !== false)
-                            .every((d) => selectedDocIds.includes(d.id)) &&
-                          selectedDocIds.length > 0
-                            ? isRtl
-                              ? "لغو انتخاب همه"
-                              : "Clear All"
-                            : isRtl
-                              ? "انتخاب همه فعال‌ها"
-                              : "Select All Active"}
-                        </button>
-                      </div>
-                    </div>
-                  )}
-
-                  {ragDocs.length === 0 ? (
-                    <p className="text-[11px] text-bmw-textSec bg-bmw-base p-3 rounded-lg text-center border border-dashed border-bmw-border">
-                      {isRtl
-                        ? "هیچ سندی وجود ندارد."
-                        : "No knowledge documents found."}
-                    </p>
-                  ) : (
-                    (() => {
-                      const enabledDocs = ragDocs.filter(
-                        (d) => d.is_enabled !== false,
-                      );
-                      const filteredDocs = enabledDocs.filter((doc) => {
-                        const matchTitle = (doc.title || "")
-                          .toLowerCase()
-                          .includes(userDocSearchQuery.toLowerCase());
-                        const matchFile = (doc.file_name || "")
-                          .toLowerCase()
-                          .includes(userDocSearchQuery.toLowerCase());
-                        return matchTitle || matchFile;
-                      });
-
-                      return (
-                        <div className="flex flex-col gap-2">
-                          {/* Interactive scroll list with responsive larger max-height */}
-                          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 max-h-[160px] overflow-y-auto pr-1 custom-scrollbar">
-                            {filteredDocs.map((doc) => {
-                              const isSelected = selectedDocIds.includes(
-                                doc.id,
-                              );
-                              return (
-                                <button
-                                  key={doc.id}
-                                  type="button"
-                                  onClick={() =>
-                                    handleToggleDocSelection(doc.id)
-                                  }
-                                  className={`flex items-start gap-2.5 text-left w-full p-2.5 rounded-lg transition-all text-xs border ${
-                                    isSelected
-                                      ? "bg-bmw-blue/10 border-bmw-blue/40 text-bmw-blue font-semibold shadow-sm"
-                                      : "bg-bmw-surface border-bmw-border/30 hover:bg-bmw-hover text-bmw-textSec"
-                                  }`}
-                                >
-                                  <div
-                                    className={`mt-0.5 w-3.5 h-3.5 rounded border flex items-center justify-center shrink-0 transition-all ${
-                                      isSelected
-                                        ? "bg-bmw-blue border-bmw-blue text-white"
-                                        : "border-bmw-border bg-bmw-surface"
-                                    }`}
-                                  >
-                                    {isSelected && (
-                                      <span className="text-[8px] font-bold">
-                                        ✓
-                                      </span>
-                                    )}
-                                  </div>
-                                  <div className="flex-1 min-w-0">
-                                    <div
-                                      className="truncate font-medium text-[11px] text-bmw-text"
-                                      title={doc.title}
-                                    >
-                                      {doc.title}
-                                    </div>
-                                    <div
-                                      className="text-[9px] text-bmw-textSec font-mono mt-0.5 truncate opacity-70"
-                                      title={doc.file_name}
-                                    >
-                                      {doc.file_name}
-                                    </div>
-                                  </div>
-                                  <div className="flex flex-col items-end gap-0.5 shrink-0 select-none text-[9px] text-right">
-                                    <span className="font-mono font-medium opacity-80 px-1.5 py-0.5 bg-white/5 rounded text-[10px] text-bmw-text/80">
-                                      {doc.chunk_count}{" "}
-                                      {isRtl ? "بخش" : "chunks"}
-                                    </span>
-                                  </div>
-                                </button>
-                              );
-                            })}
-
-                            {filteredDocs.length === 0 &&
-                              enabledDocs.length > 0 && (
-                                <div className="col-span-full text-center p-4 bg-bmw-base/30 rounded border border-bmw-border/50">
-                                  <p className="text-[10px] text-bmw-textSec">
-                                    {isRtl
-                                      ? "هیچ موردی با جستجوی شما مطابقت ندارد."
-                                      : "No active sources match your search."}
-                                  </p>
-                                  <button
-                                    type="button"
-                                    onClick={() => setUserDocSearchQuery("")}
-                                    className="text-[10px] text-bmw-blue hover:underline mt-1 font-medium bg-transparent border-0 cursor-pointer"
-                                  >
-                                    {isRtl
-                                      ? "پاک کردن جستجو"
-                                      : "Clear Search Query"}
-                                  </button>
-                                </div>
-                              )}
-
-                            {enabledDocs.length === 0 && (
-                              <div className="col-span-full text-center p-4 bg-amber-950/10 border border-amber-900/30 rounded-lg">
-                                <p className="text-[11px] text-amber-400">
-                                  {isRtl
-                                    ? "تمام اسناد غیرفعال هستند. لطفاً به بخش مدیریت اسناد بروید."
-                                    : "All documents are currently disabled. Please enable them in the Document Manager tab."}
-                                </p>
-                              </div>
-                            )}
-                          </div>
-
-                          {/* Display Selected Filtered helper if query is active */}
-                          {userDocSearchQuery && filteredDocs.length > 0 && (
-                            <div className="flex items-center justify-between pt-1 border-t border-bmw-border/30 text-[10px] text-bmw-textSec">
-                              <span>
-                                {isRtl
-                                  ? `نتایج جستجو: ${filteredDocs.length} سند`
-                                  : `Found ${filteredDocs.length} matching`}
-                              </span>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  const filteredIds = filteredDocs.map(
-                                    (d) => d.id,
-                                  );
-                                  const allSelected = filteredIds.every((id) =>
-                                    selectedDocIds.includes(id),
-                                  );
-                                  if (allSelected) {
-                                    // Deselect filtered
-                                    setSelectedDocIds((prev) =>
-                                      prev.filter(
-                                        (id) => !filteredIds.includes(id),
-                                      ),
-                                    );
-                                  } else {
-                                    // Select filtered
-                                    setSelectedDocIds((prev) =>
-                                      Array.from(
-                                        new Set([...prev, ...filteredIds]),
-                                      ),
-                                    );
-                                  }
-                                }}
-                                className="text-bmw-blue hover:underline font-medium bg-transparent border-0 cursor-pointer"
-                              >
-                                {filteredDocs.every((d) =>
-                                  selectedDocIds.includes(d.id),
-                                )
-                                  ? isRtl
-                                    ? "غیرفعال‌سازی این لیست"
-                                    : "Deselect These"
-                                  : isRtl
-                                    ? "فعال‌سازی همه‌ی این لیست"
-                                    : "Select These"}
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })()
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* Conversation Messages List */}
-            <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4 custom-scrollbar">
-              {messages.slice(0, visibleCount).map((msg, index) => {
-                const isUser = msg.role === "user";
-                return (
-                  <div
-                    key={index}
-                    className={`flex ${isUser ? "justify-end" : "justify-start"} animate-fade-in`}
-                  >
-                    <div
-                      className={`p-4 rounded-xl shadow-sm max-w-[85%] md:max-w-[75%] ${
-                        isUser
-                          ? "bg-bmw-blue text-white rounded-tr-none"
-                          : "bg-bmw-hover text-bmw-text border border-bmw-border rounded-tl-none"
-                      }`}
-                    >
-                      {isUser ? (
-                        <p className="text-xs md:text-sm whitespace-pre-wrap leading-relaxed">
-                          {msg.text}
-                        </p>
-                      ) : (
-                        <div className="space-y-1 text-xs md:text-sm leading-relaxed">
-                          {formatResponseText(msg.text, isRtl)}
-
-                          {/* Reaction system for model responses */}
-                          {msg.id && (
-                            <div className="flex items-center gap-1.5 mt-3 pt-2 border-t border-bmw-border/40 text-bmw-textSec">
-                              <span className="text-[10px] select-none opacity-70">
-                                {isRtl ? "بازخورد:" : "Feedback:"}
-                              </span>
-                              <button
-                                onClick={() =>
-                                  handleReaction(msg.id, index, "up")
-                                }
-                                className={`p-1 rounded-md transition-all ${
-                                  msg.reaction === "up"
-                                    ? "text-green-500 bg-green-500/10 border border-green-500/20"
-                                    : "text-bmw-textSec hover:text-bmw-text hover:bg-bmw-border"
-                                }`}
-                                title={isRtl ? "مفید بود" : "Helpful"}
-                              >
-                                <ThumbsUp className="w-3 h-3 fill-current" />
-                              </button>
-                              <button
-                                onClick={() =>
-                                  handleReaction(msg.id, index, "down")
-                                }
-                                className={`p-1 rounded-md transition-all ${
-                                  msg.reaction === "down"
-                                    ? "text-red-500 bg-red-500/10 border border-red-500/20"
-                                    : "text-bmw-textSec hover:text-bmw-text hover:bg-bmw-border"
-                                }`}
-                                title={isRtl ? "غیرمفید بود" : "Not helpful"}
-                              >
-                                <ThumbsDown className="w-3 h-3 fill-current" />
-                              </button>
-                            </div>
-                          )}
-
-                          {msg.searchDiagnostics && (
-                            <div className="mt-3 bg-bmw-base p-2.5 rounded-lg border border-bmw-border/60 text-[10px] text-bmw-textSec space-y-2 select-none">
-                              <details className="group">
-                                <summary className="flex items-center justify-between cursor-pointer font-bold text-bmw-text select-none">
-                                  <span className="flex items-center gap-1.5 text-[11px] text-bmw-blue/90">
-                                    <Database
-                                      size={12}
-                                      className="text-bmw-blue shrink-0"
-                                    />
-                                    {isRtl
-                                      ? "جزئیات فنی موتور جستجو و رتبه‌بندی"
-                                      : "Search Engine & Reranking Diagnostics"}
-                                  </span>
-                                  <span className="text-[10px] text-bmw-textSec group-open:rotate-180 transition-transform">
-                                    ▼
-                                  </span>
-                                </summary>
-
-                                <div className="mt-2 pt-2 border-t border-bmw-border/40 space-y-2.5 animate-fade-in text-[10.5px]">
-                                  <div className="flex flex-wrap gap-1.5">
-                                    <span className="px-1.5 py-0.5 bg-blue-500/5 border border-blue-500/10 text-bmw-blue rounded">
-                                      {isRtl
-                                        ? "جستجوی ترکیبی:"
-                                        : "Hybrid Search:"}{" "}
-                                      {msg.searchDiagnostics.isHybridEnabled
-                                        ? "✓"
-                                        : "✗"}
-                                    </span>
-                                    {msg.searchDiagnostics.isHybridEnabled && (
-                                      <span className="px-1.5 py-0.5 bg-zinc-500/5 border border-zinc-500/10 rounded">
-                                        W:{" "}
-                                        {msg.searchDiagnostics.semanticWeight}S
-                                        / {msg.searchDiagnostics.keywordWeight}K
-                                      </span>
-                                    )}
-                                    <span className="px-1.5 py-0.5 bg-purple-500/5 border border-purple-500/10 text-purple-600 dark:text-purple-400 rounded">
-                                      {isRtl ? "رتبه‌بندی مجدد:" : "Reranker:"}{" "}
-                                      {msg.searchDiagnostics.isRerankingEnabled
-                                        ? "✓"
-                                        : "✗"}
-                                    </span>
-                                    <span className="px-1.5 py-0.5 bg-zinc-500/5 border border-zinc-500/10 rounded">
-                                      {isRtl
-                                        ? `تعداد کل تکه‌ها: ${msg.searchDiagnostics.retrievedCount}`
-                                        : `Total chunks: ${msg.searchDiagnostics.retrievedCount}`}
-                                    </span>
-                                  </div>
-
-                                  {msg.searchDiagnostics.queryTransformation &&
-                                    msg.searchDiagnostics.queryTransformation
-                                      .enabled && (
-                                      <div className="bg-emerald-500/5 p-2.5 rounded-lg border border-emerald-500/20 space-y-1.5 text-[10px]">
-                                        <div className="flex items-center gap-1.5 font-bold text-emerald-600 dark:text-emerald-400">
-                                          <span className="inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse animate-duration-1000 shrink-0" />
-                                          <span>
-                                            {isRtl
-                                              ? "بهینه‌سازی و بازنویسی هوشمند سوال (Query Transformation):"
-                                              : "Query Transformation Diagnostics:"}
-                                          </span>
-                                        </div>
-                                        <div className="space-y-1">
-                                          <div>
-                                            <span className="text-bmw-text font-bold">
-                                              {isRtl
-                                                ? "سوالClarified نهایی:"
-                                                : "Clarified Search Query:"}{" "}
-                                            </span>
-                                            <span className="text-bmw-textSec italic">
-                                              "
-                                              {
-                                                msg.searchDiagnostics
-                                                  .queryTransformation
-                                                  .clarifiedQuery
-                                              }
-                                              "
-                                            </span>
-                                          </div>
-                                          {msg.searchDiagnostics
-                                            .queryTransformation.variations &&
-                                            msg.searchDiagnostics
-                                              .queryTransformation.variations
-                                              .length > 0 && (
-                                              <div>
-                                                <span className="text-bmw-text font-bold block">
-                                                  {isRtl
-                                                    ? "نسخه‌های موازی تولید شده برای جستجوی کلیدواژه‌ای:"
-                                                    : "Parallel search variations generated:"}
-                                                </span>
-                                                <ul className="list-disc pl-4 rtl:pl-0 rtl:pr-4 space-y-0.5 mt-0.5 font-sans">
-                                                  {msg.searchDiagnostics.queryTransformation.variations.map(
-                                                    (
-                                                      v: string,
-                                                      idx: number,
-                                                    ) => (
-                                                      <li
-                                                        key={idx}
-                                                        className="text-bmw-textSec italic"
-                                                      >
-                                                        "{v}"
-                                                      </li>
-                                                    ),
-                                                  )}
-                                                </ul>
-                                              </div>
-                                            )}
-                                        </div>
-                                      </div>
-                                    )}
-
-                                  <div className="bg-bmw-surface p-1.5 rounded border border-bmw-border/30 grid grid-cols-2 gap-2 text-[10px]">
-                                    <div>
-                                      <span className="font-bold block text-bmw-text">
-                                        {isRtl
-                                          ? "فیلترهای اعمال‌شده:"
-                                          : "Applied Filters:"}
-                                      </span>
-                                      <span className="font-mono text-bmw-textSec">
-                                        Year:{" "}
-                                        {msg.searchDiagnostics.filtersApplied
-                                          ?.year || "all"}
-                                        , Sec:{" "}
-                                        {msg.searchDiagnostics.filtersApplied
-                                          ?.section || "all"}
-                                      </span>
-                                    </div>
-                                    <div>
-                                      <span className="font-bold block text-bmw-text">
-                                        {isRtl
-                                          ? "استخراج خودکار از سوال:"
-                                          : "Auto-extracted from query:"}
-                                      </span>
-                                      <span className="font-mono text-bmw-textSec">
-                                        Year:{" "}
-                                        {msg.searchDiagnostics.extractedFilters
-                                          ?.year || "none"}
-                                        , Sec:{" "}
-                                        {msg.searchDiagnostics.extractedFilters
-                                          ?.section || "none"}
-                                      </span>
-                                    </div>
-                                  </div>
-
-                                  <div className="space-y-1.5">
-                                    <span className="font-bold text-bmw-text block">
-                                      {isRtl
-                                        ? "۵ تکه سند برتر راه‌یافته به مدل:"
-                                        : "Top 5 document chunks used as context:"}
-                                    </span>
-                                    <div className="space-y-1 max-h-[140px] overflow-y-auto custom-scrollbar pr-0.5">
-                                      {msg.searchDiagnostics.topChunks?.map(
-                                        (chunk: any, cidx: number) => (
-                                          <div
-                                            key={cidx}
-                                            className="p-2 bg-bmw-surface/50 border border-bmw-border/40 rounded flex flex-col gap-1 text-[10px]"
-                                          >
-                                            <div className="flex items-center justify-between font-bold text-bmw-text">
-                                              <span className="truncate max-w-[60%]">
-                                                [{chunk.title}]
-                                              </span>
-                                              <div className="flex items-center gap-1 text-[9px] font-mono shrink-0">
-                                                <span className="px-1 bg-blue-500/5 text-bmw-blue rounded">
-                                                  S: {chunk.semanticScore}
-                                                </span>
-                                                <span className="px-1 bg-amber-500/5 text-amber-600 rounded">
-                                                  K: {chunk.keywordScore}
-                                                </span>
-                                                {chunk.rerankScore !==
-                                                  undefined && (
-                                                  <span className="px-1 bg-purple-500/5 text-purple-600 rounded font-bold">
-                                                    Rerank: {chunk.rerankScore}
-                                                  </span>
-                                                )}
-                                              </div>
-                                            </div>
-                                            <p className="text-bmw-textSec line-clamp-2 italic">
-                                              "{chunk.snippet}"
-                                            </p>
-                                            {chunk.rerankReason && (
-                                              <span className="text-[9px] text-purple-600 dark:text-purple-400 font-medium">
-                                                💡 Reason: {chunk.rerankReason}
-                                              </span>
-                                            )}
-                                          </div>
-                                        ),
-                                      )}
-                                    </div>
-                                  </div>
-                                </div>
-                              </details>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-
-              {/* Show more messages lazy loading button */}
-              {messages.length > visibleCount && (
-                <div className="flex justify-center my-4 animate-fade-in">
-                  <button
-                    onClick={() => setVisibleCount((prev) => prev + 5)}
-                    className="px-4 py-2 text-xs font-bold text-bmw-blue bg-bmw-blue/10 hover:bg-bmw-blue/20 border border-bmw-blue/20 rounded-lg transition-all flex items-center gap-1.5 shadow-sm"
-                  >
-                    <span>
-                      {isRtl ? "نمایش پیام‌های بیشتر" : "Show More Messages"}
-                    </span>
-                    <span className="bg-bmw-blue text-white text-[10px] px-1.5 py-0.5 rounded-full font-mono">
-                      {messages.length - visibleCount}
-                    </span>
-                  </button>
-                </div>
-              )}
-
-              {isLoadingChat && (
-                <div className="flex justify-start animate-pulse">
-                  <div className="p-4 rounded-xl bg-bmw-hover text-bmw-text border border-bmw-border rounded-tl-none">
-                    <div className="flex gap-1">
-                      <span className="w-1.5 h-1.5 bg-bmw-blue rounded-full animate-bounce"></span>
-                      <span className="w-1.5 h-1.5 bg-bmw-blue rounded-full animate-bounce delay-150"></span>
-                      <span className="w-1.5 h-1.5 bg-bmw-blue rounded-full animate-bounce delay-300"></span>
-                    </div>
-                  </div>
-                </div>
-              )}
-              <div ref={messagesEndRef} />
-            </div>
-
-            {/* Bottom Form Query Input */}
-            <div className="p-4 border-t border-bmw-border bg-bmw-surface/50">
-              <div className="flex gap-2 max-w-4xl mx-auto">
-                <input
-                  type="text"
-                  value={inputText}
-                  onChange={(e) => handleInputChange(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleSend()}
-                  placeholder={
-                    isRtl
-                      ? "سوالی در مورد اسناد انتخاب شده بپرسید..."
-                      : "Ask a question about the active documents..."
-                  }
-                  className="flex-1 bg-bmw-input text-bmw-text border border-bmw-border rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-bmw-blue focus:ring-1 focus:ring-bmw-blue transition-all placeholder:text-bmw-textSec"
-                />
-                <button
-                  onClick={handleSend}
-                  disabled={isLoadingChat || !inputText.trim()}
-                  className="bg-bmw-blue text-white hover:bg-blue-600 px-5 py-3 rounded-lg font-bold text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5 shadow-md shrink-0"
-                >
-                  <Send className="w-4 h-4" />
-                  <span className="hidden sm:inline">
-                    {isRtl ? "ارسال" : "Send"}
-                  </span>
-                </button>
-              </div>
-              <p className="text-[10px] text-center text-bmw-textSec mt-2">
-                {isRtl
-                  ? "این سیستم با مدل هوش مصنوعی Gemini-2.5-Flash و با جستجوی برداری پیشرفته تغذیه می‌شود."
-                  : "RAG Retrieval and document chat powered by Google Gemini-2.5-Flash."}
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Document Management Tab (Admin panel for uploading PDFs and vector indexing) */}
-      {activeTab === "admin" && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-          {/* Upload Form Box */}
-          <div className="lg:col-span-1 bg-bmw-surface border border-bmw-border rounded-xl p-5 shadow-sm space-y-4">
-            <h3 className="text-base font-bold text-bmw-text pb-2 border-b border-bmw-border flex items-center gap-2">
-              <Upload className="w-5 h-5 text-bmw-blue" />
-              {isRtl ? "بارگذاری سند PDF جدید" : "Index New PDF Document"}
-            </h3>
-
-            <form onSubmit={handleUploadSubmit} className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-bmw-textSec uppercase tracking-wider mb-1.5">
-                  {isRtl ? "عنوان سند" : "Document Title"}
-                </label>
-                <input
-                  type="text"
-                  value={docTitle}
-                  onChange={(e) => setDocTitle(e.target.value)}
-                  className="w-full bg-bmw-input text-bmw-text border border-bmw-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-bmw-blue focus:ring-1 focus:ring-bmw-blue transition-all"
-                  placeholder={
-                    isRtl
-                      ? "مثلاً: آیین‌نامه فنی بی‌ام‌و، مینی، ترا، اوپل و ..."
-                      : "e.g. BMW Technical Manual"
-                  }
-                  required
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3.5">
-                <div>
-                  <label className="block text-xs font-bold text-bmw-textSec uppercase tracking-wider mb-1.5">
-                    {isRtl ? "سال سند" : "Document Year"}
-                  </label>
-                  <select
-                    value={docYear}
-                    onChange={(e) => setDocYear(Number(e.target.value))}
-                    className="w-full bg-bmw-input text-bmw-text border border-bmw-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-bmw-blue focus:ring-1 focus:ring-bmw-blue transition-all cursor-pointer"
-                  >
-                    <option value={2026}>2026</option>
-                    <option value={2025}>2025</option>
-                    <option value={2024}>2024</option>
-                    <option value={2023}>2023</option>
-                    <option value={2022}>2022</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-bmw-textSec uppercase tracking-wider mb-1.5">
-                    {isRtl ? "بخش / فصل سند" : "Document Section"}
-                  </label>
-                  <select
-                    value={docSection}
-                    onChange={(e) => setDocSection(e.target.value)}
-                    className="w-full bg-bmw-input text-bmw-text border border-bmw-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-bmw-blue focus:ring-1 focus:ring-bmw-blue transition-all cursor-pointer"
-                  >
-                    <option value="بخش عمومی">
-                      {isRtl ? "بخش عمومی" : "General Section"}
-                    </option>
-                    <option value="فصل اول">
-                      {isRtl ? "فصل اول" : "Chapter 1"}
-                    </option>
-                    <option value="فصل دوم">
-                      {isRtl ? "فصل دوم" : "Chapter 2"}
-                    </option>
-                    <option value="فصل سوم">
-                      {isRtl ? "فصل سوم" : "Chapter 3"}
-                    </option>
-                    <option value="فصل چهارم">
-                      {isRtl ? "فصل چهارم" : "Chapter 4"}
-                    </option>
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-bmw-textSec uppercase tracking-wider mb-1.5">
-                  {isRtl ? "انتخاب فایل PDF" : "Choose PDF File"}
-                </label>
-                <label className="cursor-pointer border border-dashed border-bmw-border hover:border-bmw-blue bg-bmw-input rounded-xl p-6 text-center flex flex-col items-center justify-center gap-2 transition-all">
-                  <FileText className="w-8 h-8 text-bmw-textSec" />
-                  <span className="text-xs font-bold text-bmw-text">
-                    {selectedFile
-                      ? selectedFile.name
-                      : isRtl
-                        ? "انتخاب فایل (.pdf)"
-                        : "Select PDF Document"}
-                  </span>
-                  <span className="text-[10px] text-bmw-textSec">
-                    {isRtl ? "حداکثر حجم: ۵۰ مگابایت" : "Max size: 50MB"}
-                  </span>
-                  <input
-                    type="file"
-                    id="pdf-file-input"
-                    accept=".pdf"
-                    onChange={handleFileChange}
-                    className="hidden"
-                    required
-                  />
-                </label>
-              </div>
-
-              {uploadMsg && (
-                <div
-                  className={`p-4 rounded-lg border text-xs flex gap-2 items-start ${
-                    uploadMsg.type === "success"
-                      ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-                      : "bg-red-500/10 text-red-400 border-red-500/20"
-                  }`}
-                >
-                  {uploadMsg.type === "success" ? (
-                    <Check className="w-4 h-4 shrink-0 mt-0.5" />
-                  ) : (
-                    <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-                  )}
-                  <span>{uploadMsg.text}</span>
-                </div>
-              )}
-
-              {isUploading && (
-                <div className="space-y-2 bg-bmw-hover p-4 rounded-lg border border-bmw-border">
-                  <div className="flex justify-between items-center text-xs font-bold text-bmw-text">
-                    <span className="text-bmw-blue animate-pulse">
-                      {uploadStatus}
-                    </span>
-                    <span className="font-mono">{uploadProgress}%</span>
-                  </div>
-                  <div className="w-full bg-bmw-input rounded-full h-2 overflow-hidden border border-bmw-border">
-                    <div
-                      className="bg-bmw-blue h-full rounded-full transition-all duration-300 ease-out"
-                      style={{ width: `${uploadProgress}%` }}
-                    ></div>
-                  </div>
-                  {currentChunkInfo && (
-                    <div className="mt-3 pt-2.5 border-t border-bmw-border/50 text-[11px] space-y-1 text-start animate-in fade-in duration-200">
-                      <div className="flex justify-between font-mono text-bmw-textSec">
-                        <span>
-                          {isRtl ? "بخش در حال پردازش:" : "Chunk Index:"}{" "}
-                          <span className="text-bmw-blue font-extrabold bg-bmw-blue/5 px-1.5 py-0.5 rounded">
-                            #{currentChunkInfo.index}
-                          </span>{" "}
-                          / {currentChunkInfo.total}
-                        </span>
-                        <span>
-                          {isRtl ? "شناسه پایگاه داده (ID):" : "Database ID:"}{" "}
-                          <span className="text-amber-500 font-extrabold bg-amber-500/5 px-1.5 py-0.5 rounded">
-                            {currentChunkInfo.id}
-                          </span>
-                        </span>
-                      </div>
-                      <div className="bg-bmw-input p-2 rounded text-[10px] text-bmw-textSec font-mono truncate border border-bmw-border/30 mt-1">
-                        "{currentChunkInfo.snippet}..."
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              <button
-                type="submit"
-                disabled={isUploading}
-                className="w-full bg-bmw-blue hover:bg-blue-600 text-white font-bold py-2.5 rounded-lg text-sm transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
-              >
-                {isUploading
-                  ? isRtl
-                    ? "در حال ایندکس..."
-                    : "Indexing..."
-                  : isRtl
-                    ? "آپلود و تحلیل وکتور"
-                    : "Upload & Index RAG"}
-              </button>
-            </form>
-          </div>
-
-          {/* Uploaded Documents List */}
-          <div className="lg:col-span-2 bg-bmw-surface border border-bmw-border rounded-xl p-5 shadow-sm space-y-4 h-[500px] lg:h-[650px] flex flex-col overflow-hidden">
-            <h3 className="text-base font-bold text-bmw-text pb-2 border-b border-bmw-border flex items-center gap-2">
-              <Database className="w-5 h-5 text-bmw-blue" />
-              {isRtl
-                ? "اسناد تحلیل شده در پایگاه داده"
-                : "Indexed PDF Collection"}
-            </h3>
-            {/* Search and Filter Row for Admin Tab */}
-            {ragDocs.length > 0 && (
-              <div className="flex flex-col sm:flex-row gap-2.5 justify-stretch">
-                {/* Search Bar */}
-                <div className="relative flex-1">
-                  <span className="absolute inset-y-0 right-3 flex items-center pr-1.5 pointer-events-none text-bmw-textSec">
-                    <Search className="w-4 h-4" />
-                  </span>
-                  <input
-                    type="text"
-                    value={adminDocSearchQuery}
-                    onChange={(e) => setAdminDocSearchQuery(e.target.value)}
-                    placeholder={
-                      isRtl
-                        ? "جستجو بر اساس نام، فایل یا تاریخ..."
-                        : "Search by name, file or date..."
-                    }
-                    className="w-full bg-bmw-input border border-bmw-border rounded-lg pr-9 pl-3 py-2 text-xs text-bmw-text focus:outline-none focus:border-bmw-blue focus:ring-1 focus:ring-bmw-blue transition-all"
-                  />
-                  {adminDocSearchQuery && (
-                    <button
-                      onClick={() => setAdminDocSearchQuery("")}
-                      className="absolute inset-y-0 left-2.5 flex items-center pr-1.5 text-bmw-textSec hover:text-bmw-text text-xs border-0 bg-transparent cursor-pointer"
-                    >
-                      ✕
-                    </button>
-                  )}
-                </div>
-
-                {/* Filter Pills */}
-                <div className="flex bg-bmw-input p-0.5 rounded-lg border border-bmw-border self-start sm:self-auto">
-                  <button
-                    type="button"
-                    onClick={() => setAdminDocFilterStatus("all")}
-                    className={`px-3 py-1.5 text-[10px] font-bold rounded-md transition-all cursor-pointer ${
-                      adminDocFilterStatus === "all"
-                        ? "bg-bmw-blue text-white shadow-sm"
-                        : "text-bmw-textSec hover:text-bmw-text"
-                    }`}
-                  >
-                    {isRtl ? "همه" : "All"}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setAdminDocFilterStatus("enabled")}
-                    className={`px-3 py-1.5 text-[10px] font-bold rounded-md transition-all cursor-pointer ${
-                      adminDocFilterStatus === "enabled"
-                        ? "bg-green-500 text-white shadow-sm"
-                        : "text-bmw-textSec hover:text-bmw-text"
-                    }`}
-                  >
-                    {isRtl ? "فعال" : "Enabled"}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setAdminDocFilterStatus("disabled")}
-                    className={`px-3 py-1.5 text-[10px] font-bold rounded-md transition-all cursor-pointer ${
-                      adminDocFilterStatus === "disabled"
-                        ? "bg-gray-500 text-white shadow-sm"
-                        : "text-bmw-textSec hover:text-bmw-text"
-                    }`}
-                  >
-                    {isRtl ? "غیرفعال" : "Disabled"}
-                  </button>
-                </div>
-              </div>
-            )}
-            {isLoadingDocs ? (
-              <p className="text-xs text-bmw-textSec italic text-center py-8">
-                {isRtl
-                  ? "در حال دریافت لیست اسناد..."
-                  : "Loading document database..."}
-              </p>
-            ) : ragDocs.length === 0 ? (
-              <p className="text-xs text-bmw-textSec italic text-center py-8">
-                {isRtl
-                  ? "هیچ سندی بارگذاری و ایندکس نشده است."
-                  : "No indexed PDF documents found in database."}
-              </p>
-            ) : filteredAdminDocs.length === 0 ? (
-              <p className="text-xs text-red-400 italic text-center py-8">
-                {isRtl
-                  ? "هیچ سندی با این مشخصات یافت نشد."
-                  : "No documents match your search or filter criteria."}
-              </p>
-            ) : (
-              <div className="flex-1 overflow-y-auto space-y-2 pr-1 custom-scrollbar">
-                {filteredAdminDocs.map((doc) => (
-                  <div
-                    key={doc.id}
-                    className="p-3 bg-bmw-hover border border-bmw-border rounded-lg flex items-center justify-between gap-4 transition-all"
-                  >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="p-2 bg-bmw-blue/10 text-bmw-blue rounded-lg">
-                        <FileText className="w-5 h-5" />
-                      </div>
-                      <div className="min-w-0">
-                        <h4 className="text-sm font-bold text-bmw-text truncate">
-                          {doc.title}
-                        </h4>
-                        <p className="text-[10px] text-bmw-textSec mt-0.5 truncate">
-                          File: {doc.file_name} • Chunks:{" "}
-                          <span className="font-bold text-bmw-blue">
-                            {doc.chunk_count}
-                          </span>{" "}
-                          • Date:{" "}
-                          {new Date(doc.created_at).toLocaleDateString(
-                            language === "fa" ? "fa-IR" : "en-US",
-                          )}
-                        </p>
-                        <div className="flex gap-1.5 mt-1">
-                          <span className="text-[9px] px-1.5 py-0.5 bg-blue-500/10 text-bmw-blue rounded font-bold font-mono">
-                            {doc.doc_year || doc.docYear || 2026}
-                          </span>
-                          <span className="text-[9px] px-1.5 py-0.5 bg-amber-500/10 text-amber-600 rounded font-bold">
-                            {doc.doc_section || doc.docSection || "بخش عمومی"}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-1.5 shrink-0">
                       <button
-                        onClick={() =>
-                          handleToggleDocEnable(
-                            doc.id,
-                            doc.is_enabled !== false,
-                          )
-                        }
-                        className={`p-1.5 rounded-lg transition-all flex items-center gap-1 text-xs font-medium ${
-                          doc.is_enabled !== false
-                            ? "text-green-500 hover:bg-green-500/10"
-                            : "text-gray-500 hover:bg-gray-500/10"
-                        }`}
-                        title={
-                          doc.is_enabled !== false
-                            ? isRtl
-                              ? "غیرفعال کردن سند"
-                              : "Disable Document"
-                            : isRtl
-                              ? "فعال کردن سند"
-                              : "Enable Document"
-                        }
+                        type="button"
+                        onClick={handleAddEditChunk}
+                        className="bg-bmw-blue/10 hover:bg-bmw-blue/20 text-bmw-blue border border-bmw-blue/30 px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer"
                       >
-                        {doc.is_enabled !== false ? (
-                          <>
-                            <Eye className="w-4 h-4" />
-                            <span className="hidden sm:inline text-[10px]">
-                              {isRtl ? "فعال" : "Enabled"}
-                            </span>
-                          </>
-                        ) : (
-                          <>
-                            <EyeOff className="w-4 h-4" />
-                            <span className="hidden sm:inline text-[10px]">
-                              {isRtl ? "غیرفعال" : "Disabled"}
-                            </span>
-                          </>
-                        )}
-                      </button>
-                      <button
-                        onClick={() => handleStartEditDoc(doc)}
-                        className="text-bmw-textSec hover:text-bmw-blue p-1.5 rounded-lg hover:bg-bmw-blue/10 transition-all"
-                        title={
-                          isRtl ? "ویرایش بخش‌های سند" : "Edit Document Chunks"
-                        }
-                      >
-                        <Edit className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteDoc(doc.id, doc.title)}
-                        className="text-bmw-textSec hover:text-red-400 p-1.5 rounded-lg hover:bg-red-500/10 transition-all"
-                        title={isRtl ? "حذف" : "Delete"}
-                      >
-                        <Trash2 className="w-4 h-4" />
+                        <Plus size={13} />
+                        <span>{isRtl ? "افزودن بخش جدید" : "Add Chunk"}</span>
                       </button>
                     </div>
                   </div>
-                ))}
-                <div className="border border-bmw-border/60 bg-bmw-surface/30 rounded-2xl p-4 mt-3">
-                  <button
-                    type="button"
-                    onClick={() => setIsSearchConfigOpen(!isSearchConfigOpen)}
-                    className="w-full flex items-center justify-between text-xs font-bold text-bmw-blue/90 hover:text-bmw-blue transition-colors"
-                  >
-                    <div className="flex items-center gap-2">
-                      <Search size={14} className="text-bmw-blue" />
+
+                  {/* Find & Replace Bar */}
+                  <div className="border-b border-bmw-border p-3 flex flex-wrap items-center justify-between gap-3 bg-bmw-base/10">
+                    <div className="flex items-center gap-2 text-xs font-semibold text-bmw-text">
+                      <RefreshCw
+                        size={13}
+                        className="text-bmw-blue animate-spin"
+                        style={{ animationDuration: "3s" }}
+                      />
                       <span>
                         {isRtl
-                          ? "تنظیمات جستجوی ترکیبی و فیلترهای پیشرفته اسناد"
-                          : "Hybrid Search Settings & Advanced Document Filters"}
+                          ? "جستجو و جایگزینی همگانی"
+                          : "Global Find & Replace"}
                       </span>
-                      {(hybridSearch ||
-                        reranking ||
-                        filterYear !== "all" ||
-                        filterSection !== "all") && (
-                        <span className="inline-flex h-2 w-2 rounded-full bg-green-500" />
-                      )}
                     </div>
-                    <ChevronDown
-                      className={`w-3.5 h-3.5 transition-transform duration-200 ${isSearchConfigOpen ? "rotate-180" : ""}`}
-                    />
-                  </button>
-
-                  {isSearchConfigOpen && (
-                    <div className="mt-4 pt-3 border-t border-bmw-border/50 grid grid-cols-1 md:grid-cols-2 gap-4 animate-fade-in text-xs">
-                      <div className="space-y-3.5">
-                        <div className="flex items-center justify-between">
-                          <label className="font-bold text-bmw-text flex items-center gap-1.5">
-                            <span>
-                              {isRtl
-                                ? "جستجوی ترکیبی (Hybrid Search)"
-                                : "Hybrid Search"}
-                            </span>
-                            <span className="text-[10px] px-1.5 py-0.5 bg-blue-500/10 text-bmw-blue rounded font-normal font-mono">
-                              Vector + BM25
-                            </span>
-                          </label>
-                          <input
-                            type="checkbox"
-                            checked={hybridSearch}
-                            onChange={(e) => setHybridSearch(e.target.checked)}
-                            className="w-4 h-4 rounded text-bmw-blue focus:ring-bmw-blue border-bmw-border"
-                          />
-                        </div>
-
-                        {hybridSearch && (
-                          <div className="space-y-2 bg-bmw-base/40 p-2.5 rounded-xl border border-bmw-border/30">
-                            <div className="flex items-center justify-between text-[11px] text-bmw-textSec">
-                              <span>
-                                {isRtl
-                                  ? `وزن معنایی: ${semanticWeight}`
-                                  : `Semantic Weight: ${semanticWeight}`}
-                              </span>
-                              <span>
-                                {isRtl
-                                  ? `وزن کلمه‌ای: ${keywordWeight}`
-                                  : `Keyword Weight: ${keywordWeight}`}
-                              </span>
-                            </div>
-                            <input
-                              type="range"
-                              min="0"
-                              max="1"
-                              step="0.1"
-                              value={semanticWeight}
-                              onChange={(e) => {
-                                const sem = Number(e.target.value);
-                                setSemanticWeight(sem);
-                                setKeywordWeight(Number((1 - sem).toFixed(1)));
-                              }}
-                              className="w-full h-1.5 bg-bmw-border rounded-lg appearance-none cursor-pointer accent-bmw-blue"
-                            />
-                          </div>
-                        )}
-
-                        <div className="flex items-center justify-between">
-                          <label className="font-bold text-bmw-text flex items-center gap-1.5">
-                            <span>
-                              {isRtl
-                                ? "رتبه‌بندی مجدد (Reranking)"
-                                : "Reranking"}
-                            </span>
-                            <span className="text-[10px] px-1.5 py-0.5 bg-purple-500/10 text-purple-600 dark:text-purple-400 rounded font-normal font-mono">
-                              Cross-Encoder
-                            </span>
-                          </label>
-                          <input
-                            type="checkbox"
-                            checked={reranking}
-                            onChange={(e) => setReranking(e.target.checked)}
-                            className="w-4 h-4 rounded text-bmw-blue focus:ring-bmw-blue border-bmw-border cursor-pointer"
-                          />
-                        </div>
-
-                        <div className="flex items-center justify-between pt-1">
-                          <label className="font-bold text-bmw-text flex items-center gap-1.5">
-                            <span>
-                              {isRtl
-                                ? "بازنویسی هوشمند کوئری"
-                                : "Query Transformation"}
-                            </span>
-                            <span className="text-[10px] px-1.5 py-0.5 bg-green-500/10 text-green-600 dark:text-green-400 rounded font-normal font-mono">
-                              Gemini Rewrite
-                            </span>
-                          </label>
-                          <input
-                            type="checkbox"
-                            checked={queryTransformation}
-                            onChange={(e) =>
-                              setQueryTransformation(e.target.checked)
-                            }
-                            className="w-4 h-4 rounded text-bmw-blue focus:ring-bmw-blue border-bmw-border cursor-pointer"
-                          />
-                        </div>
+                    <div className="flex flex-wrap items-center gap-3">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[10px] text-bmw-textSec">
+                          {isRtl ? "جستجو:" : "Find:"}
+                        </span>
+                        <input
+                          type="text"
+                          placeholder={
+                            isRtl ? "عبارت مبدا..." : "Text to find..."
+                          }
+                          value={findText}
+                          onChange={(e) => setFindText(e.target.value)}
+                          className="bg-bmw-base border border-bmw-border rounded-lg px-2.5 py-1 text-xs text-bmw-text focus:outline-none focus:border-bmw-blue/50 w-32 sm:w-40"
+                        />
                       </div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[10px] text-bmw-textSec">
+                          {isRtl ? "جایگزینی:" : "Replace:"}
+                        </span>
+                        <input
+                          type="text"
+                          placeholder={
+                            isRtl ? "عبارت جدید..." : "Replace with..."
+                          }
+                          value={replaceText}
+                          onChange={(e) => setReplaceText(e.target.value)}
+                          className="bg-bmw-base border border-bmw-border rounded-lg px-2.5 py-1 text-xs text-bmw-text focus:outline-none focus:border-bmw-blue/50 w-32 sm:w-40"
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleFindAndReplace}
+                        className="bg-bmw-blue hover:bg-blue-700 text-white px-3.5 py-1 rounded-lg text-xs font-semibold shadow-md transition-all flex items-center gap-1 cursor-pointer"
+                      >
+                        <CheckCircle2 size={12} />
+                        <span>{isRtl ? "جایگزینی همگانی" : "Replace All"}</span>
+                      </button>
+                    </div>
+                  </div>
 
-                      <div className="space-y-3.5">
-                        <div className="flex flex-col gap-1.5">
-                          <label className="font-bold text-bmw-text">
-                            {isRtl
-                              ? "فیلتر بر اساس سال سند"
-                              : "Filter by Document Year"}
+                  {replaceMessage && (
+                    <div className="bg-bmw-blue/10 border-b border-bmw-blue/20 text-bmw-blue px-4 py-2.5 text-xs flex items-center gap-2 transition-all">
+                      <Info size={14} className="shrink-0 animate-pulse" />
+                      <span>{replaceMessage}</span>
+                    </div>
+                  )}
+
+                  {/* Editor Scroll Content */}
+                  <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-4 min-h-[300px] max-h-[55vh] custom-scrollbar">
+                    {detailsError && (
+                      <div className="bg-red-500/10 border border-red-500/30 text-red-400 p-3 rounded-lg text-xs flex items-center gap-2">
+                        <AlertCircle size={14} />
+                        <span>{detailsError}</span>
+                      </div>
+                    )}
+
+                    {/* Document Metadata Update Fields */}
+                    <div className="p-4 bg-bmw-blue/5 border border-bmw-blue/15 rounded-xl flex flex-col gap-3">
+                      <h4 className="text-[11px] font-bold text-bmw-blue uppercase tracking-wider flex items-center gap-1.5">
+                        <Database size={11} />
+                        {isRtl
+                          ? "ویرایش اطلاعات و متادیتای کلی سند"
+                          : "Edit Overall Document Details & Metadata"}
+                      </h4>
+                      <div className="grid grid-cols-1 md:grid-cols-4 gap-3.5">
+                        <div>
+                          <label className="block text-[10px] font-bold text-bmw-textSec uppercase tracking-wider mb-1">
+                            {isRtl ? "عنوان کلی سند" : "Document Title"}
+                          </label>
+                          <input
+                            type="text"
+                            value={editDocTitle}
+                            onChange={(e) => setEditDocTitle(e.target.value)}
+                            className="w-full bg-bmw-base border border-bmw-border rounded-lg p-2 text-xs text-bmw-text focus:outline-none focus:border-bmw-blue/50"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[10px] font-bold text-bmw-textSec uppercase tracking-wider mb-1">
+                            {isRtl ? "سال انتشار سند" : "Publish Year"}
                           </label>
                           <select
-                            value={filterYear}
-                            onChange={(e) => setFilterYear(e.target.value)}
-                            className="bg-bmw-surface border border-bmw-border/80 rounded-lg p-2 text-xs focus:outline-none focus:border-bmw-blue/50"
+                            value={editDocYear}
+                            onChange={(e) => setEditDocYear(e.target.value)}
+                            className="w-full bg-bmw-base border border-bmw-border rounded-lg p-2 text-xs text-bmw-text focus:outline-none focus:border-bmw-blue/50 cursor-pointer"
                           >
-                            <option value="all">
-                              {isRtl ? "همه سال‌ها" : "All Years"}
-                            </option>
                             <option value="2026">2026</option>
                             <option value="2025">2025</option>
                             <option value="2024">2024</option>
@@ -2360,553 +2631,305 @@ const ChatWithPDF: React.FC = () => {
                             <option value="2022">2022</option>
                           </select>
                         </div>
-
-                        <div className="flex flex-col gap-1.5">
-                          <label className="font-bold text-bmw-text">
-                            {isRtl
-                              ? "فیلتر بر اساس بخش/فصل"
-                              : "Filter by Section/Chapter"}
+                        <div>
+                          <label className="block text-[10px] font-bold text-bmw-textSec uppercase tracking-wider mb-1">
+                            {isRtl ? "بخش / فصل سند" : "Section / Chapter"}
                           </label>
                           <select
-                            value={filterSection}
-                            onChange={(e) => setFilterSection(e.target.value)}
-                            className="bg-bmw-surface border border-bmw-border/80 rounded-lg p-2 text-xs focus:outline-none focus:border-bmw-blue/50"
+                            value={editDocSection}
+                            onChange={(e) => setEditDocSection(e.target.value)}
+                            className="w-full bg-bmw-base border border-bmw-border rounded-lg p-2 text-xs text-bmw-text focus:outline-none focus:border-bmw-blue/50 cursor-pointer"
                           >
-                            <option value="all">
-                              {isRtl ? "همه بخش‌ها" : "All Sections"}
-                            </option>
-                            <option value="فصل اول">
-                              {isRtl
-                                ? "فصل اول / بخش ۱"
-                                : "Chapter 1 / Section 1"}
-                            </option>
-                            <option value="فصل دوم">
-                              {isRtl
-                                ? "فصل دوم / بخش ۲"
-                                : "Chapter 2 / Section 2"}
-                            </option>
-                            <option value="فصل سوم">
-                              {isRtl
-                                ? "فصل سوم / بخش ۳"
-                                : "Chapter 3 / Section 3"}
-                            </option>
-                            <option value="فصل چهارم">
-                              {isRtl
-                                ? "فصل چهارم / بخش ۴"
-                                : "Chapter 4 / Section 4"}
-                            </option>
                             <option value="بخش عمومی">
                               {isRtl ? "بخش عمومی" : "General Section"}
                             </option>
+                            <option value="فصل اول">
+                              {isRtl ? "فصل اول" : "Chapter 1"}
+                            </option>
+                            <option value="فصل دوم">
+                              {isRtl ? "فصل دوم" : "Chapter 2"}
+                            </option>
+                            <option value="فصل سوم">
+                              {isRtl ? "فصل سوم" : "Chapter 3"}
+                            </option>
+                            <option value="فصل چهارم">
+                              {isRtl ? "فصل چهارم" : "Chapter 4"}
+                            </option>
                           </select>
                         </div>
-                      </div>
-
-                      <div className="col-span-full mt-2 p-2 bg-bmw-blue/5 border border-bmw-blue/15 rounded-xl flex items-center gap-2 text-[10px] text-bmw-textSec">
-                        <Info size={12} className="text-bmw-blue shrink-0" />
-                        <span>
-                          {isRtl
-                            ? 'سیستم به صورت خودکار فیلترها را از متن سوال شما نیز استخراج می‌کند (مانند: "در اسناد سال ۲۰۲۳ و فصل دوم").'
-                            : 'The system also auto-extracts metadata filters from your query (e.g. "in 2023 documents under chapter 2").'}
-                        </span>
+                        <div>
+                          <label className="block text-[10px] font-bold text-bmw-textSec uppercase tracking-wider mb-1">
+                            {isRtl
+                              ? "سقف سوال در ۲۴ ساعت"
+                              : "24h Question Limit"}
+                          </label>
+                          <input
+                            type="number"
+                            min="0"
+                            value={editMaxQuestionsLimit}
+                            onChange={(e) =>
+                              setEditMaxQuestionsLimit(
+                                Math.max(0, parseInt(e.target.value) || 0),
+                              )
+                            }
+                            className="w-full bg-bmw-base border border-bmw-border rounded-lg p-2 text-xs text-bmw-text focus:outline-none focus:border-bmw-blue/50"
+                          />
+                        </div>
                       </div>
                     </div>
-                  )}
-                </div>
-              </div>
-            )}
+                    {(() => {
+                      const filteredChunks = editChunks.filter((c) =>
+                        c.content
+                          .toLowerCase()
+                          .includes(chunkSearch.toLowerCase()),
+                      );
+
+                      if (filteredChunks.length > 0) {
+                        return (
+                          <div className="space-y-3">
+                            {filteredChunks.map((chunk, idx) => (
+                              <div
+                                key={chunk.id}
+                                className="p-3 bg-bmw-hover border border-bmw-border rounded-lg flex flex-col gap-2"
+                              >
+                                <div className="flex items-center justify-between border-b border-bmw-border/30 pb-2">
+                                  <span className="text-[11px] font-mono text-bmw-textSec font-bold">
+                                    {isRtl
+                                      ? `بخش #${idx + 1}`
+                                      : `Chunk #${idx + 1}`}{" "}
+                                    (Index: {chunk.chunk_index})
+                                  </span>
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      handleRemoveEditChunk(chunk.id)
+                                    }
+                                    className="text-bmw-textSec hover:text-red-400 p-1 rounded-md hover:bg-red-500/5 transition-all cursor-pointer"
+                                    title={
+                                      isRtl
+                                        ? "حذف این بخش"
+                                        : "Remove this chunk"
+                                    }
+                                  >
+                                    <Trash2 size={13} />
+                                  </button>
+                                </div>
+                                <textarea
+                                  value={chunk.content}
+                                  onChange={(e) =>
+                                    handleUpdateEditChunk(
+                                      chunk.id,
+                                      e.target.value,
+                                    )
+                                  }
+                                  rows={4}
+                                  placeholder={
+                                    isRtl
+                                      ? "محتوای بخش متنی را بنویسید..."
+                                      : "Write chunk content here..."
+                                  }
+                                  className="w-full bg-bmw-base border border-bmw-border rounded-md p-2.5 text-xs text-bmw-text focus:outline-none focus:border-bmw-blue resize-y font-sans leading-relaxed"
+                                />
+                              </div>
+                            ))}
+                          </div>
+                        );
+                      } else {
+                        return (
+                          <div className="text-center py-12 bg-bmw-base/20 border border-dashed border-bmw-border/80 rounded-xl">
+                            <Database
+                              className="mx-auto text-bmw-textSec opacity-40 mb-2"
+                              size={24}
+                            />
+                            <p className="text-xs text-bmw-textSec">
+                              {chunkSearch
+                                ? isRtl
+                                  ? "بخشی با این محتوا یافت نشد."
+                                  : "No chunks found matching search query."
+                                : isRtl
+                                  ? 'هیچ بخشی یافت نشد. برای ایجاد بخش جدید "+ افزودن بخش جدید" را بزنید.'
+                                  : 'No chunks found. Click "+ Add Chunk" to create a new one.'}
+                            </p>
+                          </div>
+                        );
+                      }
+                    })()}
+                  </div>
+
+                  {/* Footer Actions */}
+                  <div className="border-t border-bmw-border p-4 bg-bmw-base/50 flex justify-between items-center gap-4">
+                    <span className="text-[10px] text-bmw-textSec leading-relaxed hidden sm:block max-w-md">
+                      {isRtl
+                        ? "* نکته: بخش‌های خالی پس از ذخیره نادیده گرفته خواهند شد. تمامی تغییرات بلافاصله در بانک اطلاعاتی بروزرسانی شده و در پاسخ‌دهی بعدی RAG لحاظ می‌شوند."
+                        : "* Tip: Empty chunks will be skipped upon saving. All updates are immediately stored in the database and active in future PDF Chat queries."}
+                    </span>
+                    <div className="flex gap-2 justify-end flex-1 sm:flex-initial">
+                      <button
+                        type="button"
+                        disabled={isSavingDetails}
+                        onClick={() => setEditingDoc(null)}
+                        className="px-4 py-2 border border-bmw-border text-bmw-textSec hover:bg-bmw-hover rounded-lg text-xs font-medium transition-all cursor-pointer"
+                      >
+                        {isRtl ? "انصراف" : "Cancel"}
+                      </button>
+                      <button
+                        type="button"
+                        disabled={isSavingDetails}
+                        onClick={handleSaveDocDetails}
+                        className="px-4 py-2 bg-bmw-blue hover:bg-blue-700 text-white rounded-lg text-xs font-bold shadow-md transition-all flex items-center gap-1.5 cursor-pointer"
+                      >
+                        {isSavingDetails ? (
+                          <>
+                            <Loader2 className="animate-spin" size={13} />
+                            {isRtl
+                              ? "در حال ذخیره‌سازی..."
+                              : "Saving Changes..."}
+                          </>
+                        ) : (
+                          <>
+                            <CheckCircle2 size={13} />
+                            {isRtl ? "ثبت و ذخیره تغییرات" : "Save Changes"}
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Document Chunks Editor Modal */}
-      {editingDoc && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          {/* Backdrop */}
-          <div
-            className="absolute inset-0 bg-black/75 backdrop-blur-sm transition-opacity"
-            onClick={() => !isSavingDetails && setEditingDoc(null)}
-          ></div>
+        {/* Custom Delete Confirmation Modal */}
+        {deleteConfirmDoc && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            {/* Backdrop with elegant blur */}
+            <div
+              className="absolute inset-0 bg-black/70 backdrop-blur-sm transition-opacity"
+              onClick={() => setDeleteConfirmDoc(null)}
+            ></div>
 
-          {/* Content Card */}
-          <div
-            className="relative w-full max-w-5xl bg-bmw-surface border border-bmw-border rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] text-start"
-            dir={isRtl ? "rtl" : "ltr"}
-          >
-            {/* Header */}
-            <div className="flex items-center justify-between border-b border-bmw-border p-4 bg-bmw-base/50">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-bmw-blue/10 text-bmw-blue rounded-lg">
-                  <Database size={20} />
+            {/* Modal Card */}
+            <div className="relative bg-bmw-surface border border-bmw-border rounded-xl p-6 shadow-2xl max-w-md w-full animate-in fade-in zoom-in-95 duration-200">
+              <div className="flex items-start gap-4">
+                <div className="p-3 bg-red-500/10 text-red-500 rounded-full border border-red-500/20 shrink-0">
+                  <AlertCircle className="w-6 h-6" />
                 </div>
-                <div>
-                  <h3 className="text-sm font-semibold text-bmw-text">
+                <div className="flex-1 min-w-0 text-start">
+                  <h3 className="text-base font-extrabold text-bmw-text">
                     {isRtl
-                      ? "ویرایش و اصلاح بخش‌های متنی سند (RAG)"
-                      : "Edit & Refine Document Semantic Chunks (RAG)"}
+                      ? "حذف کامل سند و اطلاعات مرتبط"
+                      : "Complete Document Deletion"}
                   </h3>
-                  <p className="text-[11px] text-bmw-textSec mt-0.5 font-mono">
-                    {editingDoc.title} ({editingDoc.file_name})
+                  <p className="text-xs text-bmw-textSec mt-2 leading-relaxed">
+                    {isRtl
+                      ? `آیا از حذف کامل سند "${deleteConfirmDoc.title}" اطمینان دارید؟ با تأیید این کار، تمامی بخش‌ها (Chunks) و کل تاریخچه گفتگوهای کاربران مرتبط با این سند به طور دائم از پایگاه داده حذف خواهد شد.`
+                      : `Are you sure you want to completely delete "${deleteConfirmDoc.title}"? This will permanently erase all associated semantic chunks and user chat histories from the database.`}
+                  </p>
+                  <p className="text-[10px] text-red-400 font-bold mt-2">
+                    {isRtl
+                      ? "⚠️ این عملیات غیرقابل بازگشت است!"
+                      : "⚠️ This action is irreversible!"}
                   </p>
                 </div>
               </div>
-              <button
-                type="button"
-                disabled={isSavingDetails}
-                onClick={() => setEditingDoc(null)}
-                className="text-bmw-textSec hover:text-bmw-text text-lg p-1.5 focus:outline-none cursor-pointer"
-              >
-                ✕
-              </button>
-            </div>
 
-            {/* Loader */}
-            {isLoadingDetails ? (
-              <div className="flex-1 flex flex-col items-center justify-center py-20 gap-3">
-                <Loader2 className="animate-spin text-bmw-blue" size={32} />
-                <span className="text-xs text-bmw-textSec">
-                  {isRtl
-                    ? "در حال دریافت اطلاعات بخش‌ها..."
-                    : "Retrieving document chunks..."}
-                </span>
-              </div>
-            ) : (
-              <>
-                {/* Search & Actions Bar */}
-                <div className="border-b border-bmw-border p-3 flex flex-wrap items-center justify-between gap-3 bg-bmw-base/20">
-                  <div className="text-xs text-bmw-text font-bold">
-                    {isRtl ? "لیست بخش‌های سند:" : "Document Chunks:"}{" "}
-                    <span className="bg-bmw-blue/15 text-bmw-blue px-2 py-0.5 rounded-full text-[10px] font-mono ml-1">
-                      {editChunks.length} {isRtl ? "بخش" : "chunks"}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <div className="relative">
-                      <input
-                        type="text"
-                        placeholder={
-                          isRtl ? "جستجو در محتوا..." : "Search content..."
-                        }
-                        value={chunkSearch}
-                        onChange={(e) => setChunkSearch(e.target.value)}
-                        className="bg-bmw-base border border-bmw-border rounded-lg px-3 py-1.5 text-[11px] text-bmw-text pl-8 focus:outline-none focus:border-bmw-blue/50 w-44"
-                      />
-                      <Search
-                        size={11}
-                        className="absolute left-2.5 top-2.5 text-bmw-textSec"
-                      />
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={handleAddEditChunk}
-                      className="bg-bmw-blue/10 hover:bg-bmw-blue/20 text-bmw-blue border border-bmw-blue/30 px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer"
-                    >
-                      <Plus size={13} />
-                      <span>{isRtl ? "افزودن بخش جدید" : "Add Chunk"}</span>
-                    </button>
-                  </div>
-                </div>
-
-                {/* Find & Replace Bar */}
-                <div className="border-b border-bmw-border p-3 flex flex-wrap items-center justify-between gap-3 bg-bmw-base/10">
-                  <div className="flex items-center gap-2 text-xs font-semibold text-bmw-text">
-                    <RefreshCw
-                      size={13}
-                      className="text-bmw-blue animate-spin"
-                      style={{ animationDuration: "3s" }}
-                    />
-                    <span>
-                      {isRtl
-                        ? "جستجو و جایگزینی همگانی"
-                        : "Global Find & Replace"}
-                    </span>
-                  </div>
-                  <div className="flex flex-wrap items-center gap-3">
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-[10px] text-bmw-textSec">
-                        {isRtl ? "جستجو:" : "Find:"}
-                      </span>
-                      <input
-                        type="text"
-                        placeholder={
-                          isRtl ? "عبارت مبدا..." : "Text to find..."
-                        }
-                        value={findText}
-                        onChange={(e) => setFindText(e.target.value)}
-                        className="bg-bmw-base border border-bmw-border rounded-lg px-2.5 py-1 text-xs text-bmw-text focus:outline-none focus:border-bmw-blue/50 w-32 sm:w-40"
-                      />
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-[10px] text-bmw-textSec">
-                        {isRtl ? "جایگزینی:" : "Replace:"}
-                      </span>
-                      <input
-                        type="text"
-                        placeholder={
-                          isRtl ? "عبارت جدید..." : "Replace with..."
-                        }
-                        value={replaceText}
-                        onChange={(e) => setReplaceText(e.target.value)}
-                        className="bg-bmw-base border border-bmw-border rounded-lg px-2.5 py-1 text-xs text-bmw-text focus:outline-none focus:border-bmw-blue/50 w-32 sm:w-40"
-                      />
-                    </div>
-                    <button
-                      type="button"
-                      onClick={handleFindAndReplace}
-                      className="bg-bmw-blue hover:bg-blue-700 text-white px-3.5 py-1 rounded-lg text-xs font-semibold shadow-md transition-all flex items-center gap-1 cursor-pointer"
-                    >
-                      <CheckCircle2 size={12} />
-                      <span>{isRtl ? "جایگزینی همگانی" : "Replace All"}</span>
-                    </button>
-                  </div>
-                </div>
-
-                {replaceMessage && (
-                  <div className="bg-bmw-blue/10 border-b border-bmw-blue/20 text-bmw-blue px-4 py-2.5 text-xs flex items-center gap-2 transition-all">
-                    <Info size={14} className="shrink-0 animate-pulse" />
-                    <span>{replaceMessage}</span>
-                  </div>
-                )}
-
-                {/* Editor Scroll Content */}
-                <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-4 min-h-[300px] max-h-[55vh] custom-scrollbar">
-                  {detailsError && (
-                    <div className="bg-red-500/10 border border-red-500/30 text-red-400 p-3 rounded-lg text-xs flex items-center gap-2">
-                      <AlertCircle size={14} />
-                      <span>{detailsError}</span>
-                    </div>
-                  )}
-
-                  {/* Document Metadata Update Fields */}
-                  <div className="p-4 bg-bmw-blue/5 border border-bmw-blue/15 rounded-xl flex flex-col gap-3">
-                    <h4 className="text-[11px] font-bold text-bmw-blue uppercase tracking-wider flex items-center gap-1.5">
-                      <Database size={11} />
-                      {isRtl
-                        ? "ویرایش اطلاعات و متادیتای کلی سند"
-                        : "Edit Overall Document Details & Metadata"}
-                    </h4>
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-3.5">
-                      <div>
-                        <label className="block text-[10px] font-bold text-bmw-textSec uppercase tracking-wider mb-1">
-                          {isRtl ? "عنوان کلی سند" : "Document Title"}
-                        </label>
-                        <input
-                          type="text"
-                          value={editDocTitle}
-                          onChange={(e) => setEditDocTitle(e.target.value)}
-                          className="w-full bg-bmw-base border border-bmw-border rounded-lg p-2 text-xs text-bmw-text focus:outline-none focus:border-bmw-blue/50"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-[10px] font-bold text-bmw-textSec uppercase tracking-wider mb-1">
-                          {isRtl ? "سال انتشار سند" : "Publish Year"}
-                        </label>
-                        <select
-                          value={editDocYear}
-                          onChange={(e) => setEditDocYear(e.target.value)}
-                          className="w-full bg-bmw-base border border-bmw-border rounded-lg p-2 text-xs text-bmw-text focus:outline-none focus:border-bmw-blue/50 cursor-pointer"
-                        >
-                          <option value="2026">2026</option>
-                          <option value="2025">2025</option>
-                          <option value="2024">2024</option>
-                          <option value="2023">2023</option>
-                          <option value="2022">2022</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-[10px] font-bold text-bmw-textSec uppercase tracking-wider mb-1">
-                          {isRtl ? "بخش / فصل سند" : "Section / Chapter"}
-                        </label>
-                        <select
-                          value={editDocSection}
-                          onChange={(e) => setEditDocSection(e.target.value)}
-                          className="w-full bg-bmw-base border border-bmw-border rounded-lg p-2 text-xs text-bmw-text focus:outline-none focus:border-bmw-blue/50 cursor-pointer"
-                        >
-                          <option value="بخش عمومی">
-                            {isRtl ? "بخش عمومی" : "General Section"}
-                          </option>
-                          <option value="فصل اول">
-                            {isRtl ? "فصل اول" : "Chapter 1"}
-                          </option>
-                          <option value="فصل دوم">
-                            {isRtl ? "فصل دوم" : "Chapter 2"}
-                          </option>
-                          <option value="فصل سوم">
-                            {isRtl ? "فصل سوم" : "Chapter 3"}
-                          </option>
-                          <option value="فصل چهارم">
-                            {isRtl ? "فصل چهارم" : "Chapter 4"}
-                          </option>
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-[10px] font-bold text-bmw-textSec uppercase tracking-wider mb-1">
-                          {isRtl ? "سقف سوال در ۲۴ ساعت" : "24h Question Limit"}
-                        </label>
-                        <input
-                          type="number"
-                          min="0"
-                          value={editMaxQuestionsLimit}
-                          onChange={(e) =>
-                            setEditMaxQuestionsLimit(
-                              Math.max(0, parseInt(e.target.value) || 0),
-                            )
-                          }
-                          className="w-full bg-bmw-base border border-bmw-border rounded-lg p-2 text-xs text-bmw-text focus:outline-none focus:border-bmw-blue/50"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                  {(() => {
-                    const filteredChunks = editChunks.filter((c) =>
-                      c.content
-                        .toLowerCase()
-                        .includes(chunkSearch.toLowerCase()),
-                    );
-
-                    if (filteredChunks.length > 0) {
-                      return (
-                        <div className="space-y-3">
-                          {filteredChunks.map((chunk, idx) => (
-                            <div
-                              key={chunk.id}
-                              className="p-3 bg-bmw-hover border border-bmw-border rounded-lg flex flex-col gap-2"
-                            >
-                              <div className="flex items-center justify-between border-b border-bmw-border/30 pb-2">
-                                <span className="text-[11px] font-mono text-bmw-textSec font-bold">
-                                  {isRtl
-                                    ? `بخش #${idx + 1}`
-                                    : `Chunk #${idx + 1}`}{" "}
-                                  (Index: {chunk.chunk_index})
-                                </span>
-                                <button
-                                  type="button"
-                                  onClick={() =>
-                                    handleRemoveEditChunk(chunk.id)
-                                  }
-                                  className="text-bmw-textSec hover:text-red-400 p-1 rounded-md hover:bg-red-500/5 transition-all cursor-pointer"
-                                  title={
-                                    isRtl ? "حذف این بخش" : "Remove this chunk"
-                                  }
-                                >
-                                  <Trash2 size={13} />
-                                </button>
-                              </div>
-                              <textarea
-                                value={chunk.content}
-                                onChange={(e) =>
-                                  handleUpdateEditChunk(
-                                    chunk.id,
-                                    e.target.value,
-                                  )
-                                }
-                                rows={4}
-                                placeholder={
-                                  isRtl
-                                    ? "محتوای بخش متنی را بنویسید..."
-                                    : "Write chunk content here..."
-                                }
-                                className="w-full bg-bmw-base border border-bmw-border rounded-md p-2.5 text-xs text-bmw-text focus:outline-none focus:border-bmw-blue resize-y font-sans leading-relaxed"
-                              />
-                            </div>
-                          ))}
-                        </div>
+              <div className="flex items-center justify-end gap-3 mt-6 border-t border-bmw-border pt-4">
+                <button
+                  type="button"
+                  onClick={() => setDeleteConfirmDoc(null)}
+                  className="px-4 py-2 bg-bmw-hover text-bmw-text border border-bmw-border rounded-lg text-xs font-bold hover:bg-bmw-base transition-all cursor-pointer"
+                >
+                  {isRtl ? "انصراف" : "Cancel"}
+                </button>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    const doc = deleteConfirmDoc;
+                    setDeleteConfirmDoc(null);
+                    try {
+                      const res = await fetch(
+                        `${baseURL}/api/rag/documents/${doc.id}`,
+                        {
+                          method: "DELETE",
+                        },
                       );
-                    } else {
-                      return (
-                        <div className="text-center py-12 bg-bmw-base/20 border border-dashed border-bmw-border/80 rounded-xl">
-                          <Database
-                            className="mx-auto text-bmw-textSec opacity-40 mb-2"
-                            size={24}
-                          />
-                          <p className="text-xs text-bmw-textSec">
-                            {chunkSearch
-                              ? isRtl
-                                ? "بخشی با این محتوا یافت نشد."
-                                : "No chunks found matching search query."
-                              : isRtl
-                                ? 'هیچ بخشی یافت نشد. برای ایجاد بخش جدید "+ افزودن بخش جدید" را بزنید.'
-                                : 'No chunks found. Click "+ Add Chunk" to create a new one.'}
-                          </p>
-                        </div>
-                      );
+                      if (res.ok) {
+                        fetchRagDocs();
+                        fetchSessions(false);
+                        handleNewChat();
+                      }
+                    } catch (err) {
+                      console.error("Error deleting document:", err);
                     }
-                  })()}
-                </div>
+                  }}
+                  className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-bold transition-all shadow-md flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  {isRtl ? "تأیید و حذف کامل" : "Confirm & Delete"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
-                {/* Footer Actions */}
-                <div className="border-t border-bmw-border p-4 bg-bmw-base/50 flex justify-between items-center gap-4">
-                  <span className="text-[10px] text-bmw-textSec leading-relaxed hidden sm:block max-w-md">
+        {/* Custom Delete Session Confirmation Modal */}
+        {deleteSessionConfirm && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            {/* Backdrop with elegant blur */}
+            <div
+              className="absolute inset-0 bg-black/70 backdrop-blur-sm transition-opacity"
+              onClick={() => setDeleteSessionConfirm(null)}
+            ></div>
+
+            {/* Modal Card */}
+            <div
+              className="relative bg-bmw-surface border border-bmw-border rounded-xl p-6 shadow-2xl max-w-md w-full animate-in fade-in zoom-in-95 duration-200"
+              dir={isRtl ? "rtl" : "ltr"}
+            >
+              <div className="flex items-start gap-4">
+                <div className="p-3 bg-red-500/10 text-red-500 rounded-full border border-red-500/20 shrink-0">
+                  <AlertCircle className="w-6 h-6" />
+                </div>
+                <div className="flex-1 min-w-0 text-start">
+                  <h3 className="text-base font-extrabold text-bmw-text">
+                    {isRtl ? "حذف سابقه گفتگو" : "Delete Chat History"}
+                  </h3>
+                  <p className="text-xs text-bmw-textSec mt-2 leading-relaxed">
                     {isRtl
-                      ? "* نکته: بخش‌های خالی پس از ذخیره نادیده گرفته خواهند شد. تمامی تغییرات بلافاصله در بانک اطلاعاتی بروزرسانی شده و در پاسخ‌دهی بعدی RAG لحاظ می‌شوند."
-                      : "* Tip: Empty chunks will be skipped upon saving. All updates are immediately stored in the database and active in future PDF Chat queries."}
-                  </span>
-                  <div className="flex gap-2 justify-end flex-1 sm:flex-initial">
-                    <button
-                      type="button"
-                      disabled={isSavingDetails}
-                      onClick={() => setEditingDoc(null)}
-                      className="px-4 py-2 border border-bmw-border text-bmw-textSec hover:bg-bmw-hover rounded-lg text-xs font-medium transition-all cursor-pointer"
-                    >
-                      {isRtl ? "انصراف" : "Cancel"}
-                    </button>
-                    <button
-                      type="button"
-                      disabled={isSavingDetails}
-                      onClick={handleSaveDocDetails}
-                      className="px-4 py-2 bg-bmw-blue hover:bg-blue-700 text-white rounded-lg text-xs font-bold shadow-md transition-all flex items-center gap-1.5 cursor-pointer"
-                    >
-                      {isSavingDetails ? (
-                        <>
-                          <Loader2 className="animate-spin" size={13} />
-                          {isRtl ? "در حال ذخیره‌سازی..." : "Saving Changes..."}
-                        </>
-                      ) : (
-                        <>
-                          <CheckCircle2 size={13} />
-                          {isRtl ? "ثبت و ذخیره تغییرات" : "Save Changes"}
-                        </>
-                      )}
-                    </button>
-                  </div>
+                      ? `آیا از حذف کامل سابقه این گفتگو "${deleteSessionConfirm.title}" اطمینان دارید؟ با تأیید این کار، تمامی پیام‌های رد و بدل شده در این گفتگو به طور دائم از پایگاه داده حذف خواهد شد.`
+                      : `Are you sure you want to delete the chat history for "${deleteSessionConfirm.title}"? This will permanently erase all exchanged messages in this conversation from the database.`}
+                  </p>
+                  <p className="text-[10px] text-red-400 font-bold mt-2">
+                    {isRtl
+                      ? "⚠️ این عملیات غیرقابل بازگشت است!"
+                      : "⚠️ This action is irreversible!"}
+                  </p>
                 </div>
-              </>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Custom Delete Confirmation Modal */}
-      {deleteConfirmDoc && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          {/* Backdrop with elegant blur */}
-          <div
-            className="absolute inset-0 bg-black/70 backdrop-blur-sm transition-opacity"
-            onClick={() => setDeleteConfirmDoc(null)}
-          ></div>
-
-          {/* Modal Card */}
-          <div className="relative bg-bmw-surface border border-bmw-border rounded-xl p-6 shadow-2xl max-w-md w-full animate-in fade-in zoom-in-95 duration-200">
-            <div className="flex items-start gap-4">
-              <div className="p-3 bg-red-500/10 text-red-500 rounded-full border border-red-500/20 shrink-0">
-                <AlertCircle className="w-6 h-6" />
               </div>
-              <div className="flex-1 min-w-0 text-start">
-                <h3 className="text-base font-extrabold text-bmw-text">
-                  {isRtl
-                    ? "حذف کامل سند و اطلاعات مرتبط"
-                    : "Complete Document Deletion"}
-                </h3>
-                <p className="text-xs text-bmw-textSec mt-2 leading-relaxed">
-                  {isRtl
-                    ? `آیا از حذف کامل سند "${deleteConfirmDoc.title}" اطمینان دارید؟ با تأیید این کار، تمامی بخش‌ها (Chunks) و کل تاریخچه گفتگوهای کاربران مرتبط با این سند به طور دائم از پایگاه داده حذف خواهد شد.`
-                    : `Are you sure you want to completely delete "${deleteConfirmDoc.title}"? This will permanently erase all associated semantic chunks and user chat histories from the database.`}
-                </p>
-                <p className="text-[10px] text-red-400 font-bold mt-2">
-                  {isRtl
-                    ? "⚠️ این عملیات غیرقابل بازگشت است!"
-                    : "⚠️ This action is irreversible!"}
-                </p>
-              </div>
-            </div>
 
-            <div className="flex items-center justify-end gap-3 mt-6 border-t border-bmw-border pt-4">
-              <button
-                type="button"
-                onClick={() => setDeleteConfirmDoc(null)}
-                className="px-4 py-2 bg-bmw-hover text-bmw-text border border-bmw-border rounded-lg text-xs font-bold hover:bg-bmw-base transition-all cursor-pointer"
-              >
-                {isRtl ? "انصراف" : "Cancel"}
-              </button>
-              <button
-                type="button"
-                onClick={async () => {
-                  const doc = deleteConfirmDoc;
-                  setDeleteConfirmDoc(null);
-                  try {
-                    const res = await fetch(
-                      `${baseURL}/api/rag/documents/${doc.id}`,
-                      {
-                        method: "DELETE",
-                      },
-                    );
-                    if (res.ok) {
-                      fetchRagDocs();
-                      fetchSessions(false);
-                      handleNewChat();
-                    }
-                  } catch (err) {
-                    console.error("Error deleting document:", err);
-                  }
-                }}
-                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-bold transition-all shadow-md flex items-center gap-1.5 cursor-pointer"
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-                {isRtl ? "تأیید و حذف کامل" : "Confirm & Delete"}
-              </button>
+              <div className="flex items-center justify-end gap-3 mt-6 border-t border-bmw-border pt-4">
+                <button
+                  type="button"
+                  onClick={() => setDeleteSessionConfirm(null)}
+                  className="px-4 py-2 bg-bmw-hover text-bmw-text border border-bmw-border rounded-lg text-xs font-bold hover:bg-bmw-base transition-all cursor-pointer"
+                >
+                  {isRtl ? "انصراف" : "Cancel"}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleConfirmDeleteSession}
+                  className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-bold transition-all shadow-md flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  {isRtl ? "تأیید و حذف" : "Confirm & Delete"}
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
-
-      {/* Custom Delete Session Confirmation Modal */}
-      {deleteSessionConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          {/* Backdrop with elegant blur */}
-          <div
-            className="absolute inset-0 bg-black/70 backdrop-blur-sm transition-opacity"
-            onClick={() => setDeleteSessionConfirm(null)}
-          ></div>
-
-          {/* Modal Card */}
-          <div
-            className="relative bg-bmw-surface border border-bmw-border rounded-xl p-6 shadow-2xl max-w-md w-full animate-in fade-in zoom-in-95 duration-200"
-            dir={isRtl ? "rtl" : "ltr"}
-          >
-            <div className="flex items-start gap-4">
-              <div className="p-3 bg-red-500/10 text-red-500 rounded-full border border-red-500/20 shrink-0">
-                <AlertCircle className="w-6 h-6" />
-              </div>
-              <div className="flex-1 min-w-0 text-start">
-                <h3 className="text-base font-extrabold text-bmw-text">
-                  {isRtl ? "حذف سابقه گفتگو" : "Delete Chat History"}
-                </h3>
-                <p className="text-xs text-bmw-textSec mt-2 leading-relaxed">
-                  {isRtl
-                    ? `آیا از حذف کامل سابقه این گفتگو "${deleteSessionConfirm.title}" اطمینان دارید؟ با تأیید این کار، تمامی پیام‌های رد و بدل شده در این گفتگو به طور دائم از پایگاه داده حذف خواهد شد.`
-                    : `Are you sure you want to delete the chat history for "${deleteSessionConfirm.title}"? This will permanently erase all exchanged messages in this conversation from the database.`}
-                </p>
-                <p className="text-[10px] text-red-400 font-bold mt-2">
-                  {isRtl
-                    ? "⚠️ این عملیات غیرقابل بازگشت است!"
-                    : "⚠️ This action is irreversible!"}
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-end gap-3 mt-6 border-t border-bmw-border pt-4">
-              <button
-                type="button"
-                onClick={() => setDeleteSessionConfirm(null)}
-                className="px-4 py-2 bg-bmw-hover text-bmw-text border border-bmw-border rounded-lg text-xs font-bold hover:bg-bmw-base transition-all cursor-pointer"
-              >
-                {isRtl ? "انصراف" : "Cancel"}
-              </button>
-              <button
-                type="button"
-                onClick={handleConfirmDeleteSession}
-                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-bold transition-all shadow-md flex items-center gap-1.5 cursor-pointer"
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-                {isRtl ? "تأیید و حذف" : "Confirm & Delete"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+        )}
+      </div>
+    </>
   );
 };
 

@@ -82,53 +82,53 @@ const UsersManagement: React.FC = () => {
     }
   };
 
-  const handleDownloadImage = async (user: any) => {
-    const imagePath =
-      user?.profileAttachment &&
-      StringHelpers.getImage(user?.profileAttachment);
+  // const handleDownloadImage = async (user: any) => {
+  //   const imagePath =
+  //     user?.profileAttachment &&
+  //     StringHelpers.getImage(user?.profileAttachment);
 
-    if (!imagePath) {
-      addToast("error", "تصویر یافت نشد", "این کاربر عکسی برای دانلود ندارد.");
-      return;
-    }
+  //   if (!imagePath) {
+  //     addToast("error", "تصویر یافت نشد", "این کاربر عکسی برای دانلود ندارد.");
+  //     return;
+  //   }
 
-    const originalName = user?.profileAttachment?.fileName ?? "";
-    const extension = originalName.match(/\.[^.]+$/)?.[0] ?? ".jpg";
+  //   const originalName = user?.profileAttachment?.fileName ?? "";
+  //   const extension = originalName.match(/\.[^.]+$/)?.[0] ?? ".jpg";
 
-    const downloadName = originalName
-      ? originalName
-      : `profile_image${extension}`;
+  //   const downloadName = originalName
+  //     ? originalName
+  //     : `profile_image${extension}`;
 
-    try {
-      const response = await fetch(imagePath);
+  //   try {
+  //     const response = await fetch(imagePath);
 
-      if (!response.ok) {
-        throw new Error("مشکل در دریافت فایل از سرور");
-      }
+  //     if (!response.ok) {
+  //       throw new Error("مشکل در دریافت فایل از سرور");
+  //     }
 
-      const blob = await response.blob();
-      window.open(imagePath, "_blank");
+  //     const blob = await response.blob();
+  //     window.open(imagePath, "_blank");
 
-      const blobUrl = window.URL.createObjectURL(blob);
+  //     const blobUrl = window.URL.createObjectURL(blob);
 
-      const link = document.createElement("a");
-      link.href = blobUrl;
-      link.download = downloadName;
+  //     const link = document.createElement("a");
+  //     link.href = blobUrl;
+  //     link.download = downloadName;
 
-      document.body.appendChild(link);
-      link.click();
+  //     document.body.appendChild(link);
+  //     link.click();
 
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(blobUrl);
-    } catch (err) {
-      console.error(err);
-      addToast(
-        "error",
-        "خطا",
-        "دانلود تصویر انجام نشد. (ممکن است مشکل CORS باشد)",
-      );
-    }
-  };
+  //     document.body.removeChild(link);
+  //     window.URL.revokeObjectURL(blobUrl);
+  //   } catch (err) {
+  //     console.error(err);
+  //     addToast(
+  //       "error",
+  //       "خطا",
+  //       "دانلود تصویر انجام نشد. (ممکن است مشکل CORS باشد)",
+  //     );
+  //   }
+  // };
 
   //   const handleDownloadImage = async (user: any) => {
   //   const imagePath =
@@ -182,6 +182,58 @@ const UsersManagement: React.FC = () => {
   //     );
   //   }
   // };
+
+  const handleDownloadImage = async (user: any) => {
+    // ۱. گرفتن نام فایل و کد پرسنلی
+    const fileName = user?.profileAttachment?.fileName;
+    const personalCode = user?.personalCode;
+
+    if (!fileName) {
+      addToast("error", "تصویر یافت نشد", "این کاربر عکسی برای دانلود ندارد.");
+      return;
+    }
+
+    const baseUrl = "http://localhost:5132";
+    const downloadUrl = `${baseUrl}/api/users/downloadProfileImage?fileName=${encodeURIComponent(fileName)}&personalCode=${encodeURIComponent(personalCode || "profile")}`;
+
+    try {
+      const token = localStorage.getItem("token");
+
+      const response = await fetch(downloadUrl, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error("عدم دسترسی. توکن نامعتبر است یا ارسال نشده است.");
+        } else if (response.status === 404) {
+          throw new Error("تصویر در سرور یافت نشد.");
+        }
+        throw new Error("خطا در دریافت فایل از سرور");
+      }
+
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+
+      const link = document.createElement("a");
+      link.href = blobUrl;
+
+      const extension = fileName.match(/\.[^.]+$/)?.[0] ?? ".png";
+      link.download = `${personalCode || "profile"}${extension}`;
+
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (err: any) {
+      console.error("Download Error:", err);
+      addToast("error", "خطا در دانلود", err.message);
+    }
+  };
 
   useEffect(() => {
     setCurrentPage(1);
@@ -261,11 +313,11 @@ const UsersManagement: React.FC = () => {
           language === "fa" ? "بروزرسانی سقف پرسنلی" : "Quota Updated",
           newStatus === 1
             ? language === "fa"
-              ? `ساخت تصویر برای کاربر «${userName}» غیرفعال شد (مقدار ۱).`
-              : `AI photo disabled for ${userName}.`
+              ? `ساخت تصویر برای کاربر غیرفعال شد.`
+              : `AI photo disabled.`
             : language === "fa"
-              ? `ساخت تصویر برای کاربر «${userName}» مجدداً فعال گردید (مقدار ۰).`
-              : `AI photo re-enabled for ${userName}.`,
+              ? `ساخت تصویر برای کاربر مجدداً فعال گردید.`
+              : `AI photo re-enabled.`,
         );
       } else {
         throw new Error(data.error || "Failed to update limit");

@@ -47,6 +47,52 @@ const AddNews: React.FC<any> = ({
     setSelectedImages((prev) => prev.filter((_, i) => i !== index));
   };
 
+  const handleAdd = asyncWrapper(async (data: any) => {
+    // 1. بررسی خالی بودن فیلدها در زمان تایید
+    if (!data?.title || data.title.trim() === "") {
+      toast.error("لطفاً تیتر خبر را وارد کنید");
+      return; // متوقف کردن ادامه عملیات
+    }
+
+    if (!selectedUser || selectedUser.length === 0) {
+      toast.error("لطفاً دسته‌بندی را انتخاب کنید");
+      return;
+    }
+
+    if (!data?.content || data.content.trim() === "") {
+      toast.error("لطفاً محتوای خبر را وارد کنید");
+      return;
+    }
+
+    const fixCategories = selectedUser?.map((item: any) => item?.id);
+    const postData = {
+      title: data?.title,
+      content: data?.content,
+      isPinned: data?.isPinned || false,
+      categoryIds: fixCategories,
+    };
+
+    const resCompanyNews = await createCompanyNews(postData);
+    const { result, code, message } = resCompanyNews?.data;
+
+    if (code === 0) {
+      if (selectedImages.length > 0) {
+        const formData = new FormData();
+        selectedImages.forEach((file) => {
+          formData.append("FormFiles", file);
+        });
+        formData.append("CompanyNewsId", result); // آیدی خبر
+
+        const resAttachment = await addNewsAttachments(formData);
+        // const { code, message } = resAttachment?.data;
+      }
+
+      setShowAddNews(false);
+      handleGetAllNews();
+      toast.success(message);
+    }
+  }, toast);
+
   // const handleAdd = asyncWrapper(async (data: any) => {
   //   const fixCategories = selectedUser?.map((item) => item?.id);
   //   const postData = {
@@ -77,32 +123,6 @@ const AddNews: React.FC<any> = ({
   //     toast.success(message);
   //   }
   // }, toast);
-
-  const handleAdd = asyncWrapper(async (data: any) => {
-    const fixCategories = selectedUser?.map((item) => item?.id);
-    const postData = {
-      title: data?.title,
-      content: data?.content,
-      isPinned: data?.isPinned || false,
-      categoryIds: fixCategories,
-    };
-    const resCompanyNews = await createCompanyNews(postData);
-    const { result, code, message } = resCompanyNews?.data;
-
-    if (code === 0) {
-      const formData = new FormData();
-      selectedImages.forEach((file) => {
-        formData.append("FormFiles", file);
-      });
-      formData.append("CompanyNewsId", result); // آیدی خبر
-
-      const resAttachment = await addNewsAttachments(formData); // ← اندپوینت جدید
-      const { code, message } = resAttachment?.data;
-      setShowAddNews(false);
-      handleGetAllNews();
-      toast.success(message);
-    }
-  }, toast);
 
   // const handleAdd = asyncWrapper(async (data: any) => {
   //   const fixCategories = selectedUser?.map((item) => item?.id);

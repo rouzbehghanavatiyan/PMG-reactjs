@@ -163,11 +163,13 @@ const Dashboard: React.FC = () => {
                 <InlineLoading isActive={loading} size="xl" />
               </span>
             ) : (
-              currentNews.map((news: any) => {
+              currentNews.map((news: any, index: number) => {
+                console.log("news", news);
+
                 return (
                   currentNews && (
                     <AllNews
-                      key={news.id}
+                      key={news?.id}
                       showAddNews={showAddNews}
                       setShowAddNews={setShowAddNews}
                       handleGetAllNews={handleGetAllNews}

@@ -11,7 +11,6 @@ const AllNews: React.FC<any> = ({
   handleShowNews,
   news,
   t,
-  key,
   handleGetAllNews,
 }) => {
   const [loading, setLoading] = useState<boolean>(false);
@@ -31,7 +30,7 @@ const AllNews: React.FC<any> = ({
 
   return (
     <div
-      key={key}
+      key={news?.id}
       className="bg-bmw-surface border border-bmw-border rounded-lg overflow-hidden flex flex-col md:flex-row 
              hover:shadow-xl hover:shadow-black/10 transition-shadow h-auto md:h-[139px]"
     >

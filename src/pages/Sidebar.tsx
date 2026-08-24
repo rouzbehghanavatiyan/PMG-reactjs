@@ -10,7 +10,6 @@ import {
   LogOut,
   Settings,
   X,
-  CalendarDays,
   ClipboardList,
   LayoutGrid,
   Building,
@@ -84,16 +83,16 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
     { icon: ClipboardList, label: "surveys", path: "/surveys" },
     { icon: Ticket, label: "support", path: "/support", disabled: true },
     { icon: Lightbulb, label: "suggestions_feedback", path: "/feedbackSystem" },
-    ...(hasPermission("chatSmart.read")
-      ? [
-          {
-            icon: ClipboardMinus,
-            label: "گزارشات",
-            path: "/reports",
-            disabled: true,
-          },
-        ]
-      : []),
+    // ...(hasPermission("chatSmart.read")
+    //   ? [
+    //       {
+    //         icon: ClipboardMinus,
+    //         label: "گزارشات",
+    //         path: "/reports",
+    //         disabled: true,
+    //       },
+    //     ]
+    //   : []),
     {
       icon: ClipboardMinus,
       label: "گزارشات",

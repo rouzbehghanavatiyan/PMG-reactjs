@@ -118,7 +118,7 @@ const PublicLayout: React.FC = () => {
   };
 
   useEffect(() => {
-    if (!token || connectionStarted.current) return;
+    if (!token) return;
 
     const pCode = getPersonalCodeFromToken(token);
     const newConnection = new signalR.HubConnectionBuilder()
@@ -143,27 +143,38 @@ const PublicLayout: React.FC = () => {
       if (foodData?.code === 0) {
         dispatch(RsetDailyPollFood(foodData?.result));
       } else {
-        console.log("خطا در ارسال اطلاعات :", foodData);
+        console.log("خطا در دریافت اطلاعات روزانه :", foodData);
       }
-      console.log(foodData);
 
       localStorage.setItem("pollFoodId", foodData?.[0]?.menuItemId);
       localStorage.setItem("pollFoodName", foodData?.[0]?.foodName);
     });
 
-    newConnection
-      .start()
-      .then(() => {
-        connectionStarted.current = true;
-      })
-      .catch((e) => console.error("SignalR Connection Failed: ", e));
+    let isMounted = true;
+
+    // ایجاد یک تاخیر کوتاه برای جلوگیری از شروع اتصال در رندر تستی React Strict Mode
+    const startTimer = setTimeout(() => {
+      if (isMounted) {
+        newConnection
+          .start()
+          .then(() => {
+            console.log("SignalR Connected Successfully.");
+          })
+          .catch((e) => {
+            console.error("SignalR Connection Failed: ", e);
+          });
+      }
+    }, 150); // 150 میلی‌ثانیه تاخیر
 
     setConnection(newConnection);
 
+    // تابع Cleanup
     return () => {
+      isMounted = false;
+      clearTimeout(startTimer); // اگر کامپوننت سریعاً Unmount شد، از استارت شدن جلوگیری کن
+
       if (newConnection) {
         newConnection.stop();
-        connectionStarted.current = false;
       }
     };
   }, [token, dispatch]);
