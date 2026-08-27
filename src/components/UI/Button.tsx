@@ -24,6 +24,12 @@ type ButtonVariant =
   | "outline-brown"
   | "outline-ghost-success"
   | "outline-ghost-danger"
+  | "underline-primary"
+  | "underline-danger"
+  | "underline-success"
+  | "underline-orange"
+  | "underline-secondary"
+  | "underline-dark"
   | "outline-ghost-bmw-textSec";
 
 type ButtonSize = "sm" | "md" | "lg";
@@ -81,7 +87,6 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       md: "px-4 py-2 text-sm",
       lg: "px-5 py-3.5 text-base",
     };
-
     const variants: Record<ButtonVariant, string> = {
       primary: "bg-bmw-blue text-white hover:bg-blue-600",
       secondary: "bg-bmw-surface text-bmw-text hover:bg-bmw-base",
@@ -89,10 +94,22 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       ghost: "bg-transparent text-bmw-text hover:bg-bmw-base",
       dark: "bg-gray-900 text-white hover:bg-blue-800",
       warning: "bg-yellow-500 text-black hover:bg-yellow-600",
-      success: "bg-green-500 text-white hover:bg-green-600",
+      success: "bg-green-700 text-white hover:bg-green-600",
       orange: "bg-orange-500 text-white hover:bg-orange-600",
       purple: "bg-purple-500 text-white hover:bg-purple-600",
       brown: "bg-yellow-800 text-white hover:bg-yellow-900",
+      "underline-primary":
+        "border-b-2 border-bmw-blue bg-transparent !px-0 text-bmw-blue hover:border-blue-700 hover:text-blue-700",
+      "underline-danger":
+        "border-b-2 border-red-500 bg-transparent !px-0 text-red-500 hover:border-red-700 hover:text-red-700",
+      "underline-success":
+        "border-b-2 border-green-500 bg-transparent !px-0 text-green-500 hover:border-green-700 hover:text-green-700",
+      "underline-orange":
+        "border-b-2 border-orange-500 bg-transparent !px-0 text-orange-500 hover:border-orange-700 hover:text-orange-700",
+      "underline-secondary":
+        "border-b-2 border-slate-400 bg-transparent !px-0 text-slate-600 hover:border-slate-600 hover:text-slate-800",
+      "underline-dark":
+        "border-b-2 border-slate-800 bg-transparent !px-0 text-slate-800 hover:border-black hover:text-black",
       "outline-primary":
         "border border-bmw-blue bg-transparent text-bmw-blue hover:bg-bmw-blue/10",
       "outline-secondary":

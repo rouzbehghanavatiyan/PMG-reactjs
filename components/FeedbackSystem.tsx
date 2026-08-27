@@ -404,11 +404,10 @@ const FeedbackSystem: React.FC = () => {
       const response = await deleteFeedback(logicalDeleteTarget.id);
       if (response?.data?.code === 0) {
         addToast("success", "موفقیت", "با موفقیت حذف شد.");
-        
+
         setTimeout(() => {
           window.location.reload();
         }, 2000);
-        
       } else {
         console.error("Failed to logically delete item");
       }
@@ -424,11 +423,10 @@ const FeedbackSystem: React.FC = () => {
       const response = await restoreFeedback(item?.id);
       if (response?.data?.code === 0) {
         addToast("success", "موفقیت", "با موفقیت بازگشت داده شد.");
-        
+
         setTimeout(() => {
           window.location.reload();
         }, 2000);
-
       } else {
         console.error("Failed to restore item");
       }
@@ -1974,14 +1972,14 @@ const FeedbackSystem: React.FC = () => {
               })}
 
               {totalPages > 1 && (
-                <div className="flex items-center justify-between border border-bmw-border bg-bmw-surface rounded-xl p-4 mt-2 shadow-sm text-xs">
+                <div className="flex items-center justify-between p-4 mt-2 text-xs">
                   <button
                     type="button"
                     onClick={() =>
                       setCurrentPage((prev) => Math.max(prev - 1, 1))
                     }
                     disabled={currentPage === 1}
-                    className="px-3 py-1.5 rounded-lg border border-bmw-border bg-bmw-base text-bmw-text hover:bg-bmw-hover disabled:opacity-50 transition-colors flex items-center gap-1.5 font-bold cursor-pointer disabled:cursor-not-allowed"
+                    className="px-3 py-1.5 rounded-lg border border-bmw-border bg-bmw-surface text-bmw-text hover:bg-bmw-hover disabled:opacity-50 transition-colors flex items-center gap-1.5 font-bold cursor-pointer disabled:cursor-not-allowed"
                   >
                     {isRtl ? (
                       <ChevronRight size={14} />
@@ -1999,10 +1997,10 @@ const FeedbackSystem: React.FC = () => {
                           key={pageNum}
                           type="button"
                           onClick={() => setCurrentPage(pageNum)}
-                          className={`w-8 h-8 rounded-lg flex items-center justify-center font-extrabold border transition-colors cursor-pointer ${
+                          className={`w-8 h-8 rounded-lg flex items-center justify-center font-extrabold border transition-colors cursor-pointer  ${
                             currentPage === pageNum
                               ? "bg-bmw-blue border-bmw-blue text-white shadow shadow-blue-500/20"
-                              : "border-bmw-border bg-bmw-base text-bmw-text hover:bg-bmw-hover"
+                              : "border-bmw-border bg-bmw-surface text-bmw-text hover:bg-bmw-hover"
                           }`}
                         >
                           {pageNum.toLocaleString(isRtl ? "fa-IR" : "en-US")}
@@ -2010,14 +2008,13 @@ const FeedbackSystem: React.FC = () => {
                       );
                     })}
                   </div>
-
                   <button
                     type="button"
                     onClick={() =>
                       setCurrentPage((prev) => Math.min(prev + 1, totalPages))
                     }
                     disabled={currentPage === totalPages}
-                    className="px-3 py-1.5 rounded-lg border border-bmw-border bg-bmw-base text-bmw-text hover:bg-bmw-hover disabled:opacity-50 transition-colors flex items-center gap-1.5 font-bold cursor-pointer disabled:cursor-not-allowed"
+                    className="px-3 py-1.5 rounded-lg border border-bmw-border bg-bmw-surface text-bmw-text hover:bg-bmw-hover disabled:opacity-50 transition-colors flex items-center gap-1.5 font-bold cursor-pointer disabled:cursor-not-allowed"
                   >
                     <span>{isRtl ? "بعدی" : "Next"}</span>
                     {isRtl ? (
