@@ -1,6 +1,6 @@
 ﻿import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Bell, ArrowUpRight, Plus } from "lucide-react";
+import { Bell, Plus } from "lucide-react";
 import { useLanguage } from "../../contexts/LanguageContext";
 import BirthdaysWidget from "../BirthdaysWidget";
 import { useAppSelector } from "../../features/store";

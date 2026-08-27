@@ -27,7 +27,6 @@ import { useAppSelector } from "../src/features/store";
 import { useHasPermission } from "../src/hooks/usePermissions";
 import { useMediaQuery } from "react-responsive";
 import { useLanguage } from "../src/contexts/LanguageContext";
-import Loading from "../src/components/UI/Loading";
 
 interface ChatSession {
   id: string;

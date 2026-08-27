@@ -45,6 +45,8 @@ import {
   updateStatusManager,
 } from "../src/services/dotNet";
 import { useHasPermission } from "../src/hooks/usePermissions";
+import api from "../src/services/axios";
+import { ToastContainer } from "./Toast";
 
 interface FeedbackStatusLog {
   status: "submitted" | "under_review" | "approved" | "rejected";
@@ -140,6 +142,8 @@ const FeedbackSystem: React.FC = () => {
   const [description, setDescription] = useState("");
   const [attachment, setAttachment] = useState<File | null>(null);
   const [dragActive, setDragActive] = useState(false);
+  const [toasts, setToasts] = useState<any[]>([]);
+
   const [showSuccessToast, setShowSuccessToast] = useState(false);
 
   const [newCatId, setNewCatId] = useState("");
@@ -149,12 +153,15 @@ const FeedbackSystem: React.FC = () => {
   const [catSuccess, setCatSuccess] = useState("");
   const [idEditCategoryModal, setIdEditCategoryModal] = useState(null);
 
-  // useEffect(() => {
-  //   const activeCats = categories?.filter((c:any) => !c.isDeleted);
-  //   if (activeCats?.length > 0 && !activeCats?.some((c) => c.id === category)) {
-  //     setCategory(activeCats?[0].id);
-  //   }
-  // }, [categories]);
+  useEffect(() => {
+    const activeCats = categories?.filter((c: any) => !c?.isDeleted);
+    if (
+      activeCats?.length > 0 &&
+      !activeCats?.some((c) => c?.id === category)
+    ) {
+      return setCategory(activeCats?.[0]?.id);
+    }
+  }, [categories]);
 
   const handleAddCategory = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -221,6 +228,39 @@ const FeedbackSystem: React.FC = () => {
   const [showCategoryDeleteDialog, setShowCategoryDeleteDialog] =
     useState(false);
 
+  const handleDownloadFile = async (item: any) => {
+    console.log(item);
+    const fileName = item?.attachment?.fileName;
+
+    if (!fileName) {
+      console.log("نام فایل موجود نیست");
+      return;
+    }
+
+    try {
+      const response = await api.get(
+        `/api/feedback/downloadFile?fileName=${encodeURIComponent(fileName)}&personalCode=${encodeURIComponent(userLogin?.personalCode || "profile")}`,
+        {
+          responseType: "blob",
+        },
+      );
+
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+
+      const link = document.createElement("a");
+      link.href = url;
+
+      link.setAttribute("download", fileName);
+
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.log("خطا در دانلود:", error);
+    }
+  };
+
   // Handle opening the edit category modal
   const handleOpenEditCategoryModal = (cat: {
     id: string;
@@ -280,7 +320,6 @@ const FeedbackSystem: React.FC = () => {
     }
   };
 
-  // Handle trigger logical deleting a category (show modal)
   const handleTriggerDeleteCategory = (cat: {
     id: string;
     fa: string;
@@ -320,7 +359,6 @@ const FeedbackSystem: React.FC = () => {
     }
   };
 
-  // Handle restore logically deleted category
   const handleRestoreCategory = async (idToRestore: string) => {
     setCatError("");
     setCatSuccess("");
@@ -365,7 +403,12 @@ const FeedbackSystem: React.FC = () => {
     try {
       const response = await deleteFeedback(logicalDeleteTarget.id);
       if (response?.data?.code === 0) {
-        fetchFeedback();
+        addToast("success", "موفقیت", "با موفقیت حذف شد.");
+        
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
+        
       } else {
         console.error("Failed to logically delete item");
       }
@@ -380,7 +423,12 @@ const FeedbackSystem: React.FC = () => {
     try {
       const response = await restoreFeedback(item?.id);
       if (response?.data?.code === 0) {
-        fetchFeedback();
+        addToast("success", "موفقیت", "با موفقیت بازگشت داده شد.");
+        
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
+
       } else {
         console.error("Failed to restore item");
       }
@@ -433,10 +481,8 @@ const FeedbackSystem: React.FC = () => {
       changedPartsEn.push(`Title to "${editTitle.trim()}"`);
     }
     if (editCategory !== editingFeedback.category) {
-      const oldCat = getCategoryLabel(editingFeedback.category);
-      // const newCat = getCategoryLabel(editCategory);
-      // changedParts.push(`دپارتمان از "${oldCat}" به "${newCat}"`);
-      // changedPartsEn.push(`Category from "${oldCat}" to "${newCat}"`);
+      changedParts.push(`دپارتمان`);
+      changedPartsEn.push(`Category"`);
     }
     if (editType !== editingFeedback.type) {
       const oldTypeLabel =
@@ -462,12 +508,14 @@ const FeedbackSystem: React.FC = () => {
       changedParts.push("شرح کامل توضیحات");
       changedPartsEn.push("description text");
     }
+    console.log("HVVVVVVVVVVVVVVVVVVVVVVVVVVL:SKJFOSEDI", editCategory);
 
-    if (changedParts.length === 0) {
-      setShowEditModal(false);
-      setEditingFeedback(null);
-      return;
-    }
+    // if (changedParts.length === 0) {
+    //   setShowEditModal(false);
+    //   setEditingFeedback(null);
+    //   return;
+    // }
+    console.log(changedParts);
 
     const dateStr = new Date().toISOString().replace("T", " ").substring(0, 16);
     const changelogMessage = isRtl
@@ -485,7 +533,7 @@ const FeedbackSystem: React.FC = () => {
     const postData = {
       id: editingFeedback.id,
       title: editTitle.trim(),
-      feedbackCategoryId: editCategory,
+      feedbackCategoryId: editCategory?.id || editCategory,
       type: editType,
       description: editDescription.trim(),
       logs: newLogs,
@@ -672,7 +720,6 @@ const FeedbackSystem: React.FC = () => {
     document.body.removeChild(link);
   };
 
-  // Drag and drop handlers
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -702,13 +749,34 @@ const FeedbackSystem: React.FC = () => {
     setAttachment(null);
   };
 
+  const addToast = (
+    type: "success" | "error" | "info" | "warning",
+    title: string,
+    message: string,
+  ) => {
+    const id = Date.now().toString();
+    setToasts((prev) => [...prev, { id, type, title, message }]);
+  };
+
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     if (!title || !description) return;
+
+    if (attachment) {
+      const maxSizeInBytes = 10 * 1024 * 1024;
+      if (attachment.size > maxSizeInBytes) {
+        alert("حجم فایل اتچ‌شده نباید بیشتر از ۱۰ مگابایت باشد.");
+        return;
+      }
+    }
+
     const formData = new FormData();
+
     if (attachment) {
       formData.append("FormFiles", attachment);
     }
+
     formData.append("AttachmentType", "feedback");
     const resAttachment = await addAttachment(formData);
     console.log("category", category);
@@ -733,10 +801,9 @@ const FeedbackSystem: React.FC = () => {
       personalCode: userLogin?.personalCode,
     };
 
-    const resCompanyNews = await createFeedback(postData);
-
+    const res = await createFeedback(postData);
+    console.log(res);
     setFeedbackList((prev) => [postData, ...prev]);
-
     setTitle("");
     setDescription("");
     setAttachment(null);
@@ -749,7 +816,8 @@ const FeedbackSystem: React.FC = () => {
   };
 
   const handleUpdateStatus = async (e: React.FormEvent) => {
-    e.preventDefault();
+    console.log("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
+    // e.preventDefault();
     if (!selectedFeedback) return;
 
     const dateStr = new Date().toISOString().replace("T", " ").substring(0, 16);
@@ -789,6 +857,7 @@ const FeedbackSystem: React.FC = () => {
 
     setFeedbackList(updated);
     const postData = {
+      ...selectedFeedback,
       id: selectedFeedback.id,
       status: newStatus,
       managerComment: managerComment,
@@ -870,10 +939,14 @@ const FeedbackSystem: React.FC = () => {
     (currentPage - 1) * ITEMS_PER_PAGE,
     currentPage * ITEMS_PER_PAGE,
   );
-
+  const removeToast = (id: string) => {
+    setToasts((prev) => prev.filter((t) => t.id !== id));
+  };
   return (
     <div className="space-y-6">
       {/* Page Header */}
+      <ToastContainer toasts={toasts} onDismiss={removeToast} dir={dir} />
+
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-bmw-border pb-6">
         <div className="text-start">
           <h1 className="text-2xl font-black text-bmw-text flex items-center gap-3">
@@ -1107,7 +1180,6 @@ const FeedbackSystem: React.FC = () => {
                     className="w-full bg-bmw-base border border-bmw-border rounded-xl p-3.5 text-xs text-bmw-text focus:border-bmw-blue focus:outline-none transition-colors"
                   />
                 </div>
-
                 <div>
                   <label className="block text-xs font-bold text-bmw-textSec mb-2 uppercase tracking-wider">
                     {isRtl
@@ -1227,7 +1299,6 @@ const FeedbackSystem: React.FC = () => {
                   )}
                 </div>
 
-                {/* Submit Action */}
                 <div className="flex justify-end pt-3">
                   <button
                     type="submit"
@@ -1243,7 +1314,6 @@ const FeedbackSystem: React.FC = () => {
                 </div>
               </form>
 
-              {/* Custom Success Toast */}
               {showSuccessToast && (
                 <div className="fixed bottom-6 right-6 left-6 md:left-auto md:w-[350px] z-50 bg-emerald-500 text-white p-4 rounded-xl shadow-2xl flex items-center gap-3 animate-in fade-in slide-in-from-bottom-5 duration-300">
                   <div className="p-1 bg-white/20 rounded-full shrink-0">
@@ -1715,20 +1785,17 @@ const FeedbackSystem: React.FC = () => {
                           </p>
                         </div>
 
-                        {/* {item?.attachment && (
-                          <div className="inline-flex items-center gap-2.5 px-3 py-1.5 bg-bmw-surface border border-bmw-border rounded-lg text-xs">
+                        {item?.attachment && (
+                          <div
+                            onClick={() => handleDownloadFile(item)}
+                            className="inline-flex cursor-pointer items-center gap-2.5 px-3 py-1.5 bg-bmw-surface border border-bmw-border rounded-lg text-xs"
+                          >
                             <FileText size={14} className="text-bmw-blue" />
-                            <span className="font-bold text-bmw-text text-[11px]">
-                              {item?.attachmentName}
-                            </span>
-                            <span className="text-[10px] text-bmw-textSec">
-                              (PDF / 1.2 MB)
-                            </span>
-                            <span className="text-[10px] bg-emerald-500/10 text-emerald-500 px-1.5 py-0.5 rounded">
-                              ✓ {isRtl ? "پیوست شد" : "Attached"}
+                            <span className="font-bold text-blue-700 text-[11px]">
+                              {item?.attachment?.fileName}
                             </span>
                           </div>
-                        )} */}
+                        )}
 
                         {item?.managerComment && (
                           <div className="p-4 bg-bmw-surface border border-bmw-border rounded-xl space-y-2 relative overflow-hidden">
@@ -1906,7 +1973,6 @@ const FeedbackSystem: React.FC = () => {
                 );
               })}
 
-              {/* Pagination Controls */}
               {totalPages > 1 && (
                 <div className="flex items-center justify-between border border-bmw-border bg-bmw-surface rounded-xl p-4 mt-2 shadow-sm text-xs">
                   <button
@@ -2002,8 +2068,6 @@ const FeedbackSystem: React.FC = () => {
                 ✕
               </button>
             </div>
-
-            {/* Body */}
             <form
               onSubmit={handleUpdateStatus}
               className="p-5 overflow-y-auto space-y-4"

@@ -51,7 +51,7 @@ const DeleteFoodModal: React.FC<Props> = ({
       closeOnBackdrop={false}
     >
       <div className="space-y-5">
-        <p className="text-sm text-bmw-text">
+        <p className="text-sm text-bmw">
           آیا از حذف غذای <span className="font-bold">{foodName}</span> اطمینان
           دارید؟
         </p>

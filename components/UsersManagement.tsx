@@ -23,6 +23,7 @@ import { getAllUsers, updatedLimitUsedPhotoAi } from "../src/services/dotNet";
 import CustomImage from "../src/components/UI/CustomImage";
 import { useAppSelector } from "../src/features/store";
 import StringHelpers from "../src/utils/stringHelpers";
+import api from "../src/services/axios";
 
 interface UserItem {
   user_id: string;
@@ -184,7 +185,6 @@ const UsersManagement: React.FC = () => {
   // };
 
   const handleDownloadImage = async (user: any) => {
-    // ۱. گرفتن نام فایل و کد پرسنلی
     const fileName = user?.profileAttachment?.fileName;
     const personalCode = user?.personalCode;
 
@@ -192,30 +192,15 @@ const UsersManagement: React.FC = () => {
       addToast("error", "تصویر یافت نشد", "این کاربر عکسی برای دانلود ندارد.");
       return;
     }
-
-    const baseUrl = "http://localhost:5132";
-    const downloadUrl = `${baseUrl}/api/users/downloadProfileImage?fileName=${encodeURIComponent(fileName)}&personalCode=${encodeURIComponent(personalCode || "profile")}`;
-
     try {
-      const token = localStorage.getItem("token");
-
-      const response = await fetch(downloadUrl, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
+      const response = await api.get(
+        `/api/users/downloadProfileImage?fileName=${encodeURIComponent(fileName)}&personalCode=${encodeURIComponent(personalCode || "profile")}`,
+        {
+          responseType: "blob", 
         },
-      });
+      );
 
-      if (!response.ok) {
-        if (response.status === 401) {
-          throw new Error("عدم دسترسی. توکن نامعتبر است یا ارسال نشده است.");
-        } else if (response.status === 404) {
-          throw new Error("تصویر در سرور یافت نشد.");
-        }
-        throw new Error("خطا در دریافت فایل از سرور");
-      }
-
-      const blob = await response.blob();
+      const blob = response.data;
       const blobUrl = window.URL.createObjectURL(blob);
 
       const link = document.createElement("a");
@@ -231,7 +216,18 @@ const UsersManagement: React.FC = () => {
       window.URL.revokeObjectURL(blobUrl);
     } catch (err: any) {
       console.error("Download Error:", err);
-      addToast("error", "خطا در دانلود", err.message);
+      // مدیریت خطاهای Axios
+      if (err.response?.status === 401) {
+        addToast(
+          "error",
+          "خطا",
+          "عدم دسترسی. توکن نامعتبر است یا ارسال نشده است.",
+        );
+      } else if (err.response?.status === 404) {
+        addToast("error", "خطا", "تصویر در سرور یافت نشد.");
+      } else {
+        addToast("error", "خطا در دانلود", "خطا در دریافت فایل از سرور");
+      }
     }
   };
 

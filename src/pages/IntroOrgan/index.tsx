@@ -48,7 +48,6 @@ const IntroOrgan: React.FC = () => {
 
   return (
     <div className="max-w-5xl mx-auto space-y-8 px-4 sm:px-6 lg:px-0 pb-12">
-      {/* Intro Card */}
       <div className="overflow-hidden rounded-xl shadow-lg bg-bmw-surface">
         <img
           src={BackPMG}
@@ -86,8 +85,6 @@ const IntroOrgan: React.FC = () => {
           </div>
         </div>
       </div>
-
-      {/* Honors Slider */}
       <div className="bg-bmw-surface border border-bmw-border rounded-lg p-4 sm:p-6 shadow-sm space-y-4">
         <div className="flex items-center gap-3 border-b border-bmw-border pb-3">
           <Award className="text-yellow-500 shrink-0" size={24} />
@@ -95,7 +92,6 @@ const IntroOrgan: React.FC = () => {
             افتخارات ما
           </h2>
         </div>
-
         <div className="relative rounded-lg overflow-hidden group border border-bmw-border/60">
           <img
             src={honorsSlides[currentSlide].image}
@@ -119,7 +115,6 @@ const IntroOrgan: React.FC = () => {
             <ChevronLeft size={18} />
           </button>
         </div>
-
         <div className="flex justify-center gap-2 pt-1">
           {honorsSlides.map((_, index) => (
             <button

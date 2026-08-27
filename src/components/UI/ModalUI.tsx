@@ -79,10 +79,9 @@ const ModalUI: React.FC<ModalUIProps> = ({
         )}
         onClick={closeOnBackdrop ? onClose : undefined}
       />
-
       <div
         className={clsx(
-          "relative z-10 w-full rounded-2xl bg-white shadow-2xl flex flex-col",
+          "relative z-10 w-full rounded-2xl bg-bmw-base shadow-2xl flex flex-col",
           "transition-all duration-200 ease-out will-change-transform will-change-opacity",
           visible
             ? "opacity-100 scale-100 translate-y-0"
