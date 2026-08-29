@@ -1,36 +1,50 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Loading from "../../components/UI/Loading";
 import Button from "../../components/UI/Button";
 import ComboBox from "../../components/UI/ComboBox";
-import {
-  ChevronLeft,
-  ChevronRight,
-  MessageCircleWarning,
-  Sheet,
-} from "lucide-react";
+import { CustomTable, type Column } from "../../components/UI/CustomTable";
+import { Sheet } from "lucide-react";
 import { getAllFeedback } from "../../services/dotNet";
 import StringHelpers from "../../utils/stringHelpers";
 
 const PAGE_SIZE = 6;
+interface FeedbackItem {
+  id: string | number;
+  title: string;
+  category?: { fa?: string } | string;
+  status: string;
+  userName?: string;
+  createdAt: string;
+}
 
-const STATUS_MAP: Record<string, { fa: string; style: string }> = {
+const STATUS_MAP: Record<string, { fa: string; style: string; en: string }> = {
   submitted: {
     fa: "ثبت اولیه",
     style: "bg-sky-50 text-sky-700 ring-sky-600/20",
+    en: "submitted",
   },
   under_review: {
     fa: "در دست بررسی",
     style: "bg-amber-50 text-amber-700 ring-amber-600/20",
+    en: "under_review",
   },
   approved: {
     fa: "تأیید شده",
     style: "bg-emerald-50 text-emerald-700 ring-emerald-600/20",
+    en: "approved",
   },
   rejected: {
     fa: "رد شده",
     style: "bg-rose-50 text-rose-700 ring-rose-600/20",
+    en: "rejected",
   },
 };
+
+const STATUS_OPTIONS = Object.entries(STATUS_MAP).map(([key, val]) => ({
+  id: key,
+  title: val.fa,
+  en: val.en,
+}));
 
 const getStatusDetails = (statusEn: string) => {
   return (
@@ -46,17 +60,17 @@ const Reports = () => {
   const [activeTab, setActiveTab] = useState("پیشنهادات");
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
-  const [feedbackList, setFeedbackList] = useState<any[]>([]);
-  const [allStatus, setAllStatus] = useState<any[]>([]);
-  const [status, setStatus] = useState<any[]>([]);
+  const [feedbackList, setFeedbackList] = useState<FeedbackItem[]>([]);
+  const [allStatus] = useState(STATUS_OPTIONS);
+  const [status, setStatus] = useState<any | null>(null);
 
   const fetchFeedback = async () => {
     setLoading(true);
     try {
       const response = await getAllFeedback();
       const { data } = response;
-      if (response?.data?.length !== 0) {
-        setFeedbackList(data || []);
+      if (data && data.length !== 0) {
+        setFeedbackList(data);
       }
     } catch (error) {
       console.error("Error fetching feedback from database:", error);
@@ -69,223 +83,273 @@ const Reports = () => {
     fetchFeedback();
   }, []);
 
-  // فیلتر و پیجینیشن لیست
   const filteredList = useMemo(() => {
-    return feedbackList.filter(
-      (item) =>
+    return feedbackList.filter((item) => {
+      const matchesSearch =
         item?.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item?.userName?.toLowerCase().includes(searchQuery.toLowerCase()),
-    );
-  }, [feedbackList, searchQuery]);
+        item?.userName?.toLowerCase().includes(searchQuery.toLowerCase());
+
+      const matchesStatus = status
+        ? item?.status?.trim().toLowerCase() === status.id?.toLowerCase()
+        : true;
+
+      return matchesSearch && matchesStatus;
+    });
+  }, [feedbackList, searchQuery, status]);
 
   const totalPages = Math.ceil(filteredList.length / PAGE_SIZE) || 1;
+
+  // رفع باگ: وقتی فیلتر/جستجو تعداد صفحات را کم می‌کرد ولی کاربر روی صفحه‌ی
+  // آخرِ قبلی مانده بود، جدول خالی نمایش داده می‌شد. اینجا صفحه را clamp می‌کنیم.
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [totalPages, currentPage]);
 
   const paginatedList = useMemo(() => {
     const start = (currentPage - 1) * PAGE_SIZE;
     return filteredList.slice(start, start + PAGE_SIZE);
   }, [filteredList, currentPage]);
 
-  const handlePageChange = (page: number) => {
-    if (page >= 1 && page <= totalPages) {
-      setCurrentPage(page);
-    }
-  };
+  const stats = useMemo(() => {
+    return {
+      total: feedbackList.length,
+      underReview: feedbackList.filter(
+        (item) => item?.status?.trim().toLowerCase() === "under_review",
+      ).length,
+      approved: feedbackList.filter(
+        (item) => item?.status?.trim().toLowerCase() === "approved",
+      ).length,
+      rejected: feedbackList.filter(
+        (item) => item?.status?.trim().toLowerCase() === "rejected",
+      ).length,
+    };
+  }, [feedbackList]);
+
+  const columns: Column<FeedbackItem>[] = useMemo(
+    () => [
+      {
+        key: "rowIndex",
+        title: "ردیف",
+        width: "w-14",
+        align: "center",
+        hideOnMobileCard: true,
+        render: (_, index) => (
+          <span className="text-xs text-slate-500 font-mono">
+            {((currentPage - 1) * PAGE_SIZE + index + 1).toLocaleString(
+              "fa-IR",
+            )}
+          </span>
+        ),
+      },
+      {
+        key: "title",
+        title: "عنوان",
+        width: "",
+        render: (item) => (
+          <p
+            className=" text-xs sm:text-sm font-semibold text-slate-700"
+            title={item.title}
+          >
+            {item.title}
+          </p>
+        ),
+      },
+      {
+        key: "id",
+        title: "کد",
+        width: "w-24",
+        align: "center",
+        render: (item) => (
+          <span className="text-xs text-slate-400 font-mono truncate block">
+            {item.id}
+          </span>
+        ),
+      },
+      {
+        key: "category",
+        title: "دسته‌بندی",
+        width: "w-32",
+        align: "center",
+        render: (item) => {
+          const catTitle =
+            typeof item.category === "object"
+              ? item.category?.fa
+              : item.category;
+          return (
+            <span className="truncate block rounded-md bg-slate-100 px-2 py-0.5 text-[11px] text-slate-600 text-center">
+              {catTitle ?? "—"}
+            </span>
+          );
+        },
+      },
+      {
+        key: "status",
+        title: "وضعیت",
+        width: "w-28",
+        align: "center",
+        render: (item) => {
+          const statusInfo = getStatusDetails(item?.status);
+          return (
+            <span
+              className={`truncate block text-center rounded-full px-2 py-0.5 text-[10px] sm:text-[11px] font-semibold ring-1 ring-inset ${statusInfo.style}`}
+            >
+              {statusInfo.fa}
+            </span>
+          );
+        },
+      },
+      {
+        key: "userName",
+        title: "کاربر",
+        width: "w-32",
+        align: "center",
+        render: (item) => (
+          <span className="text-xs text-slate-600 truncate block">
+            {item?.userName ?? "ناشناس"}
+          </span>
+        ),
+      },
+      {
+        key: "createdAt",
+        title: "تاریخ ثبت",
+        width: "w-36",
+        align: "center",
+        render: (item) => (
+          <span className="text-[11px] text-slate-500 whitespace-nowrap">
+            {StringHelpers.toPersianDateTime(item.createdAt)}
+          </span>
+        ),
+      },
+    ],
+    [currentPage],
+  );
 
   return (
-    <div className="space-y-6" dir="rtl">
+    <div className="space-y-4 sm:space-y-6" dir="rtl">
       {isLoading && <Loading />}
-      <div className="flex gap-4 rounded-xl border border-bmw-border bg-bmw-surface p-4 shadow-sm sm:flex-row">
-        <Button> نظام پیشنهادها و انتقادات </Button>
-        <Button variant="ghost"> نظرسنجی </Button>
+
+      {/* دکمه‌های هدر */}
+      <div className="flex flex-wrap gap-2 sm:gap-4 rounded-xl border border-bmw-border bg-bmw-surface p-3 sm:p-4 shadow-sm">
+        <Button className="flex-1 sm:flex-none text-xs sm:text-sm">
+          نظام پیشنهادها و انتقادات
+        </Button>
+        <Button
+          variant="ghost"
+          className="flex-1 sm:flex-none text-xs sm:text-sm"
+        >
+          نظرسنجی
+        </Button>
       </div>
 
-      <div className="grid grid-cols-7 gap-3 sm:grid-cols-4 lg:grid-cols-4">
-        <div className="flex items-center justify-around rounded-xl border border-slate-100 bg-white p-4 shadow-sm">
-          <p className="text-xs text-slate-500">کل پیشنهادات</p>
-          <p className="text-2xl font-bold text-slate-800">
-            {feedbackList.length.toLocaleString("fa-IR")}
+      {/* کارت‌های آماری */}
+      <div className="grid grid-cols-2 gap-2.5 sm:gap-3 lg:grid-cols-4">
+        <div className="flex items-center justify-between rounded-xl border border-slate-100 bg-white p-3 sm:p-4 shadow-sm">
+          <p className="text-[11px] sm:text-xs font-medium text-slate-500">
+            کل پیشنهادات
+          </p>
+          <p className="text-lg sm:text-2xl font-bold text-slate-800">
+            {stats.total.toLocaleString("fa-IR")}
           </p>
         </div>
-        <div className="flex items-center justify-around rounded-xl border border-slate-100 bg-white p-4 shadow-sm">
-          <p className="text-xs text-slate-500">در حال بررسی</p>
-          <p className="text-2xl font-bold text-amber-500">۳</p>
+        <div className="flex items-center justify-between rounded-xl border border-slate-100 bg-white p-3 sm:p-4 shadow-sm">
+          <p className="text-[11px] sm:text-xs font-medium text-slate-500">
+            در دست بررسی
+          </p>
+          <p className="text-lg sm:text-2xl font-bold text-amber-500">
+            {stats.underReview.toLocaleString("fa-IR")}
+          </p>
         </div>
-        <div className="flex items-center justify-around rounded-xl border border-slate-100 bg-white p-4 shadow-sm">
-          <p className="text-xs text-slate-500">تأیید شده</p>
-          <p className=" text-2xl font-bold text-indigo-500">۲</p>
+        <div className="flex items-center justify-between rounded-xl border border-slate-100 bg-white p-3 sm:p-4 shadow-sm">
+          <p className="text-[11px] sm:text-xs font-medium text-slate-500">
+            تأیید شده
+          </p>
+          <p className="text-lg sm:text-2xl font-bold text-green-500">
+            {stats.approved.toLocaleString("fa-IR")}
+          </p>
         </div>
-        <div className="flex items-center justify-around rounded-xl border border-slate-100 bg-white p-4 shadow-sm">
-          <p className="text-xs text-slate-500">انجام شده</p>
-          <p className=" text-2xl font-bold text-emerald-500">۲</p>
+        <div className="flex items-center justify-between rounded-xl border border-slate-100 bg-white p-3 sm:p-4 shadow-sm">
+          <p className="text-[11px] sm:text-xs font-medium text-slate-500">
+            رد شده
+          </p>
+          <p className="text-lg sm:text-2xl font-bold text-red-500">
+            {stats.rejected.toLocaleString("fa-IR")}
+          </p>
         </div>
       </div>
 
+      {/* بخش اصلی و جدول */}
       <div className="overflow-hidden rounded-xl border border-bmw-border bg-bmw-surface shadow-sm">
-        <div className="grid grid-cols-12 border-b border-slate-100 p-4 md:items-center md:justify-between">
-          <div className="col-span-2">
+        {/* تب‌ها و نوار ابزار فیلتر */}
+        <div className="flex flex-col gap-3 border-b border-slate-100 p-3 sm:p-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex gap-2 shrink-0">
             <Button
               variant={activeTab === "پیشنهادات" ? "outline-orange" : "ghost"}
-              className="font-bold text-slate-800"
+              className="flex-1 lg:flex-none h-10 font-bold text-slate-800 text-xs sm:text-sm"
               onClick={() => setActiveTab("پیشنهادات")}
             >
               پیشنهادات
             </Button>
             <Button
               variant={activeTab === "انتقادات" ? "outline-orange" : "ghost"}
-              className="font-bold text-slate-800"
+              className="flex-1 lg:flex-none h-10 font-bold text-slate-800 text-xs sm:text-sm"
               onClick={() => setActiveTab("انتقادات")}
             >
               انتقادات
             </Button>
           </div>
-          <div className="grid grid-cols-12 col-span-10 items-end gap-2">
+
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full lg:w-auto">
             <input
               type="text"
+              placeholder="جستجو در عنوان یا نام کاربر..."
               value={searchQuery}
               onChange={(e) => {
                 setSearchQuery(e.target.value);
                 setCurrentPage(1);
               }}
-              placeholder="جستجو در پیشنهادات..."
-              className="col-span-12 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-red-400 focus:ring-2 focus:ring-red-100 sm:col-span-4"
+              className="w-full sm:w-64 rounded-lg border border-bmw-border bg-white px-3 py-2 text-xs sm:text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-red-400 focus:ring-2 focus:ring-red-100 h-10"
             />
-
-            <Button
-              variant="success"
-              leftIcon={<Sheet size={16} />}
-              className="col-span-12 font-bold text-slate-800 sm:col-span-2"
-            >
-              اکسل
-            </Button>
-
-            <div className="col-span-12 sm:col-span-4">
+            <div className="w-full sm:w-52">
               <ComboBox
-                placeholder="وضعیت‌ها"
+                placeholder="فیلتر بر اساس وضعیت..."
                 options={allStatus}
                 keyId="id"
                 keyValue="title"
                 value={status}
-                onChange={setStatus}
+                onChange={(val) => {
+                  setStatus(val);
+                  setCurrentPage(1);
+                }}
               />
             </div>
+            <Button
+              variant="success"
+              leftIcon={<Sheet size={16} />}
+              className="w-full sm:w-auto font-bold text-slate-800 h-10 shrink-0 text-xs sm:text-sm justify-center"
+            >
+              اکسل
+            </Button>
           </div>
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[950px] text-right">
-            <thead>
-              <tr className="border-b border-slate-100 bg-slate-50/70">
-                <th className="px-5 py-3 text-xs font-bold text-slate-500">
-                  کد
-                </th>
-                <th className="px-5 py-3 text-xs font-bold text-slate-500">
-                  عنوان پیشنهاد
-                </th>
-                <th className="px-5 py-3 text-xs font-bold text-slate-500">
-                  دسته‌بندی
-                </th>
-                <th className="px-5 py-3 text-xs font-bold text-slate-500">
-                  وضعیت
-                </th>
-                <th className="px-5 py-3 text-xs font-bold text-slate-500">
-                  ثبت کننده
-                </th>
-                <th className="px-5 py-3 text-xs font-bold text-slate-500">
-                  تاریخ ثبت
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {paginatedList.map((report: any) => {
-                const statusInfo = getStatusDetails(report?.status);
-                return (
-                  <tr
-                    key={report.id}
-                    className="group transition-colors hover:bg-slate-50/80"
-                  >
-                    <td className="px-5 py-4 text-sm text-slate-400">
-                      {report.id}
-                    </td>
-                    <td className="max-w-[280px] px-5 py-4">
-                      <p className="truncate text-sm font-semibold text-slate-700">
-                        {report.title}
-                      </p>
-                    </td>
-                    <td className="px-5 py-4">
-                      <span className="rounded-md bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">
-                        {report?.category?.fa ?? report?.category ?? "—"}
-                      </span>
-                    </td>
 
-                    <td className="px-5 py-4">
-                      <span
-                        className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset ${statusInfo.style}`}
-                      >
-                        {statusInfo.fa}
-                      </span>
-                    </td>
-                    <td className="px-5 py-4">
-                      <p className="text-xs text-slate-600">
-                        {report.userName ?? "ناشناس"}
-                      </p>
-                    </td>
-                    <td className="px-5 py-4 text-sm text-slate-500">
-                      {StringHelpers.toPersianDateTime(report.createdAt)}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+        {/* استفاده از CustomTable */}
+        <CustomTable<FeedbackItem>
+          data={paginatedList}
+          columns={columns}
+          keyExtractor={(item) => item.id}
+          isLoading={isLoading}
+          emptyMessage="موردی یافت نشد."
+          pagination={{
+            currentPage,
+            totalPages,
+            pageSize: PAGE_SIZE,
+            totalCount: filteredList.length,
+            onPageChange: (page) => setCurrentPage(page),
+          }}
+        />
       </div>
-
-      {/* پیجینیشن */}
-      {totalPages > 1 && (
-        <div className="flex flex-col items-center justify-between gap-3 border-t border-slate-100 p-4 text-xs sm:flex-row">
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => handlePageChange(currentPage - 1)}
-              disabled={currentPage === 1}
-              className="flex cursor-pointer items-center gap-1.5 rounded-lg border border-bmw-border bg-bmw-surface px-3 py-1.5 font-bold text-bmw-text transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              <ChevronRight size={14} />
-              <span>قبلی</span>
-            </button>
-
-            <div className="flex items-center gap-1.5">
-              {Array.from({ length: totalPages }, (_, idx) => {
-                const pageNum = idx + 1;
-                const isCurrent = currentPage === pageNum;
-                return (
-                  <button
-                    key={pageNum}
-                    type="button"
-                    onClick={() => handlePageChange(pageNum)}
-                    className={`flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg border text-xs font-extrabold transition-colors ${
-                      isCurrent
-                        ? "border-bmw-blue bg-bmw-blue text-white shadow shadow-blue-500/20"
-                        : "border-bmw-border bg-bmw-surface text-bmw-text hover:bg-slate-50"
-                    }`}
-                  >
-                    {pageNum.toLocaleString("fa-IR")}
-                  </button>
-                );
-              })}
-            </div>
-
-            <button
-              type="button"
-              onClick={() => handlePageChange(currentPage + 1)}
-              disabled={currentPage === totalPages}
-              className="flex cursor-pointer items-center gap-1.5 rounded-lg border border-bmw-border bg-bmw-surface px-3 py-1.5 font-bold text-bmw-text transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              <span>بعدی</span>
-              <ChevronLeft size={14} />
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

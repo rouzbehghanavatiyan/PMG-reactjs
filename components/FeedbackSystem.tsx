@@ -1427,8 +1427,6 @@ const FeedbackSystem: React.FC = () => {
                   </div>
                 </form>
               </div>
-
-              {/* Existing Categories List */}
               <div className="bg-bmw-surface border border-bmw-border rounded-2xl p-6 md:p-8 shadow-sm text-start">
                 <h3 className="text-sm font-black text-bmw-text mb-4">
                   {isRtl
@@ -1436,7 +1434,7 @@ const FeedbackSystem: React.FC = () => {
                     : "Existing Departments / Areas in Database"}
                 </h3>
 
-                <div className="border border-bmw-border rounded-xl overflow-hidden">
+                <div className="border border-bmw-border rounded-xl overflow-x-auto">
                   <table className="w-full text-xs text-start border-collapse">
                     <thead>
                       <tr className="bg-bmw-base text-bmw-textSec font-bold border-b border-bmw-border">

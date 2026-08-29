@@ -51,8 +51,9 @@ export default function ComboBox({
         </label>
       )}
       <Select
-        className="text-gray-500"
+        className="text-gray-500 text-sm"
         isRtl
+        isClearable
         options={mappedOptions}
         value={mappedValue}
         isMulti={isMulti}
