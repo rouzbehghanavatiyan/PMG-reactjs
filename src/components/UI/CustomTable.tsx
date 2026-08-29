@@ -68,7 +68,10 @@ export const CustomTable = <T extends Record<string, any>>({
 
   return (
     <div className={`w-full flex flex-col gap-3.5 ${className}`}>
-      <div className="hidden md:block w-full min-w-0 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+      <div
+        className="hidden md:flex
+md:flex-col md:min-h-[432px] w-full min-w-0 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm"
+      >
         <div className="overflow-x-auto">
           <table className="w-full table-fixed border-collapse text-right">
             <thead>

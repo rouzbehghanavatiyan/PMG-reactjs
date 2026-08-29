@@ -21,22 +21,22 @@ interface FeedbackItem {
 const STATUS_MAP: Record<string, { fa: string; style: string; en: string }> = {
   submitted: {
     fa: "ثبت اولیه",
-    style: "bg-sky-50 text-sky-700 ring-sky-600/20",
+    style: " text-sky-700 ring-sky-600/20",
     en: "submitted",
   },
   under_review: {
     fa: "در دست بررسی",
-    style: "bg-amber-50 text-amber-700 ring-amber-600/20",
+    style: " text-amber-700 ring-amber-600/20",
     en: "under_review",
   },
   approved: {
     fa: "تأیید شده",
-    style: "bg-emerald-50 text-emerald-700 ring-emerald-600/20",
+    style: " text-emerald-700 ring-emerald-600/20",
     en: "approved",
   },
   rejected: {
     fa: "رد شده",
-    style: "bg-rose-50 text-rose-700 ring-rose-600/20",
+    style: " text-rose-700 ring-rose-600/20",
     en: "rejected",
   },
 };
@@ -236,7 +236,7 @@ const Reports = () => {
           const statusInfo = getStatusDetails(item?.status);
           return (
             <span
-              className={`truncate block text-center rounded-full px-2 py-0.5 text-[10px] sm:text-[11px] font-semibold ring-1 ring-inset ${statusInfo.style}`}
+              className={`truncate block text-center rounded-full px-2 py-1 text-[10px] sm:text-[11px] font-semibold ${statusInfo.style}`}
             >
               {statusInfo.fa}
             </span>
@@ -273,7 +273,6 @@ const Reports = () => {
     <div className="space-y-4 sm:space-y-6" dir="rtl">
       {isLoading && <Loading />}
 
-      {/* دکمه‌های هدر */}
       <div className="flex flex-wrap gap-2 sm:gap-4 rounded-xl border border-bmw-border bg-bmw-surface p-3 sm:p-4 shadow-sm">
         <Button className="flex-1 sm:flex-none text-xs sm:text-sm">
           نظام پیشنهادها و انتقادات

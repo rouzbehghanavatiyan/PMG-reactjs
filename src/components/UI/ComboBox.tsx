@@ -60,6 +60,12 @@ export default function ComboBox({
         isSearchable
         placeholder={placeholder}
         closeMenuOnSelect={!isMulti}
+        menuPortalTarget={typeof document !== "undefined" ? document.body : null}
+        menuPosition="fixed"
+        menuShouldScrollIntoView={false}
+        styles={{
+          menuPortal: (base) => ({ ...base, zIndex: 99999 }),
+        }}
         onChange={(selected: any) => {
           if (isMulti) {
             onChange(selected ? selected.map((x: any) => x.original) : []);
