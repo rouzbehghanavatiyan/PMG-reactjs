@@ -1,16 +1,13 @@
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import React from "react";
 
 export interface Column<T> {
   key: string;
   title: string;
-  /** کلاس‌های عرض تیل‌ویند (مثل w-20, w-1/4, w-auto) */
   width?: string;
   align?: "right" | "center" | "left";
-  /** نقطه شکستی که این ستون در جدول مخفی می‌شود (sm | md | lg | xl) */
   hideOn?: "sm" | "md" | "lg" | "xl";
-  /** رندر سفارشی برای داده سلول */
   render?: (item: T, index: number) => React.ReactNode;
-  /** مخفی کردن این ستون در نمای کارتی موبایل */
   hideOnMobileCard?: boolean;
 }
 
@@ -71,7 +68,6 @@ export const CustomTable = <T extends Record<string, any>>({
 
   return (
     <div className={`w-full flex flex-col gap-3.5 ${className}`}>
-      {/* --- نمای جدولی (دسکتاپ/تبلت) --- */}
       <div className="hidden md:block w-full min-w-0 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full table-fixed border-collapse text-right">
@@ -136,8 +132,6 @@ export const CustomTable = <T extends Record<string, any>>({
           </table>
         </div>
       </div>
-
-      {/* --- نمای کارتی (موبایل) --- */}
       <div className="block md:hidden space-y-2.5">
         {isLoading ? (
           <div className="flex items-center justify-center gap-2 py-10 text-sm text-slate-400 bg-white rounded-xl border border-slate-200">
@@ -180,48 +174,87 @@ export const CustomTable = <T extends Record<string, any>>({
           ))
         )}
       </div>
-
-      {/* --- صفحه‌بندی --- */}
       {pagination && pagination.totalPages > 1 && (
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-1 py-1">
-          <span className="text-xs text-slate-500 text-center sm:text-right">
-            نمایش{" "}
-            {(
-              (pagination.currentPage - 1) * pagination.pageSize +
-              1
-            ).toLocaleString("fa-IR")}{" "}
-            تا{" "}
-            {Math.min(
-              pagination.currentPage * pagination.pageSize,
-              pagination.totalCount,
-            ).toLocaleString("fa-IR")}{" "}
-            از {pagination.totalCount.toLocaleString("fa-IR")} مورد
-          </span>
-
-          <div className="flex items-center gap-1.5">
+        <div className="flex flex-col items-center justify-between gap-3 rounded-xl text-xs sm:flex-row sm:px-4">
+          <div className="flex items-center gap-1.5 order-1 sm:order-2">
             <button
               onClick={() =>
                 pagination.onPageChange(pagination.currentPage - 1)
               }
               disabled={pagination.currentPage <= 1}
-              className="rounded-lg border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-600 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+              className="rounded-lg h-8 w-8 flex items-center justify-center border border-slate-200 bg-white text-xs font-medium text-slate-600 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
             >
-              قبلی
+              <ChevronRight size={14} />
             </button>
+            <div className="flex items-center gap-1">
+              {(() => {
+                const currentPage = pagination!.currentPage;
+                const totalPages = pagination!.totalPages;
 
-            <span className="px-2 text-xs font-semibold text-slate-700">
-              صفحه {pagination.currentPage.toLocaleString("fa-IR")} از{" "}
-              {pagination.totalPages.toLocaleString("fa-IR")}
-            </span>
+                const pages: (number | "...")[] = [];
 
+                if (totalPages <= 7) {
+                  for (let i = 1; i <= totalPages; i++) {
+                    pages.push(i);
+                  }
+                } else {
+                  pages.push(1);
+                  if (currentPage <= 4) {
+                    pages.push(2, 3, 4, 5);
+                    pages.push("...");
+                  } else if (currentPage >= totalPages - 3) {
+                    pages.push("...");
+                    pages.push(
+                      totalPages - 4,
+                      totalPages - 3,
+                      totalPages - 2,
+                      totalPages - 1,
+                    );
+                  } else {
+                    pages.push("...");
+                    pages.push(currentPage - 1, currentPage, currentPage + 1);
+                    pages.push("...");
+                  }
+                  pages.push(totalPages);
+                }
+                return pages.map((page, index) => {
+                  if (page === "...") {
+                    return (
+                      <span
+                        key={`ellipsis-${index}`}
+                        className="flex h-8 w-8 items-center justify-center text-xs font-bold text-slate-400"
+                      >
+                        ...
+                      </span>
+                    );
+                  }
+                  const isCurrent = currentPage === page;
+                  return (
+                    <button
+                      key={page}
+                      type="button"
+                      onClick={() => pagination!.onPageChange(page)}
+                      className={`flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg border text-xs font-bold transition-colors ${
+                        isCurrent
+                          ? "border-blue-600 bg-blue-600 text-white shadow-sm shadow-blue-500/20"
+                          : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+                      }`}
+                    >
+                      {page.toLocaleString("fa-IR")}
+                    </button>
+                  );
+                });
+              })()}
+            </div>
             <button
+              type="button"
               onClick={() =>
                 pagination.onPageChange(pagination.currentPage + 1)
               }
               disabled={pagination.currentPage >= pagination.totalPages}
-              className="rounded-lg border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-600 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+              className="flex h-8 w-8 justify-center cursor-pointer items-center rounded-lg border border-slate-200 bg-white font-bold text-slate-600 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
             >
-              بعدی
+              <ChevronLeft size={14} />
             </button>
           </div>
         </div>

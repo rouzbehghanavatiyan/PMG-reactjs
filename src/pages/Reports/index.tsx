@@ -285,7 +285,7 @@ const Reports = () => {
           نظرسنجی
         </Button>
       </div>
-      <div className="grid grid-cols-2 gap-2.5 sm:gap-3 lg:grid-cols-4">
+      <div className="grid grid-cols-4 gap-2.5 sm:gap-3 lg:grid-cols-4">
         <div className="flex items-center justify-between rounded-xl border border-slate-100 bg-white p-3 sm:p-4 shadow-sm">
           <p className="text-[11px] sm:text-xs font-medium text-slate-500">
             کل پیشنهادات
@@ -319,7 +319,7 @@ const Reports = () => {
           </p>
         </div>
       </div>
-      <div className="overflow-hidden rounded-xl border border-bmw-border bg-bmw-surface shadow-sm">
+      <div className="overflow-hidden rounded-xl">
         <div className="grid grid-cols-12  gap-3 border-b border-slate-100 p-3 sm:p-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="col-span-12 md:col-span-3 flex gap-2 shrink-0">
             <Button
