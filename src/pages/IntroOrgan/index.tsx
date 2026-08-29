@@ -46,6 +46,8 @@ const IntroOrgan: React.FC = () => {
     );
   };
 
+  console.log(import.meta.env.VITE_API_URL);
+
   return (
     <div className="max-w-5xl mx-auto space-y-8 px-4 sm:px-6 lg:px-0 pb-12">
       <div className="overflow-hidden rounded-xl shadow-lg bg-bmw-surface">
@@ -128,16 +130,19 @@ const IntroOrgan: React.FC = () => {
           ))}
         </div>
       </div>
-      <div className="bg-bmw-surface border border-bmw-border rounded-lg p-4 sm:p-6 shadow-sm">
-        <div className="relative w-full aspect-video overflow-hidden rounded-lg bg-black">
-          <iframe
-            src="https://drive.google.com/file/d/1LclTY8aWZTSl9dQRWtkrnJpj403sprUe/preview"
-            title="ویدیوی معرفی شرکت پرشیا خودرو"
-            className="absolute inset-0 h-full w-full border-0"
-            allow="autoplay; fullscreen"
-            allowFullScreen
+      <div className="relative w-full aspect-video overflow-hidden rounded-lg bg-black">
+        <video
+          controls
+          preload="metadata"
+          className="absolute inset-0 h-full w-full object-cover"
+          poster="/images/video-thumbnail.jpg"
+        >
+          <source
+            src={`${import.meta.env.VITE_API_URL}/api/introductionOrgan/getPmgVideo`}
+            type="video/mp4"
           />
-        </div>
+          مرورگر شما از پخش ویدیو پشتیبانی نمی‌کند.
+        </video>
       </div>
     </div>
   );

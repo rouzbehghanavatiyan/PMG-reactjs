@@ -47,6 +47,8 @@ const Reports = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
   const [feedbackList, setFeedbackList] = useState<any[]>([]);
+  const [allStatus, setAllStatus] = useState<any[]>([]);
+  const [status, setStatus] = useState<any[]>([]);
 
   const fetchFeedback = async () => {
     setLoading(true);
@@ -119,8 +121,8 @@ const Reports = () => {
       </div>
 
       <div className="overflow-hidden rounded-xl border border-bmw-border bg-bmw-surface shadow-sm">
-        <div className="flex flex-col gap-3 border-b border-slate-100 p-4 md:flex-row md:items-center md:justify-between">
-          <div className="flex gap-3">
+        <div className="grid grid-cols-12 border-b border-slate-100 p-4 md:items-center md:justify-between">
+          <div className="col-span-2">
             <Button
               variant={activeTab === "پیشنهادات" ? "outline-orange" : "ghost"}
               className="font-bold text-slate-800"
@@ -136,8 +138,7 @@ const Reports = () => {
               انتقادات
             </Button>
           </div>
-
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="grid grid-cols-12 col-span-10 items-end gap-2">
             <input
               type="text"
               value={searchQuery}
@@ -146,22 +147,27 @@ const Reports = () => {
                 setCurrentPage(1);
               }}
               placeholder="جستجو در پیشنهادات..."
-              className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-red-400 focus:ring-2 focus:ring-red-100 sm:w-64"
+              className="col-span-12 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-red-400 focus:ring-2 focus:ring-red-100 sm:col-span-4"
             />
+
             <Button
               variant="success"
               leftIcon={<Sheet size={16} />}
-              className="font-bold text-slate-800"
+              className="col-span-12 font-bold text-slate-800 sm:col-span-2"
             >
               اکسل
             </Button>
-            <select className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-600 outline-none focus:border-red-400">
-              <option value="">همه وضعیت‌ها</option>
-              <option value="submitted">ثبت اولیه</option>
-              <option value="under_review">در دست بررسی</option>
-              <option value="approved">تأیید شده</option>
-              <option value="rejected">رد شده</option>
-            </select>
+
+            <div className="col-span-12 sm:col-span-4">
+              <ComboBox
+                placeholder="وضعیت‌ها"
+                options={allStatus}
+                keyId="id"
+                keyValue="title"
+                value={status}
+                onChange={setStatus}
+              />
+            </div>
           </div>
         </div>
         <div className="overflow-x-auto">

@@ -8,6 +8,7 @@ interface Props {
   isMulti?: boolean;
   keyId: string;
   keyValue: string;
+  placeholder?: string;
 }
 
 export default function ComboBox({
@@ -18,6 +19,7 @@ export default function ComboBox({
   isMulti = false,
   keyId,
   keyValue,
+  placeholder = "انتخاب کنید...",
 }: Props) {
   const mappedOptions = options.map((item) => ({
     value: item[keyId],
@@ -49,13 +51,13 @@ export default function ComboBox({
         </label>
       )}
       <Select
-      className="text-gray-500"
+        className="text-gray-500"
         isRtl
         options={mappedOptions}
         value={mappedValue}
         isMulti={isMulti}
         isSearchable
-        placeholder="انتخاب کنید..."
+        placeholder={placeholder}
         closeMenuOnSelect={!isMulti}
         onChange={(selected: any) => {
           if (isMulti) {
