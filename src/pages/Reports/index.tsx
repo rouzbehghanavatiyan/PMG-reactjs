@@ -6,6 +6,7 @@ import { CustomTable, type Column } from "../../components/UI/CustomTable";
 import { Sheet } from "lucide-react";
 import { getAllFeedback } from "../../services/dotNet";
 import StringHelpers from "../../utils/stringHelpers";
+import * as XLSX from "xlsx";
 
 const PAGE_SIZE = 6;
 interface FeedbackItem {
@@ -99,8 +100,50 @@ const Reports = () => {
 
   const totalPages = Math.ceil(filteredList.length / PAGE_SIZE) || 1;
 
-  // رفع باگ: وقتی فیلتر/جستجو تعداد صفحات را کم می‌کرد ولی کاربر روی صفحه‌ی
-  // آخرِ قبلی مانده بود، جدول خالی نمایش داده می‌شد. اینجا صفحه را clamp می‌کنیم.
+  const exportToExcel = () => {
+    if (!filteredList || filteredList.length === 0) return;
+
+    const dataToExport = filteredList.map((item, index) => {
+      const catTitle =
+        typeof item.category === "object" ? item.category?.fa : item.category;
+
+      return {
+        ردیف: index + 1,
+        کد: item.id,
+        عنوان: item.title || "—",
+        دسته‌بندی: catTitle || "—",
+        وضعیت: getStatusDetails(item.status)?.fa || "نامشخص",
+        کاربر: item.userName || "ناشناس",
+        "تاریخ ثبت": item.createdAt
+          ? StringHelpers.toPersianDateTime(item.createdAt)
+          : "—",
+      };
+    });
+
+    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+
+    // تنظیم جهت نمایش راست‌به‌چپ (RTL) در اکسل
+    if (!worksheet["!views"]) worksheet["!views"] = [];
+    worksheet["!views"].push({ rightToLeft: true });
+
+    // تنظیم عرض ستون‌ها
+    worksheet["!cols"] = [
+      { wch: 8 }, // ردیف
+      { wch: 12 }, // کد
+      { wch: 35 }, // عنوان
+      { wch: 20 }, // دسته‌بندی
+      { wch: 18 }, // وضعیت
+      { wch: 20 }, // کاربر
+      { wch: 22 }, // تاریخ ثبت
+    ];
+
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, activeTab);
+
+    const fileName = `گزارش_${activeTab}_${new Date().toISOString().slice(0, 10)}.xlsx`;
+    XLSX.writeFile(workbook, fileName);
+  };
+
   useEffect(() => {
     if (currentPage > totalPages) {
       setCurrentPage(totalPages);
@@ -242,8 +285,6 @@ const Reports = () => {
           نظرسنجی
         </Button>
       </div>
-
-      {/* کارت‌های آماری */}
       <div className="grid grid-cols-2 gap-2.5 sm:gap-3 lg:grid-cols-4">
         <div className="flex items-center justify-between rounded-xl border border-slate-100 bg-white p-3 sm:p-4 shadow-sm">
           <p className="text-[11px] sm:text-xs font-medium text-slate-500">
@@ -278,12 +319,9 @@ const Reports = () => {
           </p>
         </div>
       </div>
-
-      {/* بخش اصلی و جدول */}
       <div className="overflow-hidden rounded-xl border border-bmw-border bg-bmw-surface shadow-sm">
-        {/* تب‌ها و نوار ابزار فیلتر */}
-        <div className="flex flex-col gap-3 border-b border-slate-100 p-3 sm:p-4 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex gap-2 shrink-0">
+        <div className="grid grid-cols-12  gap-3 border-b border-slate-100 p-3 sm:p-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="col-span-12 md:col-span-3 flex gap-2 shrink-0">
             <Button
               variant={activeTab === "پیشنهادات" ? "outline-orange" : "ghost"}
               className="flex-1 lg:flex-none h-10 font-bold text-slate-800 text-xs sm:text-sm"
@@ -299,8 +337,7 @@ const Reports = () => {
               انتقادات
             </Button>
           </div>
-
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full lg:w-auto">
+          <span className="col-span-12 md:col-span-4 w-full sm:w-64">
             <input
               type="text"
               placeholder="جستجو در عنوان یا نام کاربر..."
@@ -311,6 +348,8 @@ const Reports = () => {
               }}
               className="w-full sm:w-64 rounded-lg border border-bmw-border bg-white px-3 py-2 text-xs sm:text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-red-400 focus:ring-2 focus:ring-red-100 h-10"
             />
+          </span>
+          <div className="col-span-12 md:col-span-5 flex sm:flex-row items-stretch sm:items-center gap-2.5 w-full lg:w-auto">
             <div className="w-full sm:w-52">
               <ComboBox
                 placeholder="فیلتر بر اساس وضعیت..."
@@ -324,17 +363,18 @@ const Reports = () => {
                 }}
               />
             </div>
-            <Button
-              variant="success"
-              leftIcon={<Sheet size={16} />}
-              className="w-full sm:w-auto font-bold text-slate-800 h-10 shrink-0 text-xs sm:text-sm justify-center"
-            >
-              اکسل
-            </Button>
+            <span className="col-span-2">
+              <Button
+                variant="success"
+                onClick={exportToExcel}
+                leftIcon={<Sheet size={16} />}
+                className="w-full sm:w-auto font-bold text-slate-800 h-10 shrink-0 text-xs sm:text-sm justify-center"
+              >
+                اکسل
+              </Button>
+            </span>
           </div>
         </div>
-
-        {/* استفاده از CustomTable */}
         <CustomTable<FeedbackItem>
           data={paginatedList}
           columns={columns}
