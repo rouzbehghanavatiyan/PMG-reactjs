@@ -13,7 +13,6 @@ import StringHelpers from "../../utils/stringHelpers";
 
 const PAGE_SIZE = 6;
 
-// مپینگ کامل وضعیت‌ها به همراه متن فارسی و استایل اختصاصی
 const STATUS_MAP: Record<string, { fa: string; style: string }> = {
   submitted: {
     fa: "ثبت اولیه",
@@ -165,7 +164,6 @@ const Reports = () => {
             </select>
           </div>
         </div>
-
         <div className="overflow-x-auto">
           <table className="w-full min-w-[950px] text-right">
             <thead>
@@ -192,16 +190,14 @@ const Reports = () => {
             </thead>
             <tbody className="divide-y divide-slate-100">
               {paginatedList.map((report: any) => {
-                // دریافت نام فارسی و رنگ بر اساس کد وضعیت انگلیسی
                 const statusInfo = getStatusDetails(report?.status);
-
                 return (
                   <tr
                     key={report.id}
                     className="group transition-colors hover:bg-slate-50/80"
                   >
                     <td className="px-5 py-4 text-sm text-slate-400">
-                      {report.id?.toLocaleString?.("fa-IR") ?? report.id}
+                      {report.id}
                     </td>
                     <td className="max-w-[280px] px-5 py-4">
                       <p className="truncate text-sm font-semibold text-slate-700">

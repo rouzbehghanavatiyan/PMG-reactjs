@@ -10,7 +10,6 @@ import {
   getAllFoodPerWeek,
   getHistoryFoodByUser,
   getQuestionForFood,
-  sendNotifToAll,
 } from "../../services/dotNet";
 import { useAppSelector } from "../../features/store";
 import StringHelpers from "../../utils/stringHelpers";
