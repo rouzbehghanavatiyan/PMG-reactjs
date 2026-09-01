@@ -27,6 +27,7 @@ const translations: Record<Language, Record<string, any>> = {
     support: "Support",
     surveys: "Surveys",
     settings: "Settings",
+    listening_ear: "Listening ear",
     sign_out: "Sign Out",
     // Login
     employee_id: "Employee ID",
@@ -241,6 +242,7 @@ const translations: Record<Language, Record<string, any>> = {
     knowledge_graph: "شبکه دانش هوشمند",
     introductionOrganization: "معرفی سازمان",
     dashboard: "داشبورد",
+    listening_ear: "گوش شنوا",
     profile: "پروفایل",
     payslips: "فیش حقوقی",
     documents: "اسناد و مدارک",

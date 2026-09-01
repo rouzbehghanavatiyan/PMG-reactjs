@@ -63,9 +63,14 @@ export const getSalaryPerMonth = async (PersonalCode: any) => {
   );
 };
 
-export const allPolls = async (PersonalCode: string | number) => {
-  return await api.get(`/api/poll/allPolls?PersonalCode=${PersonalCode}`);
+export const allPolls = async () => {
+  return await api.get(`/api/poll/allPolls`);
 };
+
+export const allPollsByUsers = async (PersonalCode: string | number) => {
+  return await api.get(`/api/poll/allPollByUsers?PersonalCode=${PersonalCode}`);
+};
+
 export const createQuestionAnswerUser = async (postData: any) => {
   return await api.post(`/api/poll/createQuestionAnswerUser`, postData);
 };

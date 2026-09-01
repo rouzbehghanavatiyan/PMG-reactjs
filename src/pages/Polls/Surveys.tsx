@@ -16,7 +16,7 @@ import { useForm } from "react-hook-form";
 import { asyncWrapper } from "../../utils/asyncWrapper";
 import { useToast } from "../../hooks/useToast";
 import {
-  allPolls,
+  allPollsByUsers,
   createPoll,
   deletePoll,
   updatePolls,
@@ -125,7 +125,7 @@ const Surveys: React.FC = () => {
   };
 
   const handleGetAllPoll = asyncWrapper(async () => {
-    const res = await allPolls(userLogin?.personalCode);
+    const res = await allPollsByUsers(userLogin?.personalCode);
     const { result, code, message } = res?.data;
     if (code === 0) {
       setAllPoll(result);
