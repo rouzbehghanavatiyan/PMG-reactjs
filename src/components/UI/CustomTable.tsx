@@ -121,7 +121,7 @@ export const CustomTable = <T extends Record<string, any>>({
         <div className="overflow-x-auto">
           <table className="w-full table-fixed border-collapse text-right">
             <thead>
-              <tr className="border-b border-slate-100 bg-slate-50/80 text-xs font-semibold text-slate-500">
+              <tr className="border-b border-slate-100 bg-blue-50 text-xs font-semibold text-slate-500">
                 {columns.map((col) => (
                   <th
                     key={col.key}
@@ -141,7 +141,7 @@ export const CustomTable = <T extends Record<string, any>>({
                     className="py-12 text-center text-slate-400"
                   >
                     <div className="flex items-center justify-center gap-2">
-                      <span className="h-4 w-4 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
+                      <span className="h-4 w-4 animate-spin rounded-full border-2 border-bmw-blue border-t-transparent" />
                       <span>در حال بارگذاری اطلاعات...</span>
                     </div>
                   </td>
@@ -249,7 +249,7 @@ export const CustomTable = <T extends Record<string, any>>({
                     onClick={() => setCurrentPage(item)}
                     className={`w-8 h-8 rounded-lg text-xs font-medium transition-colors ${
                       currentPage === item
-                        ? "bg-blue-600 text-white shadow-sm"
+                        ? "bg-bmw-blue text-white shadow-sm"
                         : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
                     }`}
                   >

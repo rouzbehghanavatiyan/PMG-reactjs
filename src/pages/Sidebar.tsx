@@ -54,6 +54,15 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
   const navItems: NavItem[] = [
     { icon: LayoutDashboard, label: "dashboard", path: "/dashboard" },
     { icon: User, label: "profile", path: "/profile" },
+     ...(hasPermission("chatSmart.read")
+      ? [
+          {
+            icon: Users,
+            label: "users_management",
+            path: "/userManagement",
+          },
+        ]
+      : []),
     {
       icon: MessageCircleWarning,
       label: "listening_ear",
@@ -85,8 +94,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
           },
         ]
       : []),
-
-    // { icon: FileText, label: "documents", path: "/documents", disabled: true },
+   
     { icon: Utensils, label: "food_order", path: "/food" },
     { icon: ClipboardList, label: "surveys", path: "/surveys" },
     { icon: Ticket, label: "support", path: "/support", disabled: true },

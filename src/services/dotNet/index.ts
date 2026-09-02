@@ -144,13 +144,24 @@ export const getNotifAll = async (userId: number) => {
 export const getAllUsers = async () => {
   return await api.get(`api/users/getAllUsers`);
 };
+export const getAllRahkaranUsers = async () => {
+  return await api.get(`api/users/getAllRahkaranUsers`);
+};
 
 export const getAllFoodPerWeek = async () => {
   return await api.get(`api/food/getAllFoodPerWeek`);
 };
 
+export const getAllOrderUserOnDay = async (menuId: number) => {
+  return await api.get(`api/food/getAllOrderUserOnDay/${menuId}`);
+};
+
 export const getHistoryFoodByUser = async (personalCode: string) => {
   return await api.get(`api/food/getHistoryFoodByUser/${personalCode}`);
+};
+
+export const getAllOrderUserFood = async () => {
+  return await api.get(`api/food/getAllOrderUserFood`);
 };
 
 export const findAcceptFoodByUser = async (personalCode: string) => {

@@ -57,7 +57,7 @@ const CustomInput: React.FC<CustomInputProps> = ({
               rows={isTextArea ? rows : undefined}
               value={field.value ?? ""}
               onChange={(
-                e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+                e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
               ) => {
                 let value = e.target.value;
 
@@ -71,7 +71,7 @@ const CustomInput: React.FC<CustomInputProps> = ({
               onBlur={field.onBlur}
               ref={field.ref}
               style={{ fontSize: "14px" }}
-              className={`w-full rounded-lg thick-text border px-3 py-2 outline-none transition ${
+              className={`w-full rounded-lg thick-text border px-3 py-2 outline-none bg-white transition ${
                 fieldState.error
                   ? "border-red-500 focus:border-red-500"
                   : "border-gray-300 focus:border-blue-500"

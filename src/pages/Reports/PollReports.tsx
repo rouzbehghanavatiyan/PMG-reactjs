@@ -180,8 +180,6 @@ const PollReports: React.FC = () => {
     XLSX.writeFile(workbook, "Polls_Report.xlsx");
   };
 
-
-  
   return (
     <div className="space-y-4 sm:space-y-6">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-3">
@@ -250,14 +248,14 @@ const PollReports: React.FC = () => {
           >
             خروجی اکسل
           </Button>
-          <Button
+          {/* <Button
             variant="danger"
             onClick={handleExportExcel}
             leftIcon={<FileText size={16} />}
             className="sm:w-auto font-bold text-slate-800 h-10 shrink-0 text-xs sm:text-sm justify-center"
           >
             خروجی PDF
-          </Button>
+          </Button> */}
         </div>
       </div>
       <CustomTable
