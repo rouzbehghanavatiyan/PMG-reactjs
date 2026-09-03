@@ -8,6 +8,7 @@ import Button from "../../components/UI/Button";
 import { ChartBar, Eye, Sheet } from "lucide-react";
 import ShowUserOrderModal from "./ShowUserOrderModal";
 import FoodChart from "./FoodChart";
+import FoodPieChart from "./FoodPieChart";
 
 const PAGE_SIZE = 10;
 
@@ -199,7 +200,7 @@ const FoodOrderReport = () => {
             leftIcon={<Sheet size={16} />}
             className="flex-1 sm:flex-initial font-bold text-slate-800 h-10 text-xs sm:text-sm justify-center whitespace-nowrap"
           >
-            نمایش جدول
+            گزارش جدولی
           </Button>
           <Button
             variant="success"

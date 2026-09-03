@@ -1,6 +1,4 @@
-import React, { useMemo, useState } from "react";
-import ModalUI from "../../components/UI/ModalUI";
-import Button from "../../components/UI/Button";
+import React, { useMemo } from "react";
 import {
   BarChart,
   Bar,
@@ -12,161 +10,212 @@ import {
   Cell,
 } from "recharts";
 import { TrendingUp, TrendingDown } from "lucide-react";
+import FoodPieChart from "./FoodPieChart";
 
 interface FoodChartProps {
-  showChart: boolean;
-  setShowChart: (value: boolean) => void;
   filteredAllUserOrderFood?: any[];
 }
 
+interface FoodChartData {
+  foodName: string;
+  totalOrders: number;
+}
+
 const FoodChart: React.FC<FoodChartProps> = ({
-  showChart,
-  setShowChart,
   filteredAllUserOrderFood = [],
 }) => {
-  const [activeTab, setActiveTab] = useState<"top" | "bottom">("top");
-
-  const { top5Data, bottom5Data } = useMemo(() => {
-    if (!filteredAllUserOrderFood || filteredAllUserOrderFood.length === 0) {
-      return { top5Data: [], bottom5Data: [] };
-    }
-
-    const formattedData = filteredAllUserOrderFood.map((item) => ({
-      foodName: item.FoodName || "نامشخص",
-      totalOrders: Number(item?.TotalOrdersCount) || 0,
-    }));
-
-    const sortedDesc = [...formattedData].sort(
-      (a, b) => b.totalOrders - a.totalOrders,
+  const { top10Data, bottom10Data } = useMemo(() => {
+    const formattedData: FoodChartData[] = filteredAllUserOrderFood.map(
+      (item) => ({
+        foodName: item?.FoodName || "نامشخص",
+        totalOrders: Number(item?.TotalOrdersCount) || 0,
+        orderDate: item?.OrderDate || null,
+      }),
     );
 
-    const top5 = sortedDesc.slice(0, 5);
+    const top10 = [...formattedData]
+      .sort((a, b) => b.totalOrders - a.totalOrders)
+      .slice(0, 10);
 
-    const sortedAsc = [...formattedData].sort(
-      (a, b) => a.totalOrders - b.totalOrders,
-    );
-    const bottom5 = sortedAsc.slice(0, 5);
+    const bottom10 = [...formattedData]
+      .sort((a, b) => a.totalOrders - b.totalOrders)
+      .slice(0, 10);
 
-    return { top5Data: top5, bottom5Data: bottom5 };
+    return {
+      top10Data: top10,
+      bottom10Data: bottom10,
+    };
   }, [filteredAllUserOrderFood]);
 
-  const isTop = activeTab === "top";
-  const currentData = isTop ? top5Data : bottom5Data;
+  const formatPersianDate = (date: string | null) => {
+    if (!date) return "نامشخص";
+
+    try {
+      return new Intl.DateTimeFormat("fa-IR", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      }).format(new Date(date));
+    } catch {
+      return "نامشخص";
+    }
+  };
+
+  const CustomTooltip = ({ active, payload }: any) => {
+    if (!active || !payload || payload.length === 0) {
+      return null;
+    }
+
+    const data = payload[0].payload as FoodChartData;
+
+    return (
+      <div
+        className="rounded-lg border border-slate-200 bg-white p-3 shadow-lg"
+        dir="rtl"
+      >
+        <p className="mb-2 text-sm font-semibold text-slate-800">
+          {data.foodName}
+        </p>
+
+        <p className="text-xs text-slate-600">
+          تعداد کاربران ثبت‌کننده:
+          <span className="mr-1 font-bold text-[#0066B1]">
+            {data.totalOrders.toLocaleString("fa-IR")}
+          </span>
+        </p>
+
+        <p className="mt-2 text-xs text-slate-600">
+          تاریخ:
+          <span className="mr-1 font-bold text-slate-800">
+            {formatPersianDate(data.orderDate)}
+          </span>
+        </p>
+      </div>
+    );
+  };
+
+  const renderChart = (data: FoodChartData[], type: "top" | "bottom") => {
+    const isTop = type === "top";
+
+    if (data.length === 0) {
+      return (
+        <div className="flex h-80 items-center justify-center text-xs text-slate-400">
+          داده‌ای برای نمایش یافت نشد.
+        </div>
+      );
+    }
+
+    return (
+      <>
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart
+            data={data}
+            margin={{
+              top: 15,
+              right: 25,
+              left: 0,
+              bottom: 55,
+            }}
+          >
+            <CartesianGrid
+              strokeDasharray="3 3"
+              stroke="#E5E7EB"
+              vertical={false}
+            />
+
+            <XAxis
+              dataKey="foodName"
+              stroke="#6B7280"
+              axisLine={false}
+              tickLine={false}
+              interval={0}
+              angle={-25}
+              textAnchor="end"
+              height={70}
+              tick={{
+                fill: "#4B5563",
+                fontSize: 11,
+                fontFamily: "Vazirmatn, Tahoma, sans-serif",
+              }}
+            />
+
+            <YAxis
+              stroke="#6B7280"
+              axisLine={false}
+              tickLine={false}
+              width={35}
+              allowDecimals={false}
+              tick={{
+                fill: "#6B7280",
+                fontSize: 11,
+                fontFamily: "Vazirmatn, Tahoma, sans-serif",
+              }}
+            />
+
+            <Tooltip
+              cursor={{
+                fill: isTop
+                  ? "rgba(0, 102, 177, 0.05)"
+                  : "rgba(225, 29, 72, 0.05)",
+              }}
+              content={<CustomTooltip />}
+            />
+
+            <Bar dataKey="totalOrders" radius={[6, 6, 0, 0]} maxBarSize={45}>
+              {data.map((_, index) => (
+                <Cell
+                  key={`cell-${type}-${index}`}
+                  fill={
+                    isTop
+                      ? index === 0
+                        ? "#0066B1"
+                        : "#3B82F6"
+                      : index === 0
+                        ? "#E11D48"
+                        : "#F87171"
+                  }
+                />
+              ))}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      </>
+    );
+  };
 
   return (
-    <div className="space-y-4 bg-white p-5 rounded-xl shadow-sm">
-      <div className="flex justify-center gap-2 p-1 bg-slate-100 rounded-lg max-w-xs mx-auto">
-        <button
-          type="button"
-          onClick={() => setActiveTab("top")}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
-            isTop
-              ? "bg-white text-[#0066B1] shadow-sm"
-              : "text-slate-600 hover:text-slate-900"
-          }`}
-        >
-          <TrendingUp size={14} />۵ غذای برتر
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveTab("bottom")}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
-            !isTop
-              ? "bg-white text-rose-600 shadow-sm"
-              : "text-slate-600 hover:text-slate-900"
-          }`}
-        >
-          <TrendingDown size={14} />۵ غذای کم‌طرفدار
-        </button>
-      </div>
-      <div className="w-full h-80 pt-2" dir="ltr">
-        {currentData.length === 0 ? (
-          <div className="h-full flex items-center justify-center text-xs text-slate-400">
-            داده‌ای برای نمایش یافت نشد.
+    <>
+      <div className="space-y-6 rounded-xl bg-white p-5 shadow-sm">
+        <section>
+          <div className="mb-3 flex items-center justify-center gap-2">
+            <TrendingUp size={18} className="text-[#0066B1]" />
+
+            <h3 className="text-sm font-semibold text-[#0066B1]">
+              ۱۰ غذای برتر
+            </h3>
           </div>
-        ) : (
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart
-              data={currentData}
-              margin={{
-                top: 15,
-                right: 25,
-                left: 0,
-                bottom: 45,
-              }}
-            >
-              <CartesianGrid
-                strokeDasharray="3 3"
-                stroke="#E5E7EB"
-                vertical={false}
-              />
-              <XAxis
-                dataKey="foodName"
-                stroke="#6B7280"
-                axisLine={false}
-                tickLine={false}
-                interval={0}
-                angle={-20}
-                textAnchor="end"
-                tick={{
-                  fill: "#4B5563",
-                  fontSize: 11,
-                  fontFamily: "Vazirmatn, Tahoma, sans-serif",
-                }}
-              />
 
-              <YAxis
-                stroke="#6B7280"
-                axisLine={false}
-                tickLine={false}
-                width={35}
-                tick={{
-                  fill: "#6B7280",
-                  fontSize: 11,
-                }}
-                allowDecimals={false}
-              />
+          <div className="h-80 w-full" dir="ltr">
+            {renderChart(top10Data, "top")}
+          </div>
+        </section>
 
-              <Tooltip
-                cursor={{
-                  fill: isTop
-                    ? "rgba(0, 102, 177, 0.05)"
-                    : "rgba(225, 29, 72, 0.05)",
-                }}
-                contentStyle={{
-                  backgroundColor: "#FFF",
-                  border: "1px solid #E5E7EB",
-                  borderRadius: 8,
-                  boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
-                  fontFamily: "Vazirmatn, Tahoma, sans-serif",
-                  direction: "rtl",
-                  textAlign: "right",
-                }}
-                formatter={(value: number) => [`${value} پرس`, "تعداد سفارش"]}
-                labelFormatter={(label) => `نام غذا: ${label}`}
-              />
-              <Bar dataKey="totalOrders" radius={[6, 6, 0, 0]} maxBarSize={45}>
-                {currentData.map((_, index) => (
-                  <Cell
-                    key={`cell-${index}`}
-                    fill={
-                      isTop
-                        ? index === 0
-                          ? "#0066B1"
-                          : "#3B82F6"
-                        : index === 0
-                          ? "#E11D48"
-                          : "#F87171"
-                    }
-                    className="transition-all duration-200 hover:opacity-80"
-                  />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        )}
+        <section>
+          <div className="mb-3 flex items-center justify-center gap-2">
+            <TrendingDown size={18} className="text-rose-600" />
+
+            <h3 className="text-sm font-semibold text-rose-600">
+              ۱۰ غذای کم‌طرفدار
+            </h3>
+          </div>
+
+          <div className="h-80 w-full" dir="ltr">
+            {renderChart(bottom10Data, "bottom")}
+          </div>
+        </section>
       </div>
-    </div>
+      <FoodPieChart />
+    </>
   );
 };
 

@@ -152,7 +152,6 @@ const PublicLayout: React.FC = () => {
 
     let isMounted = true;
 
-    // ایجاد یک تاخیر کوتاه برای جلوگیری از شروع اتصال در رندر تستی React Strict Mode
     const startTimer = setTimeout(() => {
       if (isMounted) {
         newConnection
@@ -164,17 +163,19 @@ const PublicLayout: React.FC = () => {
             console.error("SignalR Connection Failed: ", e);
           });
       }
-    }, 150); // 150 میلی‌ثانیه تاخیر
+    }, 150);
 
     setConnection(newConnection);
 
-    // تابع Cleanup
     return () => {
       isMounted = false;
-      clearTimeout(startTimer); // اگر کامپوننت سریعاً Unmount شد، از استارت شدن جلوگیری کن
-
+      clearTimeout(startTimer);
       if (newConnection) {
-        newConnection.stop();
+        if (newConnection.state !== signalR.HubConnectionState.Disconnected) {
+          newConnection
+            .stop()
+            .catch((err) => console.error("SignalR Stop Error:", err));
+        }
       }
     };
   }, [token, dispatch]);
