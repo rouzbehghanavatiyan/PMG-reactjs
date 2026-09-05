@@ -1300,15 +1300,15 @@ const ChatWithPDF: React.FC = () => {
                 </div>
 
                 {isDocSelectorExpanded && (
-                  <div className="flex flex-col gap-3 animate-fade-in pt-2 border-t border-bmw-border/30">
-                    <p className="text-[10px] text-bmw-textSec leading-relaxed">
+                  <div className="flex  flex-col gap-3 animate-fade-in pt-2 border-t border-bmw-border/30">
+                    <p className="text-[10px]  text-bmw-textSec leading-relaxed">
                       {isRtl
                         ? "اسناد مورد نظر برای پاسخ‌دهی هوشمند را انتخاب کنید. اگر هیچ سندی را انتخاب نکنید، جستجو بر روی همه اسناد فعال انجام می‌شود."
                         : "Select specific source documents to target. If none are selected, queries search across all enabled sources."}
                     </p>
 
                     {ragDocs.length > 0 && (
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-bmw-surface/50 border border-bmw-border/50 rounded-xl p-2.5">
+                      <div className="flex sm:flex-row sm:items-center justify-between gap-3 bg-bmw-surface/50 border border-bmw-border/50 rounded-xl p-2.5">
                         <div className="relative flex-1">
                           <input
                             type="text"
