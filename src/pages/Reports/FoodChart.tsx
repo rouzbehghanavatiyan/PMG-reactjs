@@ -199,23 +199,8 @@ const FoodChart: React.FC<FoodChartProps> = ({
             {renderChart(top10Data, "top")}
           </div>
         </section>
-
-        {/* <section>
-          <div className="mb-3 flex items-center justify-center gap-2">
-            <TrendingDown size={18} className="text-rose-600" />
-
-            <h3 className="text-sm font-semibold text-rose-600">
-              ۱۰ غذای کم‌طرفدار
-            </h3>
-          </div>
-
-          <div className="h-80 w-full" dir="ltr">
-            {renderChart(bottom10Data, "bottom")}
-          </div>
-        </section> */}
       </div>
       <FoodPieChart />
-     
     </>
   );
 };

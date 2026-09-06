@@ -18,7 +18,6 @@ import {
   ClipboardMinus,
   Network,
   Users,
-  // سایر آیکون‌های مورد نیاز خود را اینجا ایمپورت کنید
 } from "lucide-react";
 import { useLanguage } from "../contexts/LanguageContext";
 import ThemeAndLang from "../common/ThemeAndLang";
@@ -31,7 +30,6 @@ interface SidebarProps {
   setIsOpen: (isOpen: boolean) => void;
 }
 
-// تایپ مربوط به آیتم‌های منو
 interface NavItem {
   icon: React.ElementType;
   label: string;
@@ -105,7 +103,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
     //         icon: ClipboardMinus,
     //         label: "گزارشات",
     //         path: "/reports",
-    //         disabled: true,
     //       },
     //     ]
     //   : []),

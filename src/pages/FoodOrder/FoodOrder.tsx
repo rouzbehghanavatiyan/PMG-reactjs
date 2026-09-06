@@ -212,28 +212,6 @@ const FoodOrder: React.FC = () => {
     handleGetHistoryFoodByUser();
   }, [userLogin?.personalCode]);
 
-  const checkFoodTime = () => {
-    const iranHourString = new Date().toLocaleString("en-US", {
-      timeZone: "Asia/Tehran",
-      hour: "numeric",
-      hour12: false,
-    });
-
-    const iranHour = parseInt(iranHourString, 10);
-
-    if (iranHour >= 15 && iranHour < 16) {
-      setTimeForQuestionFood(true);
-    } else {
-      setTimeForQuestionFood(false);
-    }
-  };
-
-  useEffect(() => {
-    checkFoodTime();
-    const intervalId = setInterval(checkFoodTime, 60000);
-    return () => clearInterval(intervalId);
-  }, []);
-
   const fixMissingDayWeek = useMemo(() => {
     return StringHelpers.fillMissingDays(allFoodMenu);
   }, [allFoodMenu]);
@@ -265,9 +243,6 @@ const FoodOrder: React.FC = () => {
     console.log(res);
     if (res?.data?.code === 0) {
       setGetFoodQuestion(res?.data?.result);
-      if (res?.data?.result?.checkAnswerPoll) {
-        setCheckSubmitedQuestions(false);
-      }
     }
   };
 
@@ -288,15 +263,12 @@ const FoodOrder: React.FC = () => {
   }, [personalCode]);
 
   useEffect(() => {
-    if (main?.dailyPollFood?.checkAnswerPoll) return;
     setCheckSubmitedQuestions(true);
   }, [main?.dailyPollFood]);
 
   if (isLoading) {
     return <Loading t={t} />;
   }
-
-  console.log("timeForQuestionFood", timeForQuestionFood);
 
   return (
     <>
@@ -322,15 +294,13 @@ const FoodOrder: React.FC = () => {
                 />
               </div>
             </div>
-            {checkSubmitedQuestions &&
-              getFoodQuestion !== null &&
-              timeForQuestionFood && (
-                <PollSection
-                  t={t}
-                  getFoodQuestion={getFoodQuestion}
-                  setCheckSubmitedQuestions={setCheckSubmitedQuestions}
-                />
-              )}
+            {checkSubmitedQuestions && getFoodQuestion !== null && (
+              <PollSection
+                t={t}
+                getFoodQuestion={getFoodQuestion}
+                setCheckSubmitedQuestions={setCheckSubmitedQuestions}
+              />
+            )}
           </>
         ) : (
           <WeeklyMenuGrid

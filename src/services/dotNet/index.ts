@@ -195,3 +195,7 @@ export const getQuestionForFood = async (personalCode: any) => {
 export const createListeningEar = (postData: any) => {
   return api.post(`/api/listeningEar/createListeningEar`, postData);
 };
+
+export const getReportQuestionFood = () => {
+  return api.get(`/api/food/getReportQuestionFood`);
+};

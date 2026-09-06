@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import * as XLSX from "xlsx";
 import { getAllOrderUserFood } from "../../services/dotNet";
 import { CustomTable, type Column } from "../../components/UI/CustomTable";
 import { useForm } from "react-hook-form";
@@ -58,7 +59,6 @@ const FoodOrderReport = () => {
           <span className="text-xs text-slate-500 font-mono">{index + 1}</span>
         ),
       },
-
       {
         key: "FoodName",
         title: "نام غذا",
@@ -99,23 +99,22 @@ const FoodOrderReport = () => {
         ),
       },
       {
-        key: "OrderDate",
+        key: "Actions",
         title: "عملیات",
         align: "center",
         render: (item) => {
-          const hanldeShowModal = () => {
-            console.log(item);
+          const handleShowModal = () => {
             setItemOrder(item);
             setShowUserOrder(true);
           };
 
           return (
             <div
-              onClick={hanldeShowModal}
+              onClick={handleShowModal}
               className="flex gap-2 cursor-pointer text-bmw-blue justify-center items-center"
             >
               <span className="text-[11px] text-slate-500">
-                <Eye className="text-bmw-blue" />
+                <Eye className="text-bmw-blue" size={16} />
               </span>
               گزارش سفارشات
             </div>
@@ -123,7 +122,7 @@ const FoodOrderReport = () => {
         },
       },
     ],
-    [],
+    []
   );
 
   const filteredAllUserOrderFood = useMemo(() => {
@@ -134,7 +133,8 @@ const FoodOrderReport = () => {
     }
     return allUserOrderFood.filter((user: any) => {
       const fullName = `${user.FoodName ?? ""}`.toLowerCase();
-      return fullName.includes(search);
+      const dateStr = `${StringHelpers.toPersianDateTime?.(user.OrderDate) ?? ""}`.toLowerCase();
+      return fullName.includes(search) || dateStr.includes(search);
     });
   }, [allUserOrderFood, searchQuery]);
 
@@ -160,13 +160,32 @@ const FoodOrderReport = () => {
     }
   };
 
-  console.log(allUserOrderFood);
-
   useEffect(() => {
     handleGetAllOrderUserFood();
   }, []);
 
-  const handleExportExcel = () => {};
+  const handleExportExcel = () => {
+    if (filteredAllUserOrderFood.length === 0) {
+      alert("داده‌ای برای خروجی گرفتن وجود ندارد.");
+      return;
+    }
+
+    const exportData = filteredAllUserOrderFood.map((item: any, index: number) => ({
+      ردیف: index + 1,
+      "نام غذا": item.FoodName || "—",
+      "کل سفارشات": item.TotalOrdersCount ?? 0,
+      "روز هفته": getPersianWeekDay(item.OrderDate),
+      "تاریخ": StringHelpers.toPersianDateTime?.(item.OrderDate) || "—",
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(exportData);
+    const workbook = XLSX.utils.book_new();
+
+    worksheet["!dir"] = "rtl";
+
+    XLSX.utils.book_append_sheet(workbook, worksheet, "گزارش سفارش غذا");
+    XLSX.writeFile(workbook, "Food_Orders_Report.xlsx");
+  };
 
   return (
     <div className="space-y-4">
@@ -217,7 +236,7 @@ const FoodOrderReport = () => {
           data={filteredAllUserOrderFood}
           columns={columns}
           keyExtractor={(item, index) =>
-            String(item.MenuItemId ?? item.MenuItemId ?? index)
+            String(item.MenuItemId ?? index)
           }
           isLoading={isLoading}
           pageSize={PAGE_SIZE}
