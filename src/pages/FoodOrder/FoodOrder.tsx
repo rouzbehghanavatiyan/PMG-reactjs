@@ -44,6 +44,8 @@ const FoodOrder: React.FC = () => {
   const main = useAppSelector((state) => state?.main);
   const personalCode = main?.userProfile?.userLogin?.personalCode;
 
+  console.log(checkSubmitedQuestions, getFoodQuestion);
+
   const showToast = (
     type: "success" | "error" | "info" | "loading",
     title: string,

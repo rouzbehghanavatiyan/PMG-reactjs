@@ -122,7 +122,7 @@ const FoodOrderReport = () => {
         },
       },
     ],
-    []
+    [],
   );
 
   const filteredAllUserOrderFood = useMemo(() => {
@@ -133,7 +133,8 @@ const FoodOrderReport = () => {
     }
     return allUserOrderFood.filter((user: any) => {
       const fullName = `${user.FoodName ?? ""}`.toLowerCase();
-      const dateStr = `${StringHelpers.toPersianDateTime?.(user.OrderDate) ?? ""}`.toLowerCase();
+      const dateStr =
+        `${StringHelpers.toPersianDateTime?.(user.OrderDate) ?? ""}`.toLowerCase();
       return fullName.includes(search) || dateStr.includes(search);
     });
   }, [allUserOrderFood, searchQuery]);
@@ -170,13 +171,15 @@ const FoodOrderReport = () => {
       return;
     }
 
-    const exportData = filteredAllUserOrderFood.map((item: any, index: number) => ({
-      ردیف: index + 1,
-      "نام غذا": item.FoodName || "—",
-      "کل سفارشات": item.TotalOrdersCount ?? 0,
-      "روز هفته": getPersianWeekDay(item.OrderDate),
-      "تاریخ": StringHelpers.toPersianDateTime?.(item.OrderDate) || "—",
-    }));
+    const exportData = filteredAllUserOrderFood.map(
+      (item: any, index: number) => ({
+        ردیف: index + 1,
+        "نام غذا": item.FoodName || "—",
+        "کل سفارشات": item.TotalOrdersCount ?? 0,
+        "روز هفته": getPersianWeekDay(item.OrderDate),
+        تاریخ: StringHelpers.toPersianDateTime?.(item.OrderDate) || "—",
+      }),
+    );
 
     const worksheet = XLSX.utils.json_to_sheet(exportData);
     const workbook = XLSX.utils.book_new();
@@ -198,7 +201,7 @@ const FoodOrderReport = () => {
             containerClassName="w-full"
           />
         </div>
-        <div className="flex items-center gap-2 sm:gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-3 justify-start items-center gap-2 sm:gap-3">
           <Button
             variant="brown"
             onClick={() => {
@@ -235,9 +238,7 @@ const FoodOrderReport = () => {
         <CustomTable
           data={filteredAllUserOrderFood}
           columns={columns}
-          keyExtractor={(item, index) =>
-            String(item.MenuItemId ?? index)
-          }
+          keyExtractor={(item, index) => String(item.MenuItemId ?? index)}
           isLoading={isLoading}
           pageSize={PAGE_SIZE}
           emptyMessage="موردی یافت نشد."

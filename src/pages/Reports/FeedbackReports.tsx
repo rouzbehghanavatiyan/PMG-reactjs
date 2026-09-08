@@ -223,7 +223,6 @@ const FeedbackReports = () => {
     const dataToExport = filteredList.map((item, index) => {
       const catTitle =
         typeof item.category === "object" ? item.category?.fa : item.category;
-
       return {
         ردیف: index + 1,
         کد: item.id,
@@ -239,19 +238,17 @@ const FeedbackReports = () => {
 
     const worksheet = XLSX.utils.json_to_sheet(dataToExport);
 
-    // تنظیم جهت نمایش راست‌به‌چپ (RTL) در اکسل
     if (!worksheet["!views"]) worksheet["!views"] = [];
     worksheet["!views"].push({ rightToLeft: true });
 
-    // تنظیم عرض ستون‌ها
     worksheet["!cols"] = [
-      { wch: 8 }, // ردیف
-      { wch: 12 }, // کد
-      { wch: 35 }, // عنوان
-      { wch: 20 }, // دسته‌بندی
-      { wch: 18 }, // وضعیت
-      { wch: 20 }, // کاربر
-      { wch: 22 }, // تاریخ ثبت
+      { wch: 8 },
+      { wch: 12 },
+      { wch: 35 },
+      { wch: 20 },
+      { wch: 18 },
+      { wch: 20 },
+      { wch: 22 },
     ];
 
     const workbook = XLSX.utils.book_new();
@@ -263,7 +260,7 @@ const FeedbackReports = () => {
 
   return (
     <div>
-      <div className="grid grid-cols-4 gap-6 sm:gap-3 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-6 sm:gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <div className="flex items-center justify-between rounded-xl border border-slate-100 bg-white p-3 sm:p-4 shadow-sm">
           <p className="text-[11px] sm:text-xs font-medium text-slate-500">
             کل پیشنهادات
@@ -298,7 +295,7 @@ const FeedbackReports = () => {
         </div>
       </div>
       <div className="overflow-hidden  rounded-xl">
-        <div className="grid grid-cols-12 my-4 gap-6 border-b border-slate-100 p-3 sm:p-4 lg:flex-row lg:items-center lg:justify-between">
+        <div className="grid grid-cols-12 my-6 gap-6 border-b border-slate-100  lg:flex-row lg:items-center lg:justify-between">
           <div className="col-span-12 md:col-span-3 flex gap-2 shrink-0">
             <Button
               variant={activeTab === "پیشنهادات" ? "outline-orange" : "ghost"}
@@ -308,6 +305,7 @@ const FeedbackReports = () => {
               پیشنهادات
             </Button>
             <Button
+            disabled
               variant={activeTab === "انتقادات" ? "outline-orange" : "ghost"}
               className="flex-1 lg:flex-none h-10 font-bold text-slate-800 text-xs sm:text-sm"
               onClick={() => setActiveTab("انتقادات")}

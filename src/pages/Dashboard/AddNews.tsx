@@ -5,12 +5,10 @@ import CustomInput from "../../components/UI/CustomInput";
 import { Controller, useForm } from "react-hook-form";
 import ComboBox from "../../components/UI/ComboBox";
 import {
-  addAttachment,
   addNewsAttachments,
   createCompanyNews,
   getAllCategoryNews,
 } from "../../services/dotNet";
-import { useApi } from "../../hooks/useApi";
 import { asyncWrapper } from "../../utils/asyncWrapper";
 import { useToast } from "../../hooks/useToast";
 import { Upload, X } from "lucide-react";
@@ -48,10 +46,9 @@ const AddNews: React.FC<any> = ({
   };
 
   const handleAdd = asyncWrapper(async (data: any) => {
-    // 1. بررسی خالی بودن فیلدها در زمان تایید
     if (!data?.title || data.title.trim() === "") {
       toast.error("لطفاً تیتر خبر را وارد کنید");
-      return; // متوقف کردن ادامه عملیات
+      return;
     }
 
     if (!selectedUser || selectedUser.length === 0) {
@@ -81,8 +78,7 @@ const AddNews: React.FC<any> = ({
         selectedImages.forEach((file) => {
           formData.append("FormFiles", file);
         });
-        formData.append("CompanyNewsId", result); // آیدی خبر
-
+        formData.append("CompanyNewsId", result);
         const resAttachment = await addNewsAttachments(formData);
         // const { code, message } = resAttachment?.data;
       }

@@ -5,15 +5,15 @@ import FeedbackReports from "./FeedbackReports";
 import PollReports from "./PollReports";
 import UserReports from "./UserReports";
 import FoodOrderReport from "./FoodOrderReport";
+import ListeningEarReports from "./ListeningEarReports";
 
 const Reports = () => {
   const [isLoading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("feedback");
-
   return (
     <div className="space-y-6" dir="rtl">
       {isLoading && <Loading />}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-2 sm:gap-4 rounded-xl border border-bmw-border bg-bmw-surface p-3 sm:p-4 shadow-sm">
+      <div className="grid md:grid-cols-6 gap-2 sm:gap-4  rounded-xl border border-bmw-border bg-bmw-surface p-3 sm:p-4 shadow-sm">
         <Button
           variant={activeTab === "feedback" ? undefined : "ghost"}
           className="sm:flex-none text-xs sm:text-sm"
@@ -42,11 +42,19 @@ const Reports = () => {
         >
           رزرو غذا
         </Button>
+        <Button
+          variant={activeTab === "listeningEarReports" ? undefined : "ghost"}
+          className="sm:flex-none text-xs sm:text-sm"
+          onClick={() => setActiveTab("listeningEarReports")}
+        >
+          گوش شنوا
+        </Button>
       </div>
       {activeTab === "feedback" && <FeedbackReports />}
       {activeTab === "poll" && <PollReports />}
       {activeTab === "userReports" && <UserReports />}
       {activeTab === "foodOrderReports" && <FoodOrderReport />}
+      {activeTab === "listeningEarReports" && <ListeningEarReports />}
     </div>
   );
 };

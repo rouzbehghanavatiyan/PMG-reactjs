@@ -182,7 +182,7 @@ const PollReports: React.FC = () => {
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-3">
+      <div className="grid  grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-3">
         <div className="flex items-center justify-between rounded-xl border border-slate-100 bg-white p-3 sm:p-4 shadow-sm">
           <p className="text-[11px] sm:text-xs font-medium text-slate-500">
             کل نظرسنجی‌ها
@@ -208,54 +208,48 @@ const PollReports: React.FC = () => {
           </p>
         </div>
       </div>
-      <div className="grid grid-cols-12 sm:flex-row sm:items-center justify-between gap-6 border-b border-slate-100 p-3 sm:p-4">
-        <div className="col-span-4 flex gap-2 shrink-0">
+      <div className="flex flex-col gap-3 border-b border-slate-100  lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex w-full lg:w-auto items-center gap-2 overflow-x-auto pb-1 lg:pb-0 shrink-0">
           <Button
             variant={activeTab === "همه" ? "outline-orange" : "ghost"}
-            className="lg:flex-none h-10 font-bold text-slate-800 text-xs sm:text-sm"
+            className="h-10 shrink-0 px-4 text-xs sm:text-sm font-bold text-slate-800"
             onClick={() => setActiveTab("همه")}
           >
             همه
           </Button>
           <Button
             variant={activeTab === "رستوران" ? "outline-orange" : "ghost"}
-            className="lg:flex-none h-10 font-bold text-slate-800 text-xs sm:text-sm"
+            className="h-10 shrink-0 px-4 text-xs sm:text-sm font-bold text-slate-800"
             onClick={() => setActiveTab("رستوران")}
           >
             رستوران
           </Button>
           <Button
             variant={activeTab === "عمومی" ? "outline-orange" : "ghost"}
-            className="lg:flex-none h-10 font-bold text-slate-800 text-xs sm:text-sm"
+            className="h-10 shrink-0 px-4 text-xs sm:text-sm font-bold text-slate-800"
             onClick={() => setActiveTab("عمومی")}
           >
             عمومی
           </Button>
         </div>
-        <div className="col-span-8 flex gap-6 w-full sm:max-w-md">
-          <input
-            type="text"
-            placeholder="جستجو بر اساس عنوان نظرسنجی..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs sm:text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 h-10"
-          />
+        <div className="flex lg:flex-row items-stretch lg:items-center gap-3 w-full lg:w-auto">
+          <div className="w-full lg:w-80">
+            <input
+              type="text"
+              placeholder="جستجو بر اساس عنوان نظرسنجی..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs sm:text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+            />
+          </div>
           <Button
             variant="success"
             onClick={handleExportExcel}
             leftIcon={<Sheet size={16} />}
-            className="sm:w-auto font-bold text-slate-800 h-10 shrink-0 text-xs sm:text-sm justify-center"
+            className="h-10 lg:w-auto shrink-0 whitespace-nowrap px-4 justify-center text-xs sm:text-sm font-bold text-slate-800"
           >
             خروجی اکسل
           </Button>
-          {/* <Button
-            variant="danger"
-            onClick={handleExportExcel}
-            leftIcon={<FileText size={16} />}
-            className="sm:w-auto font-bold text-slate-800 h-10 shrink-0 text-xs sm:text-sm justify-center"
-          >
-            خروجی PDF
-          </Button> */}
         </div>
       </div>
       <CustomTable

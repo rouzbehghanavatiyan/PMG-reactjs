@@ -199,3 +199,7 @@ export const createListeningEar = (postData: any) => {
 export const getReportQuestionFood = () => {
   return api.get(`/api/food/getReportQuestionFood`);
 };
+
+export const getListeningEarPerDate = (postData: any) => {
+  return api.post(`/api/listeningEar/getListeningEarPerDate`, postData);
+};
