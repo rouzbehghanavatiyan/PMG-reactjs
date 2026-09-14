@@ -52,7 +52,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
   const navItems: NavItem[] = [
     { icon: LayoutDashboard, label: "dashboard", path: "/dashboard" },
     { icon: User, label: "profile", path: "/profile" },
-     ...(hasPermission("chatSmart.read")
+    ...(hasPermission("chatSmart.read")
       ? [
           {
             icon: Users,
@@ -92,7 +92,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
           },
         ]
       : []),
-   
+
     { icon: Utensils, label: "food_order", path: "/food" },
     { icon: ClipboardList, label: "surveys", path: "/surveys" },
     { icon: Ticket, label: "support", path: "/support", disabled: true },
@@ -101,14 +101,14 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
     //   ? [
     //       {
     //         icon: ClipboardMinus,
-    //         label: "گزارشات",
+    // label: "reports",
     //         path: "/reports",
     //       },
     //     ]
     //   : []),
     {
       icon: ClipboardMinus,
-      label: "گزارشات",
+      label: "reports",
       path: "/reports",
     },
   ];
@@ -132,7 +132,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
           ${isOpen ? "translate-x-0" : dir === "rtl" ? "translate-x-full" : "-translate-x-full"}
         `}
       >
-        {/* هدر و لوگو */}
         <div className="h-20 flex items-center justify-between py-2 px-6 border-b border-bmw-border">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-900 to-bmw-blue flex items-center justify-center border border-white/20">
@@ -145,7 +144,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
         </div>
 
         <div className="flex flex-col h-full overflow-hidden">
-          {/* دکمه بستن در حالت موبایل */}
           <button
             onClick={() => setIsOpen(false)}
             className="lg:hidden text-bmw-textSec hover:text-bmw-text absolute top-6 rtl:left-6 ltr:right-6"
@@ -153,12 +151,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
             <X size={24} />
           </button>
 
-          {/* لیست آیتم‌های منو */}
           <nav className="flex-1 py-2 px-2 space-y-1 overflow-y-auto">
             {navItems.map((item, index) => {
               const itemKey = item.path || item.label || index;
 
-              // ۱. حالت غیرفعال (Disabled)
               if (item.disabled) {
                 return (
                   <div
@@ -173,14 +169,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
                 );
               }
 
-              // ۲. حالت اجرای تابع (Action) مانند باز کردن مودال
               if (item.action) {
                 return (
                   <button
                     key={itemKey}
                     onClick={() => {
                       item.action!();
-                      setIsOpen(false); // بستن سایدبار در موبایل پس از کلیک
+                      setIsOpen(false);
                     }}
                     className="flex items-center gap-3 px-4 py-3 w-full text-start rounded-md transition-all duration-200 group text-bmw-textSec hover:bg-bmw-hover hover:text-bmw-text"
                   >
@@ -192,7 +187,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
                 );
               }
 
-              // ۳. حالت لینک مسیریابی عادی (NavLink)
               return (
                 <NavLink
                   key={itemKey}
@@ -216,7 +210,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
             })}
           </nav>
 
-          {/* فوتر سایدبار */}
           <div className="p-4 border-t mb-5 border-bmw-border space-y-2 w-full">
             <ThemeAndLang />
             <button
@@ -239,8 +232,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
             </button>
           </div>
         </div>
-
-        {/* مودال گوش شنوا */}
       </aside>
       {showListeningEar && (
         <ShowListeningEarModal

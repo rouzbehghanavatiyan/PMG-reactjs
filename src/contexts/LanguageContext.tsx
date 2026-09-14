@@ -22,6 +22,7 @@ const translations: Record<Language, Record<string, any>> = {
     chat_pdf: "Chat with PDF",
     knowledge_graph: "Smart Knowledge Network",
     documents: "Documents",
+    reports:"Reports",
     food_order: "Food Order",
     calendar: "Calendar",
     support: "Support",
@@ -237,6 +238,7 @@ const translations: Record<Language, Record<string, any>> = {
     back_to_news: "Back to News",
   },
   fa: {
+    reports:"گزارشات",
     suggestions_feedback: "نظام پیشنهادها و انتقادات",
     chat_pdf: "مکالمه با اسناد سازمانی",
     knowledge_graph: "شبکه دانش هوشمند",

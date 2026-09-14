@@ -36,15 +36,12 @@ const FoodOrder: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [checkSubmitedQuestions, setCheckSubmitedQuestions] = useState(false);
-  const [timeForQuestionFood, setTimeForQuestionFood] = useState(false);
   const [selectedDeleteItem, setSelectedDeleteItem] = useState<any>(null);
   const userLogin = useAppSelector(
     (state) => state?.main?.userProfile?.userLogin,
   );
   const main = useAppSelector((state) => state?.main);
   const personalCode = main?.userProfile?.userLogin?.personalCode;
-
-  console.log(checkSubmitedQuestions, getFoodQuestion);
 
   const showToast = (
     type: "success" | "error" | "info" | "loading",
@@ -296,13 +293,15 @@ const FoodOrder: React.FC = () => {
                 />
               </div>
             </div>
-            {checkSubmitedQuestions && getFoodQuestion !== null && (
-              <PollSection
-                t={t}
-                getFoodQuestion={getFoodQuestion}
-                setCheckSubmitedQuestions={setCheckSubmitedQuestions}
-              />
-            )}
+            {getFoodQuestion?.isShow &&
+              checkSubmitedQuestions &&
+              getFoodQuestion !== null && (
+                <PollSection
+                  t={t}
+                  getFoodQuestion={getFoodQuestion}
+                  setCheckSubmitedQuestions={setCheckSubmitedQuestions}
+                />
+              )}
           </>
         ) : (
           <WeeklyMenuGrid

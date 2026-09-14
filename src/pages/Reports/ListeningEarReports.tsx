@@ -167,7 +167,6 @@ const ListeningEarReports = () => {
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "گزارش گوش شنوا");
 
-    // ۳. دانلود فایل اکسل با تاریخ روز
     const today = new Date().toISOString().slice(0, 10);
     XLSX.writeFile(workbook, `listening-ear-report-${today}.xlsx`);
   };
@@ -186,20 +185,15 @@ const ListeningEarReports = () => {
             name="fromDate"
             maxDate={new Date()}
             label="از تاریخ"
-            rules={{
-              required: "لطفا تاریخ را انتخاب کنید",
-            }}
+            
           />
         </div>
         <div className="w-full md:flex-1">
           <CustomDatePicker
             control={control}
             name="toDate"
-            maxDate={new Date()}
             label="تا تاریخ"
-            rules={{
-              required: "لطفا تاریخ را انتخاب کنید",
-            }}
+           
           />
         </div>
         <div className="w-full md:w-auto md:min-w-[120px]">
