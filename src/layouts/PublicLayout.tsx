@@ -15,7 +15,7 @@ import * as signalR from "@microsoft/signalr";
 import { subscribeUserToPush } from "../utils/pushNotification";
 import { ToastContainer } from "../../components/Toast";
 import { useAppSelector } from "../features/store";
-import { addToast, removeToast } from "../features/slices/toastSloce";
+import { removeToast } from "../features/slices/toastSloce";
 
 const baseURL = import.meta.env.VITE_API_URL;
 
@@ -126,15 +126,13 @@ const PublicLayout: React.FC = () => {
       .withAutomaticReconnect()
       .build();
 
-    newConnection.on("ReceiveMessage", (user: string, message: string) => {
-      dispatch(RsetNotifMessage({ user, message, hasNew: true }));
+    newConnection.on("ReceiveMessage", (data: any) => {
+      // ۱. آپدیت کردن Redux با مقادیر صحیح از داخل آبجکت
       dispatch(
-        addToast({
-          id: Date.now().toString(),
-          type: "info",
-          title: user,
-          message,
-          duration: 4500,
+        RsetNotifMessage({
+          user: data.personalCode || "سیستم",
+          message: data.newMessage,
+          hasNew: true,
         }),
       );
     });

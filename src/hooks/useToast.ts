@@ -1,6 +1,6 @@
 import { toastStore, type ToastType } from "../components/UI/Toast";
 
-type ToastOptions = {
+export type ToastOptions = {
   title?: string;
   duration?: number;
   dismissible?: boolean;
@@ -53,31 +53,28 @@ export function useToast() {
 
       try {
         const res = await promise;
+        const successDuration = options?.duration ?? 2500;
         toastStore.update(id, {
           type: "success",
           message:
             typeof msgs.success === "function"
               ? msgs.success(res)
               : msgs.success,
-          duration: options?.duration ?? 2500,
+          duration: successDuration,
         });
-        // after update, schedule dismiss
-        window.setTimeout(
-          () => toastStore.dismiss(id),
-          options?.duration ?? 2500,
-        );
+
+        window.setTimeout(() => toastStore.dismiss(id), successDuration);
         return res;
       } catch (err) {
+        const errorDuration = options?.duration ?? 3500;
         toastStore.update(id, {
           type: "error",
           message:
             typeof msgs.error === "function" ? msgs.error(err) : msgs.error,
-          duration: options?.duration ?? 3500,
+          duration: errorDuration,
         });
-        window.setTimeout(
-          () => toastStore.dismiss(id),
-          options?.duration ?? 3500,
-        );
+
+        window.setTimeout(() => toastStore.dismiss(id), errorDuration);
         throw err;
       }
     },

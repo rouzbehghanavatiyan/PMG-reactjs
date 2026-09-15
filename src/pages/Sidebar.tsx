@@ -66,9 +66,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
       label: "listening_ear",
       action: () => setShowListeningEar(true),
     },
-    // ...(hasPermission("chatSmart.read")
-    //   ? [{ icon: MessageCircleWarning, label: "chat", path: "/chat" }]
-    //   : []),
     {
       icon: Building,
       label: "introductionOrganization",
@@ -92,25 +89,19 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
           },
         ]
       : []),
-
     { icon: Utensils, label: "food_order", path: "/food" },
     { icon: ClipboardList, label: "surveys", path: "/surveys" },
     { icon: Ticket, label: "support", path: "/support", disabled: true },
     { icon: Lightbulb, label: "suggestions_feedback", path: "/feedbackSystem" },
-    // ...(hasPermission("chatSmart.read")
-    //   ? [
-    //       {
-    //         icon: ClipboardMinus,
-    // label: "reports",
-    //         path: "/reports",
-    //       },
-    //     ]
-    //   : []),
-    {
-      icon: ClipboardMinus,
-      label: "reports",
-      path: "/reports",
-    },
+    ...(hasPermission("chatSmart.read")
+      ? [
+          {
+            icon: ClipboardMinus,
+            label: "reports",
+            path: "/reports",
+          },
+        ]
+      : []),
   ];
 
   return (

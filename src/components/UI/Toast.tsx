@@ -1,89 +1,222 @@
-export type ToastType = "success" | "error" | "warning" | "info" | "loading";
+import React, { useEffect, useRef, useSyncExternalStore } from 'react';
+import { CheckCircle2, AlertCircle, AlertTriangle, Info, RefreshCw, X } from 'lucide-react';
 
-export type Toast = {
+export type ToastType = 'success' | 'error' | 'info' | 'loading' | 'warning';
+
+export interface ToastMessage {
   id: string;
   type: ToastType;
-  message: string;
   title?: string;
+  message: string;
   duration?: number;
-  createdAt: number;
   dismissible?: boolean;
   actionLabel?: string;
   onAction?: () => void;
-};
-
-type Listener = (toasts: Toast[]) => void;
-
-let toasts: Toast[] = [];
-const listeners = new Set<Listener>();
-
-const uid = () =>
-  typeof crypto !== "undefined" && "randomUUID" in crypto
-    ? crypto.randomUUID()
-    : Math.random().toString(16).slice(2) + Date.now().toString(16);
-
-function emit() {
-  listeners.forEach((l) => l(toasts));
 }
 
-export const toastStore = {
-  subscribe(listener: Listener) {
-    listeners.add(listener);
-    listener(toasts);
+// -------------------------------------------------------------
+// Toast Store (مدیریت استیت سراسری بدون نیاز به Context پیچیده)
+// -------------------------------------------------------------
+type Listener = () => void;
+
+class ToastStore {
+  private toasts: ToastMessage[] = [];
+  private listeners: Set<Listener> = new Set();
+
+  subscribe = (listener: Listener) => {
+    this.listeners.add(listener);
     return () => {
-      listeners.delete(listener);
+      this.listeners.delete(listener);
     };
-  },
+  };
 
-  get() {
-    return toasts;
-  },
+  getSnapshot = () => this.toasts;
 
-  add(input: Omit<Toast, "id" | "createdAt"> & { id?: string }) {
-    const id = input.id ?? uid();
+  private notify() {
+    this.listeners.forEach((l) => l());
+  }
 
-    const toast: Toast = {
+  add = (toast: Omit<ToastMessage, 'id'>) => {
+    const id = Math.random().toString(36).substring(2, 9);
+    const newToast: ToastMessage = {
       id,
-      createdAt: Date.now(),
       dismissible: true,
-      duration: input.type === "loading" ? 0 : 3500,
-      ...input,
+      duration: toast.type === 'loading' ? 0 : (toast.duration ?? 4500),
+      ...toast,
     };
-
-    // newest on top
-    toasts = [toast, ...toasts];
-    emit();
-
-    // auto dismiss
-    if (toast.duration && toast.duration > 0) {
-      window.setTimeout(() => {
-        toastStore.dismiss(id);
-      }, toast.duration);
-    }
-
+    this.toasts = [...this.toasts, newToast];
+    this.notify();
     return id;
-  },
+  };
 
-  dismiss(id: string) {
-    const next = toasts.filter((t) => t.id !== id);
-    if (next.length !== toasts.length) {
-      toasts = next;
-      emit();
+  dismiss = (id: string) => {
+    this.toasts = this.toasts.filter((t) => t.id !== id);
+    this.notify();
+  };
+
+  update = (id: string, patch: Partial<ToastMessage>) => {
+    this.toasts = this.toasts.map((t) => (t.id === id ? { ...t, ...patch } : t));
+    this.notify();
+  };
+
+  clear = () => {
+    this.toasts = [];
+    this.notify();
+  };
+}
+
+export const toastStore = new ToastStore();
+
+// -------------------------------------------------------------
+// UI Components
+// -------------------------------------------------------------
+interface ToastContainerProps {
+  toasts?: ToastMessage[];
+  onDismiss?: (id: string) => void;
+  dir?: 'rtl' | 'ltr';
+}
+
+export const ToastContainer: React.FC<ToastContainerProps> = ({
+  toasts: controlledToasts,
+  onDismiss,
+  dir = 'rtl',
+}) => {
+  // اگر toasts پاس داده نشد، از استور خودکار گوش می‌دهد
+  const storeToasts = useSyncExternalStore(
+    toastStore.subscribe,
+    toastStore.getSnapshot,
+    () => []
+  );
+
+  const toasts = controlledToasts ?? storeToasts;
+  const handleDismiss = onDismiss ?? ((id: string) => toastStore.dismiss(id));
+
+  if (toasts.length === 0) return null;
+
+  return (
+    <>
+      <style>{`
+        @keyframes shrinkWidth {
+          from { width: 100%; }
+          to { width: 0%; }
+        }
+      `}</style>
+      <div
+        className={`fixed top-5 z-[9999] flex flex-col gap-3 max-w-sm w-full px-4 pointer-events-none transition-all duration-300 ${
+          dir === 'rtl' ? 'left-5' : 'right-5'
+        }`}
+        dir={dir}
+      >
+        {toasts.map((toast) => (
+          <ToastItem key={toast.id} toast={toast} onDismiss={handleDismiss} />
+        ))}
+      </div>
+    </>
+  );
+};
+
+const ToastItem: React.FC<{ toast: ToastMessage; onDismiss: (id: string) => void }> = ({
+  toast,
+  onDismiss,
+}) => {
+  const duration = toast.duration ?? 4500;
+  const onDismissRef = useRef(onDismiss);
+
+  useEffect(() => {
+    onDismissRef.current = onDismiss;
+  }, [onDismiss]);
+
+  useEffect(() => {
+    if (toast.type === 'loading' || duration <= 0) return;
+
+    const timer = setTimeout(() => {
+      onDismissRef.current?.(toast.id);
+    }, duration);
+
+    return () => clearTimeout(timer);
+  }, [toast.id, toast.type, duration]);
+
+  const getStyles = () => {
+    switch (toast.type) {
+      case 'success':
+        return {
+          border: 'border-emerald-500/50 bg-gray-900/95 text-white shadow-emerald-500/20 shadow-lg',
+          icon: <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />,
+          progress: 'bg-emerald-500',
+        };
+      case 'error':
+        return {
+          border: 'border-rose-500/50 bg-gray-900/95 text-white shadow-rose-500/20 shadow-lg',
+          icon: <AlertCircle className="w-5 h-5 text-rose-400 shrink-0" />,
+          progress: 'bg-rose-500',
+        };
+      case 'warning':
+        return {
+          border: 'border-amber-500/50 bg-gray-900/95 text-white shadow-amber-500/20 shadow-lg',
+          icon: <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0" />,
+          progress: 'bg-amber-500',
+        };
+      case 'loading':
+        return {
+          border: 'border-blue-500/50 bg-gray-900/95 text-white shadow-blue-500/20 shadow-lg',
+          icon: <RefreshCw className="w-5 h-5 text-blue-400 shrink-0 animate-spin" />,
+          progress: 'bg-blue-500',
+        };
+      default:
+        return {
+          border: 'border-blue-500/50 bg-gray-900/95 text-white shadow-blue-500/20 shadow-lg',
+          icon: <Info className="w-5 h-5 text-blue-400 shrink-0" />,
+          progress: 'bg-blue-500',
+        };
     }
-  },
+  };
 
-  update(id: string, patch: Partial<Omit<Toast, "id" | "createdAt">>) {
-    let found = false;
-    toasts = toasts.map((t) => {
-      if (t.id !== id) return t;
-      found = true;
-      return { ...t, ...patch };
-    });
-    if (found) emit();
-  },
+  const style = getStyles();
 
-  clear() {
-    toasts = [];
-    emit();
-  },
+  return (
+    <div
+      className={`pointer-events-auto relative overflow-hidden rounded-xl border p-4 shadow-2xl backdrop-blur-md transition-all duration-300 transform translate-y-0 opacity-100 flex items-start gap-3 ${style.border}`}
+    >
+      {style.icon}
+      
+      <div className="flex-1 min-w-0 pr-1">
+        {toast.title && <h4 className="text-xs font-bold text-gray-100 mb-0.5">{toast.title}</h4>}
+        <p className="text-xs text-gray-300 leading-relaxed break-words">{toast.message}</p>
+        
+        {toast.actionLabel && (
+          <button
+            type="button"
+            onClick={() => {
+              toast.onAction?.();
+              onDismiss(toast.id);
+            }}
+            className="mt-2 text-xs font-semibold text-blue-400 hover:text-blue-300 underline underline-offset-2 transition-colors"
+          >
+            {toast.actionLabel}
+          </button>
+        )}
+      </div>
+
+      {toast.dismissible !== false && (
+        <button
+          type="button"
+          onClick={() => onDismiss(toast.id)}
+          className="text-gray-400 hover:text-white p-1 rounded-lg transition-colors shrink-0 -mr-1"
+          aria-label="Close toast"
+        >
+          <X className="w-4 h-4" />
+        </button>
+      )}
+
+      {/* Progress bar animation */}
+      {toast.type !== 'loading' && duration > 0 && (
+        <div
+          className={`absolute bottom-0 left-0 right-0 h-1 ${style.progress} opacity-80`}
+          style={{
+            animation: `shrinkWidth ${duration}ms linear forwards`,
+          }}
+        />
+      )}
+    </div>
+  );
 };
