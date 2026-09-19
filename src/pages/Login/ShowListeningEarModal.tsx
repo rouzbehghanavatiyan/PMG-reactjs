@@ -68,11 +68,10 @@ const ShowListeningEarModal: React.FC<any> = ({
         <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2">
             <CustomInput
-              // label="اگر دوست داری مشخصاتت را وارد کن: (اختیاری)"
               label="اگر دوست داری مشخصاتت را وارد کن:"
               name="fullName"
               control={control}
-              className="bg rounded-xl border border-gray-200 px-4 py-3 outline-none focus:border-bmw-blue"
+              className="rounded-xl border border-gray-200 px-4 py-3 outline-none focus:border-bmw-blue"
             />
           </div>
           <CustomInput

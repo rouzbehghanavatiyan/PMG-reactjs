@@ -109,7 +109,7 @@ const ShowCapchaModal: React.FC<any> = ({
     >
       <div className="space-y-4">
         <span className="flex justify-between">
-          <p className="leading-7 text-gray-700">
+          <p className="leading-7 text-bmw-text-sec">
             لطفاً کد ارسالی را وارد کنید.
           </p>
           <span className="font-bold text-xl">{timeText}</span>

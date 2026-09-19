@@ -1,4 +1,4 @@
-import React, { useEffect, useEffectEvent, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useLanguage } from "../../contexts/LanguageContext";
 import type { MealType } from "./type";
 import FoodHeader from "./FoodHeader";
