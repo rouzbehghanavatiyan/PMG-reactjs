@@ -4,13 +4,13 @@ import * as signalR from "@microsoft/signalr";
 const TestSignalRPage = () => {
   const [connection, setConnection] = useState(null);
   const [messages, setMessages] = useState([]);
+  console.log(messages);
 
   useEffect(() => {
     const newConnection = new signalR.HubConnectionBuilder()
       .withUrl("https://localhost:7001/chatHub")
       .withAutomaticReconnect()
       .build();
-
     setConnection(newConnection);
   }, []);
 

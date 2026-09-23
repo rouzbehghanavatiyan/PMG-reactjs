@@ -1,144 +1,141 @@
 import api from "../axios";
 
 export const usersLogin = async (postData: any) => {
-  return await api.post("/api/users/login", postData);
+  return await api.post("/users/login", postData);
 };
 
 export const updatedProfilePhoto = (postData: any) => {
-  return api.put(`/api/users/updatedProfilePhoto`, postData);
+  return api.put(`/users/updatedProfilePhoto`, postData);
 };
 export const verifyLoginCode = async (postData: any) => {
-  return await api.post("/api/users/verifyLoginCode", postData);
+  return await api.post("/users/verifyLoginCode", postData);
 };
 export const getallcompanynews = async () => {
-  return await api.get("/api/companynews/getAllCompanyNews");
+  return await api.get("/companynews/getAllCompanyNews");
 };
 export const getAllCategoryNews = async () => {
-  return await api.get("/api/companyNews/getAllCategoryNews");
+  return await api.get("/companyNews/getAllCategoryNews");
 };
 export const addAttachment = (formData: FormData) => {
-  return api.post("/api/attachment/createAttachment", formData, {
+  return api.post("/attachment/createAttachment", formData, {
     headers: {
       "Content-Type": "multipart/form-data",
     },
   });
 };
 export const addNewsAttachments = (formData: FormData) => {
-  return api.post("/api/companyNews/addAttachments", formData, {
+  return api.post("/companyNews/addAttachments", formData, {
     headers: {
       "Content-Type": "multipart/form-data",
     },
   });
 };
 export const createCompanyNews = (postData: any) => {
-  return api.post("/api/companyNews/createCompanyNews", postData);
+  return api.post("/companyNews/createCompanyNews", postData);
 };
 export const createPoll = (postData: any) => {
-  return api.post("/api/poll/createPoll", postData);
+  return api.post("/poll/createPoll", postData);
 };
 
 export const deletePoll = (id: any) => {
-  return api.delete(`/api/poll/deletePoll/${id}`);
+  return api.delete(`/poll/deletePoll/${id}`);
 };
 
 export const updatePolls = (postData: any) => {
-  return api.put(`/api/poll/updatePolls/${postData?.id}`, postData);
+  return api.put(`/poll/updatePolls/${postData?.id}`, postData);
 };
 
 export const deleteCompanyNews = (id: any) => {
-  return api.delete(`/api/companyNews/deleteCompanyNews/${id}`);
+  return api.delete(`/companyNews/deleteCompanyNews/${id}`);
 };
 export const updateCompanyNews = (postData: any) => {
-  return api.put(
-    `/api/companyNews/updateCompanyNews/${postData?.id}`,
-    postData,
-  );
+  return api.put(`/companyNews/updateCompanyNews/${postData?.id}`, postData);
 };
 export const updatedProfile = (postData: any) => {
-  return api.put(`/api/users/updatedProfile`, postData);
+  return api.put(`/users/updatedProfile`, postData);
 };
 export const getSalaryPerMonth = async (PersonalCode: any) => {
   return await api.get(
-    `/api/salary/getSalaryPerMonth?PersonalCode=${PersonalCode}`,
+    `/salary/getSalaryPerMonth?PersonalCode=${PersonalCode}`,
   );
 };
 
 export const allPolls = async () => {
-  return await api.get(`/api/poll/allPolls`);
+  return await api.get(`/poll/allPolls`);
 };
 
 export const allPollsByUsers = async (PersonalCode: string | number) => {
-  return await api.get(`/api/poll/allPollByUsers?PersonalCode=${PersonalCode}`);
+  return await api.get(`/poll/allPollByUsers?PersonalCode=${PersonalCode}`);
 };
 
 export const createQuestionAnswerUser = async (postData: any) => {
-  return await api.post(`/api/poll/createQuestionAnswerUser`, postData);
+  return await api.post(`/poll/createQuestionAnswerUser`, postData);
 };
 export const getBirthday = async () => {
-  return await api.get(`/api/birthday/getBirthday`);
+  return await api.get(`/birthday/getBirthday`);
 };
 export const getUserProfile = async () => {
-  return await api.get(`/api/users/getUserProfile`);
+  return await api.get(`/users/getUserProfile`);
 };
 
 export const subscribePushNotification = (postData: any) => {
-  return api.post("/api/notif/subscribe", postData);
+  return api.post("/notif/subscribe", postData);
 };
 
 export const sendNotifUser = (postData: any) => {
-  return api.post("/api/notif/sendNotifUser", postData);
+  return api.post("/notif/sendNotifUser", postData);
 };
 
 export const createFeedback = (postData: any) => {
-  return api.post("/api/feedback/createFeedback", postData);
+  return api.post("/feedback/createFeedback", postData);
 };
 
 export const deleteFeedbackCategories = (id: any) => {
-  return api.delete(`/api/feedback/deleteFeedbackCategories/${id}`);
+  return api.delete(`/feedback/deleteFeedbackCategories/${id}`);
 };
 
 export const createFeedbackCategories = (postData: any) => {
-  return api.post("/api/feedback/createFeedbackCategories", postData);
+  return api.post("/feedback/createFeedbackCategories", postData);
 };
 
 export const deleteFeedback = (id: any) => {
-  return api.delete(`/api/feedback/deleteFeedback/${id}`);
+  return api.delete(`/feedback/deleteFeedback/${id}`);
 };
 
 export const getAllFeedback = () => {
-  return api.get("/api/feedback/getAllFeedback");
+  return api.get("/feedback/getAllFeedback");
 };
 
 export const updateFeedback = (postData: any) => {
-  return api.put("/api/feedback/updateFeedback", postData);
+  return api.put("/feedback/updateFeedback", postData);
 };
 
 export const restoreFeedbackCategories = (id: any) => {
-  return api.put(`/api/feedback/restoreFeedbackCategories/${id}`);
+  return api.put(`/feedback/restoreFeedbackCategories/${id}`);
 };
 
 export const updateStatusManager = (postData: any) => {
-  return api.put("/api/feedback/updateStatusManager", postData);
+  return api.put("/feedback/updateStatusManager", postData);
 };
 
 export const updateFeedbackCategories = (postData: any) => {
-  return api.put("/api/feedback/updateFeedbackCategories", postData);
+  return api.put("/feedback/updateFeedbackCategories", postData);
 };
 
 export const restoreFeedback = (id: any) => {
-  return api.put(`/api/feedback/restoreFeedback/${id}`);
+  return api.put(`/feedback/restoreFeedback/${id}`);
 };
 
 export const getAllFeedbackCategories = () => {
-  return api.get("/api/feedback/getAllFeedbackCategories");
+  return api.get("/feedback/getAllFeedbackCategories");
 };
 
 export const getAllFeedbackManager = () => {
-  return api.get("/api/feedback/getAllFeedbackManager");
+  return api.get("/feedback/getAllFeedbackManager");
 };
 
 export const getNotifAll = async (userId: number) => {
-  return await api.get(`/api/notif/getNotifAll/${userId}`);
+  return await api.get(`/notif/getNotifAll/${userId}`);
 };
 
 export const getAllUsers = async () => {
@@ -169,23 +166,23 @@ export const findAcceptFoodByUser = async (personalCode: string) => {
 };
 
 export const isReadNotif = async (postData: any) => {
-  return await api.put(`/api/notif/isReadNotif`, postData);
+  return await api.put(`/notif/isReadNotif`, postData);
 };
 
 export const sendNotifToAll = (postData: any) => {
-  return api.post("/api/notif/sendNotifToAll", postData);
+  return api.post("/notif/sendNotifToAll", postData);
 };
 
 export const updatedLimitUsedPhotoAi = async (postData: any) => {
-  return await api.put(`/api/users/updatedLimitUsedPhotoAi`, postData);
+  return await api.put(`/users/updatedLimitUsedPhotoAi`, postData);
 };
 
 export const createFoodPerWeekByUser = async (postData: any) => {
-  return await api.post(`/api/food/createFoodPerWeekByUser`, postData);
+  return await api.post(`/food/createFoodPerWeekByUser`, postData);
 };
 
 export const deleteFoodByUser = (postData: any) => {
-  return api.post(`/api/food/deleteFoodByUser`, postData);
+  return api.post(`/food/deleteFoodByUser`, postData);
 };
 
 export const getQuestionForFood = async (personalCode: any) => {
@@ -193,13 +190,13 @@ export const getQuestionForFood = async (personalCode: any) => {
 };
 
 export const createListeningEar = (postData: any) => {
-  return api.post(`/api/listeningEar/createListeningEar`, postData);
+  return api.post(`/listeningEar/createListeningEar`, postData);
 };
 
 export const getReportQuestionFood = () => {
-  return api.get(`/api/food/getReportQuestionFood`);
+  return api.get(`/food/getReportQuestionFood`);
 };
 
 export const getListeningEarPerDate = (postData: any) => {
-  return api.post(`/api/listeningEar/getListeningEarPerDate`, postData);
+  return api.post(`/listeningEar/getListeningEarPerDate`, postData);
 };
