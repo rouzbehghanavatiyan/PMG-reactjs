@@ -37,16 +37,16 @@ const PublicLayout: React.FC = () => {
   const toasts = useAppSelector((state) => state.toast.toasts);
 
   // ثبت Service Worker
-  useEffect(() => {
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker
-        .register("/service-worker.js")
-        .then((reg) => console.log("Service Worker Registered!", reg.scope))
-        .catch((err) =>
-          console.error("Service worker registration failed:", err),
-        );
-    }
-  }, []);
+  // useEffect(() => {
+  //   if ("serviceWorker" in navigator) {
+  //     navigator.serviceWorker
+  //       .register("/sw.js")
+  //       .then((reg) => console.log("Service Worker Registered!", reg.scope))
+  //       .catch((err) =>
+  //         console.error("Service worker registration failed:", err),
+  //       );
+  //   }
+  // }, []);
 
   const handleRefreshUser = async () => {
     if (!token) return;

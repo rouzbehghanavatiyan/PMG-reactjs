@@ -13,30 +13,27 @@ function urlBase64ToUint8Array(base64String: string) {
   return outputArray;
 }
 
-export const registerServiceWorker = async () => {
+export const subscribeUserToPush = async () => {
   if (!("serviceWorker" in navigator)) return null;
 
-  const registration = await navigator.serviceWorker.register("/service-worker.js");
-  return registration;
-};
-
-export const subscribeUserToPush = async () => {
-  if (!("serviceWorker" in navigator) || !("PushManager" in window))
+  if (!VAPID_PUBLIC_KEY) {
+    console.error("خطا: VITE_VAPID_PUBLIC_KEY در فایل .env تعریف نشده است!");
     return null;
-
-  const registration = await registerServiceWorker();
-  if (!registration) return null;
-
-  let subscription = await registration.pushManager.getSubscription();
-
-  if (subscription) {
-    return subscription;
   }
 
-  subscription = await registration.pushManager.subscribe({
-    userVisibleOnly: true,
-    applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
-  });
+  try {
+    const registration = await navigator.serviceWorker.ready;
 
-  return subscription;
+    const convertedVapidKey = urlBase64ToUint8Array(VAPID_PUBLIC_KEY);
+
+    const subscription = await registration.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: convertedVapidKey,
+    });
+
+    return subscription;
+  } catch (error) {
+    console.error("Error subscribing to push:", error);
+    return null;
+  }
 };

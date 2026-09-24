@@ -11,20 +11,21 @@ if (!rootElement) {
 }
 
 const AppRegistration = () => {
+
   useEffect(() => {
-    if ("serviceWorker" in navigator) {
-      window.addEventListener("load", () => {
-        navigator.serviceWorker
-          .register("/service-worker.js")
-          .then((registration) => {
-            console.log("Service Worker ثبت شد. Scope:", registration.scope);
-          })
-          .catch((error) => {
-            console.error("خطا در ثبت Service Worker:", error);
-          });
-      });
-    }
-  }, []);
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker
+        .register("/sw.js") 
+        .then((registration) => {
+          console.log("Service Worker ثبت شد. Scope:", registration.scope);
+        })
+        .catch((error) => {
+          console.error("خطا در ثبت Service Worker:", error);
+        });
+    });
+  }
+}, []);
 
   return <App />;
 };
