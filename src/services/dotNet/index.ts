@@ -7,29 +7,31 @@ export const usersLogin = async (postData: any) => {
 export const updatedProfilePhoto = (postData: any) => {
   return api.put(`/users/updatedProfilePhoto`, postData);
 };
+
 export const verifyLoginCode = async (postData: any) => {
   return await api.post("/users/verifyLoginCode", postData);
 };
+
 export const getallcompanynews = async () => {
   return await api.get("/companynews/getAllCompanyNews");
 };
+
 export const getAllCategoryNews = async () => {
   return await api.get("/companyNews/getAllCategoryNews");
 };
+
 export const addAttachment = (formData: FormData) => {
   return api.post("/attachment/createAttachment", formData, {
-    headers: {
-      "Content-Type": "multipart/form-data",
-    },
+    headers: { "Content-Type": "multipart/form-data" },
   });
 };
+
 export const addNewsAttachments = (formData: FormData) => {
   return api.post("/companyNews/addAttachments", formData, {
-    headers: {
-      "Content-Type": "multipart/form-data",
-    },
+    headers: { "Content-Type": "multipart/form-data" },
   });
 };
+
 export const createCompanyNews = (postData: any) => {
   return api.post("/companyNews/createCompanyNews", postData);
 };
@@ -139,30 +141,30 @@ export const getNotifAll = async (userId: number) => {
 };
 
 export const getAllUsers = async () => {
-  return await api.get(`api/users/getAllUsers`);
+  return await api.get(`/users/getAllUsers`);
 };
 export const getAllRahkaranUsers = async () => {
-  return await api.get(`api/users/getAllRahkaranUsers`);
+  return await api.get(`/users/getAllRahkaranUsers`);
 };
 
 export const getAllFoodPerWeek = async () => {
-  return await api.get(`api/food/getAllFoodPerWeek`);
+  return await api.get(`/food/getAllFoodPerWeek`);
 };
 
 export const getAllOrderUserOnDay = async (menuId: number) => {
-  return await api.get(`api/food/getAllOrderUserOnDay/${menuId}`);
+  return await api.get(`/food/getAllOrderUserOnDay/${menuId}`);
 };
 
 export const getHistoryFoodByUser = async (personalCode: string) => {
-  return await api.get(`api/food/getHistoryFoodByUser/${personalCode}`);
+  return await api.get(`/food/getHistoryFoodByUser/${personalCode}`);
 };
 
 export const getAllOrderUserFood = async () => {
-  return await api.get(`api/food/getAllOrderUserFood`);
+  return await api.get(`/food/getAllOrderUserFood`);
 };
 
 export const findAcceptFoodByUser = async (personalCode: string) => {
-  return await api.get(`api/food/findAcceptFoodByUser/${personalCode}`);
+  return await api.get(`/food/findAcceptFoodByUser/${personalCode}`);
 };
 
 export const isReadNotif = async (postData: any) => {
@@ -186,7 +188,7 @@ export const deleteFoodByUser = (postData: any) => {
 };
 
 export const getQuestionForFood = async (personalCode: any) => {
-  return await api.get(`api/food/getQuestionForFood/${personalCode}`);
+  return await api.get(`/food/getQuestionForFood/${personalCode}`);
 };
 
 export const createListeningEar = (postData: any) => {

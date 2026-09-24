@@ -138,7 +138,7 @@ const IntroOrgan: React.FC = () => {
           poster="/images/video-thumbnail.jpg"
         >
           <source
-            src={`${import.meta.env.VITE_API_URL}/api/introductionOrgan/getPmgVideo`}
+            src={`${import.meta.env.VITE_API_URL}/introductionOrgan/getPmgVideo`}
             type="video/mp4"
           />
           مرورگر شما از پخش ویدیو پشتیبانی نمی‌کند.
