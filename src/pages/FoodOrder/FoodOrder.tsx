@@ -22,7 +22,6 @@ import Loading from "../../components/UI/Loading";
 const FoodOrder: React.FC = () => {
   const { t } = useLanguage();
   const dispatch = useDispatch();
-
   const [activeTab, setActiveTab] = useState<"current" | "history">("current");
   const [allFoodMenu, setAllFoodMenu] = useState<any[]>([]);
   const [historyFoodMenu, setHistoryFoodMenu] = useState<any[]>([]);
@@ -30,6 +29,7 @@ const FoodOrder: React.FC = () => {
   const [selections, setSelections] = useState<
     Record<string | number, MealType>
   >({});
+
   const [getFoodQuestion, setGetFoodQuestion] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -40,6 +40,7 @@ const FoodOrder: React.FC = () => {
   const userLogin = useAppSelector(
     (state) => state?.main?.userProfile?.userLogin,
   );
+
   const main = useAppSelector((state) => state?.main);
   const personalCode = main?.userProfile?.userLogin?.personalCode;
 
@@ -206,6 +207,7 @@ const FoodOrder: React.FC = () => {
 
   useEffect(() => {
     if (!userLogin?.personalCode) return;
+    fetchAllData();
     handleGetAllFoodPerWeek();
     handleFindAcceptedFood();
     handleGetHistoryFoodByUser();
@@ -255,11 +257,6 @@ const FoodOrder: React.FC = () => {
     ]);
     setIsLoading(false);
   };
-
-  useEffect(() => {
-    if (!personalCode) return;
-    fetchAllData();
-  }, [personalCode]);
 
   useEffect(() => {
     setCheckSubmitedQuestions(true);
